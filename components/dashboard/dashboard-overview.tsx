@@ -122,7 +122,7 @@ export function DashboardOverview() {
               <div>
                 <p className="text-sm text-gray-500">Total</p>
                 <p className="text-sm font-medium text-gray-500">Accredited Agents</p>
-                <p className="mt-2 text-3xl font-bold">9,790</p>
+                <p className="mt-2 text-3xl font-bold">9,90</p>
                 <div className="mt-2 flex items-center gap-1 text-sm">
                   <TrendingDown className="h-4 w-4 text-red-600" />
                   <span className="font-medium text-red-600">-5%</span>

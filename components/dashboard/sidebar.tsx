@@ -81,7 +81,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "group relative flex h-screen flex-col border-r bg-white transition-all duration-300",
+        "group relative flex h-screen flex-col border-r bg-white transition-all duration-300 fixed left-0 top-0",
         isExpanded ? "w-64" : "w-20",
       )}
       onMouseEnter={() => onToggle(true)}
@@ -90,8 +90,8 @@ export function Sidebar({
       {/* Logo */}
       <div className="flex h-20 items-center border-b px-4">
         <div className="flex items-center gap-3">
-          <div className="">
-            <img src="/logo.png" alt="CAC Logo" className="h-12 w-12 object-contain" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-700">
+            <span className="text-xs font-bold text-white">CAC</span>
           </div>
           {isExpanded && (
             <div>

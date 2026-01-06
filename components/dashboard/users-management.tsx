@@ -552,7 +552,7 @@ export function UsersManagement() {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 overflow-x-auto bg-gray-100 rounded-full p-2 border-0 w-fit">
+      <div className="flex gap-2 overflow-x-auto bg-gray-200 rounded-md p-2 border-0 w-fit">
         {tabs.map((tab) => (
           <button
             key={tab}
@@ -560,7 +560,7 @@ export function UsersManagement() {
               setActiveTab(tab)
               setCurrentPage(1)
             }}
-            className={`px-4 py-2 text-sm font-medium rounded-full transition-all whitespace-nowrap ${
+            className={`px-3 py-1 text-sm font-medium rounded-md transition-all whitespace-nowrap ${
               activeTab === tab
                 ? "bg-white text-gray-900 shadow-sm"
                 : "bg-transparent text-gray-500 hover:text-gray-700"
@@ -579,7 +579,7 @@ export function UsersManagement() {
                 <p className="text-sm font-medium text-gray-600">{totalLabel}</p>
                 <p className="text-2xl font-bold text-gray-900">{statusCounts.total}</p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center  bg-gray-100">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
                 <Users className="h-6 w-6 text-black" />
               </div>
             </div>
@@ -593,7 +593,7 @@ export function UsersManagement() {
                 <p className="text-sm font-medium text-gray-600">Active</p>
                 <p className="text-2xl font-bold text-emerald-600">{statusCounts.active}</p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center bg-emerald-100">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
                 <CheckCircle2 className="h-6 w-6 text-emerald-600" />
               </div>
             </div>
@@ -607,7 +607,7 @@ export function UsersManagement() {
                 <p className="text-sm font-medium text-gray-600">Suspended</p>
                 <p className="text-2xl font-bold text-rose-600">{statusCounts.suspended}</p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center  bg-rose-100">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100">
                 <XCircle className="h-6 w-6 text-rose-600" />
               </div>
             </div>
@@ -632,24 +632,31 @@ export function UsersManagement() {
       <Card className="bg-white">
         <CardHeader className="border-b">
           <div className="flex flex-col gap-4">
-            {/* First Row: Title and Add/Export Buttons */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle className="text-lg">
                 {tabLabel} ({filteredUsers.length})
               </CardTitle>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
-                {/* Add New User and Export buttons on same line */}
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                  <Button
-                    onClick={() => router.push("/dashboard/users/add")}
-                    className="gap-2 bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
-                  >
-                    + {addButtonLabel}
-                  </Button>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <Button
+                  onClick={() => {
+                    const typeParam =
+                      activeTab === "Public Users"
+                        ? "?type=public-user"
+                        : activeTab === "Accredited Agents"
+                          ? "?type=accredited-agent"
+                          : ""
+                    router.push(`/dashboard/users/add${typeParam}`)
+                  }}
+                  className="gap-2 bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
+                >
+                  + {addButtonLabel}
+                </Button>
+
+                <div className="flex flex-col gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" className="gap-2 bg-transparent w-full sm:w-auto">
-                        <Download className="h-4 w-4" />
+                        <Download className="h-3 w-3" />
                         <span className="hidden sm:inline">Export</span>
                       </Button>
                     </DropdownMenuTrigger>
@@ -668,15 +675,14 @@ export function UsersManagement() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+
+                  
                 </div>
-                
-                {/* Filter button positioned to align under Export button */}
-                
               </div>
             </div>
-            {/* Search Bar */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
-              <div className="relative w-94">
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2 justify-between">
+              <div className="relative w-1/3">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   placeholder="Search by name or email"
@@ -688,6 +694,33 @@ export function UsersManagement() {
                   className="pl-9 h-9 text-sm"
                 />
               </div>
+
+              <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="gap-1 bg-transparent h-8 px-2 text-xs w-full sm:w-auto">
+                        <Filter className="h-3 w-3" />
+                        <span className="hidden sm:inline">Filters</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <div className="p-2 space-y-2">
+                        {["Active", "Suspended", "Pending"].map((status) => (
+                          <label
+                            key={status}
+                            className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded hover:bg-gray-100"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={activeFilters.includes(status)}
+                              onChange={() => toggleFilter(status)}
+                              className="rounded"
+                            />
+                            <span className="text-sm">{status}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
             </div>
           </div>
         </CardHeader>
@@ -740,14 +773,30 @@ export function UsersManagement() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
                             className="gap-2"
-                            onClick={() => router.push(`/dashboard/users/${user.id}/details`)}
+                            onClick={() => {
+                              const typeParam =
+                                activeTab === "Public Users"
+                                  ? "?type=public-user"
+                                  : activeTab === "Accredited Agents"
+                                    ? "?type=accredited-agent"
+                                    : ""
+                              router.push(`/dashboard/users/${user.id}/details${typeParam}`)
+                            }}
                           >
                             <Eye className="h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="gap-2"
-                            onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}
+                            onClick={() => {
+                              const typeParam =
+                                activeTab === "Public Users"
+                                  ? "?type=public-user"
+                                  : activeTab === "Accredited Agents"
+                                    ? "?type=accredited-agent"
+                                    : ""
+                              router.push(`/dashboard/users/${user.id}/edit${typeParam}`)
+                            }}
                           >
                             <Edit2 className="h-4 w-4" />
                             Edit
