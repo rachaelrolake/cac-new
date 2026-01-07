@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CategoryTabs } from "./category-tabs"
 import { MetricCard } from "./metric-card"
-import { Search, Filter, Download, MoreHorizontal } from "lucide-react"
+import { Search, Filter, Download, MoreHorizontal, FileText, Flag, Trash2, Eye } from "lucide-react"
 
 interface ConsentApplicationsListProps {
   activeCategory: string
@@ -28,6 +28,8 @@ const mockApplications = [
     aiDecision: "AI: Recommended Approval",
     status: "Pending",
     sla: "Done",
+    natureOfBusiness: "Information Technology",
+    applicants: "John Doe",
   },
   {
     id: 2,
@@ -39,6 +41,8 @@ const mockApplications = [
     aiDecision: "AI: Needs Human Review",
     status: "Queried",
     sla: "Done",
+    natureOfBusiness: "Oil & Gas",
+    applicants: "Ahmed Hassan",
   },
   {
     id: 3,
@@ -50,6 +54,8 @@ const mockApplications = [
     aiDecision: "AI: Recommended Approval",
     status: "Pending",
     sla: "Done",
+    natureOfBusiness: "Investment & Finance",
+    applicants: "Mary Johnson",
   },
   {
     id: 4,
@@ -61,6 +67,8 @@ const mockApplications = [
     aiDecision: "AI: Approved",
     status: "Approved",
     sla: "8 Hours Remaining",
+    natureOfBusiness: "Banking & Financial Services",
+    applicants: "Michael Chen",
   },
   {
     id: 5,
@@ -72,6 +80,8 @@ const mockApplications = [
     aiDecision: "AI: Approved",
     status: "Approved",
     sla: "24 Days Remaining",
+    natureOfBusiness: "Agriculture",
+    applicants: "David Okafor",
   },
   {
     id: 6,
@@ -83,6 +93,8 @@ const mockApplications = [
     aiDecision: "AI: Needs Human Review",
     status: "Approved",
     sla: "8 Hours Remaining",
+    natureOfBusiness: "Furniture Manufacturing",
+    applicants: "Grace Eze",
   },
   {
     id: 7,
@@ -94,10 +106,12 @@ const mockApplications = [
     aiDecision: "AI: Recommended Approval",
     status: "Under Review",
     sla: "8 Hours Remaining",
+    natureOfBusiness: "Logistics & Transportation",
+    applicants: "Chioma Nwankwo",
   },
 ]
 
-export function ConsentApplicationsList({ activeCategory, setActiveCategory }: ConsentApplicationsListProps) {
+export function RegistrationApplicationList({ activeCategory, setActiveCategory }: ConsentApplicationsListProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const getStatusColor = (status: string) => {
@@ -125,14 +139,13 @@ export function ConsentApplicationsList({ activeCategory, setActiveCategory }: C
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold mb-4">Filter by Category</h2>
         <CategoryTabs activeCategory={activeCategory} onCategoryChange={setActiveCategory} type="consent" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
         {activeCategory === "business-name" && (
           <>
-            <MetricCard title="Total Business Name Requiring Consent" value="10,340" icon="users" iconColor="gray" />
+            <MetricCard title="Total Business Name Registration" value="10,340" icon="users" iconColor="gray" />
             <MetricCard title="Auto Approved Reservations" value="9789" icon="checkmark" iconColor="green" />
             <MetricCard title="Out of Turn Around Time" value="312" icon="cross" iconColor="red" />
             <MetricCard title="Rejected by AI" value="3" icon="cross" iconColor="red" />
@@ -141,7 +154,7 @@ export function ConsentApplicationsList({ activeCategory, setActiveCategory }: C
         )}
         {activeCategory === "company-name" && (
           <>
-            <MetricCard title="Total Company Name Requiring Consent" value="10,340" icon="users" iconColor="gray" />
+            <MetricCard title="Total Company Name Registration" value="10,340" icon="users" iconColor="gray" />
             <MetricCard title="Auto Approved Reservations" value="9789" icon="checkmark" iconColor="green" />
             <MetricCard title="Out of Turn Around Time" value="312" icon="cross" iconColor="red" />
             <MetricCard title="Rejected by AI" value="3" icon="cross" iconColor="red" />
@@ -150,7 +163,7 @@ export function ConsentApplicationsList({ activeCategory, setActiveCategory }: C
         )}
         {activeCategory === "llp" && (
           <>
-            <MetricCard title="Total Limited Liability Partnership Consent" value="10,340" icon="users" iconColor="gray" />
+            <MetricCard title="Total Limited Liability Partnership Registration" value="10,340" icon="users" iconColor="gray" />
             <MetricCard title="Auto Approved Reservations" value="9789" icon="checkmark" iconColor="green" />
             <MetricCard title="Out of Turn Around Time" value="312" icon="cross" iconColor="red" />
             <MetricCard title="Rejected by AI" value="3" icon="cross" iconColor="red" />
@@ -159,7 +172,7 @@ export function ConsentApplicationsList({ activeCategory, setActiveCategory }: C
         )}
         {activeCategory === "lp" && (
           <>
-            <MetricCard title="Total Limited Partnership Consent" value="10,340" icon="users" iconColor="gray" />
+            <MetricCard title="Total Limited Partnership Registration" value="10,340" icon="users" iconColor="gray" />
             <MetricCard title="Auto Approved Reservations" value="9789" icon="checkmark" iconColor="green" />
             <MetricCard title="Out of Turn Around Time" value="312" icon="cross" iconColor="red" />
             <MetricCard title="Rejected by AI" value="3" icon="cross" iconColor="red" />
@@ -168,7 +181,7 @@ export function ConsentApplicationsList({ activeCategory, setActiveCategory }: C
         )}
         {activeCategory === "it" && (
           <>
-            <MetricCard title="Total Incorporated Trustees Consent" value="10,340" icon="users" iconColor="gray" />
+            <MetricCard title="Total Incorporated Trustees Registration" value="10,340" icon="users" iconColor="gray" />
             <MetricCard title="Auto Approved Reservations" value="9789" icon="checkmark" iconColor="green" />
             <MetricCard title="Out of Turn Around Time" value="312" icon="cross" iconColor="red" />
             <MetricCard title="Rejected by AI" value="3" icon="cross" iconColor="red" />
@@ -202,14 +215,16 @@ export function ConsentApplicationsList({ activeCategory, setActiveCategory }: C
           </div>
         </div>
 
-        <div className="overflow-x-auto px-4">
-          <Table>
+        <div className="w-full overflow-x-auto p-4">
+          <Table className="w-full min-w-max">
             <TableHeader>
               <TableRow>
                 <TableHead>S/N</TableHead>
                 <TableHead>AV Code</TableHead>
                 <TableHead>Proposed Name</TableHead>
+                <TableHead>Nature of Business</TableHead>
                 <TableHead>Submitted</TableHead>
+                <TableHead>Applicants</TableHead>
                 <TableHead>Reason for Consent</TableHead>
                 <TableHead>AI Decision</TableHead>
                 <TableHead>Status</TableHead>
@@ -230,7 +245,16 @@ export function ConsentApplicationsList({ activeCategory, setActiveCategory }: C
                       {app.proposedName}
                     </Link>
                   </TableCell>
+                  <TableCell className="text-sm">{app.natureOfBusiness}</TableCell>
                   <TableCell className="text-sm">{app.submitted}</TableCell>
+                  <TableCell className="text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-white">
+                        {app.applicants.charAt(0)}
+                      </div>
+                      <span>{app.applicants}</span>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-sm">{app.reasonForConsent}</TableCell>
                   <TableCell className={`text-sm font-medium ${getDecisionColor(app.aiDecision)}`}>
                     {app.aiDecision}
@@ -263,10 +287,23 @@ export function ConsentApplicationsList({ activeCategory, setActiveCategory }: C
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/pre-incorporation/application/${app.id}`}>View Details</Link>
+                          <Link href={`/pre-incorporation/application/${app.id}`} className="flex items-center gap-2">
+                            <Eye className="h-4 w-4" />
+                            View Registration Details
+                          </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Export</DropdownMenuItem>
+                        <DropdownMenuItem className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          Request Documents
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+                          <Flag className="h-4 w-4 text-red-600" />
+                          Flag
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                          Delete
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
