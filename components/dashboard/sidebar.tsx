@@ -38,7 +38,7 @@ const menuItems: MenuItem[] = [
     label: "Pre-Incorporation",
     children: [
       { label: "Name Reservation", href: "/pre-incorporation/name-reservation", badge: 99 },
-      { label: "Name Requiring Consent", href: "/pre-incorporation/name-consent", badge: 99 },
+      { label: "Name Requiring Consent", href: "/pre-incorporation/name-requiring-consent", badge: 99 },
       { label: "Registration", href: "/pre-incorporation/registration", badge: 99 },
       { label: "AI Review Queue", href: "/pre-incorporation/ai-review", badge: 99 },
     ],
