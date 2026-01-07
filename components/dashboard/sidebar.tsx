@@ -37,18 +37,18 @@ const menuItems: MenuItem[] = [
     icon: FileText,
     label: "Pre-Incorporation",
     children: [
-      { label: "Name Reservation", href: "/dashboard/name-reservation", badge: 99 },
-      { label: "Name Requiring Consent", href: "/dashboard/name-consent", badge: 99 },
-      { label: "Registration", href: "/dashboard/registration", badge: 99 },
-      { label: "AI Review Queue", href: "/dashboard/ai-review", badge: 99 },
+      { label: "Name Reservation", href: "/pre-incorporation/name-reservation", badge: 99 },
+      { label: "Name Requiring Consent", href: "/pre-incorporation/name-consent", badge: 99 },
+      { label: "Registration", href: "/pre-incorporation/registration", badge: 99 },
+      { label: "AI Review Queue", href: "/pre-incorporation/ai-review", badge: 99 },
     ],
   },
   {
     icon: Building,
     label: "Post-Incorporation",
     children: [
-      { label: "Annual Returns", href: "/dashboard/annual-returns" },
-      { label: "Document Filing", href: "/dashboard/document-filing" },
+      { label: "Annual Returns", href: "/pre-incorporation/annual-returns" },
+      { label: "Document Filing", href: "/pre-incorporation/document-filing" },
     ],
   },
   { icon: SettingsIcon, label: "System Configuration", href: "/dashboard/system-config" },
@@ -90,9 +90,7 @@ export function Sidebar({
       {/* Logo */}
       <div className="flex h-20 items-center border-b px-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-700">
-            <span className="text-xs font-bold text-white">CAC</span>
-          </div>
+          <img src="/logo.png" alt="CAC Logo" className="h-12 w-16" />
           {isExpanded && (
             <div>
               <div className="text-xs font-bold text-emerald-700">CORPORATE AFFAIRS</div>
