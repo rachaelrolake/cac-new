@@ -7,24 +7,21 @@ import { usePathname } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Search, Bell } from "lucide-react"
 import { Sidebar } from "@/components/dashboard/sidebar"
-import { ConsentApplicationsList } from "./consent-applications-list"
-import { ReservationApplicationsList } from "./reservation-applications-list"
-import { AIReviewQueuePage } from "./ai-queue-layout"
 import { Button } from "../ui/button"
+import { AllPostActivityList } from "./all-post-layout-list"
 
-interface PreIncorporationLayoutProps {
+interface PostIncorporationLayoutProps {
   children: React.ReactNode
-  activeTab: "consent" | "reservation" | "ai-review"
+  activeTab: "consent" | "reservation"
 }
 
-export function PreIncorporationLayout({ children, activeTab }: PreIncorporationLayoutProps) {
+export function AllPostActivityLayout({ children, activeTab }: PostIncorporationLayoutProps) {
   const pathname = usePathname()
   const [activeCategory, setActiveCategory] = useState("company-name")
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
 
   const isConsentPage = pathname.includes("name-requiring-consent")
   const isReservationPage = pathname.includes("name-reservation")
-  const isAIReviewPage = pathname.includes("ai-review")
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -36,16 +33,8 @@ export function PreIncorporationLayout({ children, activeTab }: PreIncorporation
         <header className="border-b bg-white">
           <div className="flex h-20 items-center justify-between px-6">
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                {isConsentPage && "Name Requiring Consent Review"}
-                {isReservationPage && "Name Reservation Review"}
-                {isAIReviewPage && "AI Review Queue"}
-              </h1>
-              <p className="text-sm text-gray-500">
-                {isConsentPage && "Review and process name requiring consent applications"}
-                {isReservationPage && "Review and process name reservation applications"}
-                {isAIReviewPage && "Applications requiring manual review across all types"}
-              </p>
+              <h1 className="text-xl font-semibold text-gray-900">Post Incorporation Activity Review</h1>
+              <p className="text-sm text-gray-500">Manage post-incorporation activities for registered entities</p>
             </div>
 
             <div className="flex items-center gap-4">
@@ -67,15 +56,7 @@ export function PreIncorporationLayout({ children, activeTab }: PreIncorporation
           <div className="p-8">
             {children}
 
-            {isConsentPage && (
-              <ConsentApplicationsList activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-            )}
-            {isReservationPage && (
-              <ReservationApplicationsList activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-            )}
-            {isAIReviewPage && (
-              <AIReviewQueuePage children={undefined} activeTab={"ai-review"} />
-            )}
+            <AllPostActivityList activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
           </div>
         </main>
       </div>

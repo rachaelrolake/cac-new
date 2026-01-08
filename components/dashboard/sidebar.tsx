@@ -47,8 +47,9 @@ const menuItems: MenuItem[] = [
     icon: Building,
     label: "Post-Incorporation",
     children: [
-      { label: "Annual Returns", href: "/pre-incorporation/annual-returns" },
-      { label: "Document Filing", href: "/pre-incorporation/document-filing" },
+      { label: "All Post Activity", href: "/post-incorporation/all-post-activity", badge: 99 },
+      { label: "Insolvency", href: "/post-incorporation/insolvency", badge: 99 },
+      { label: "AI Review Queue", href: "/post-incorporation/ai-review", badge: 99 },
     ],
   },
   { icon: SettingsIcon, label: "System Configuration", href: "/dashboard/system-config" },

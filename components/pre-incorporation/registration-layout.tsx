@@ -56,7 +56,7 @@ export function RegistrationLayout({ children, activeTab }: PreIncorporationLayo
           <div className="p-8">
             {children}
 
-              <RegistrationApplicationList activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
+            <RegistrationApplicationList activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
           </div>
         </main>
       </div>

@@ -145,7 +145,7 @@ export function AIReviewQueueTable() {
               <TableCell>{item.sn}</TableCell>
               <TableCell>{item.avCode}</TableCell>
               <TableCell>
-                <Link href={`/pre-incorporation/ai-review/${item.id}`} className="font-medium text-primary hover:underline">
+                <Link href={`/post-incorporation/ai-review/${item.id}`} className="font-medium text-primary hover:underline">
                   {item.proposedName}
                 </Link>
               </TableCell>
@@ -185,7 +185,7 @@ export function AIReviewQueueTable() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/pre-incorporation/ai-review/${item.id}`} className="flex items-center gap-2">
+                      <Link href={`/post-incorporation/ai-review/${item.id}`} className="flex items-center gap-2">
                         <Eye className="h-4 w-4" />
                         View Details
                       </Link>

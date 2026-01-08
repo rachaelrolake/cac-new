@@ -190,7 +190,7 @@ export function RegistrationApplicationList({ activeCategory, setActiveCategory 
         )}
       </div>
 
-      <Card>
+      <Card style={{width: "calc(100vw - 145px)"}}>
         <div className="border-b border-border p-6">
           <div className="flex items-center justify-between">
             <div className="flex flex-1 items-center gap-4">

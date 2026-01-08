@@ -10,25 +10,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CategoryTabs } from "./category-tabs"
 import { MetricCard } from "./metric-card"
-import { Search, Filter, Download, MoreHorizontal } from "lucide-react"
+import { Search, Filter, Download, MoreHorizontal, FileText, Flag, Trash2, Eye } from "lucide-react"
 
-interface ReservationApplicationsListProps {
+interface ApplicationsListProps {
   activeCategory: string
   setActiveCategory: (category: string) => void
 }
 
-const mockReservations = [
+const mockApplications = [
   {
     id: 1,
     sn: 1,
     avCode: "AV-2019-01",
     proposedName: "TECH INNOVATIONS NIGERIA LIMITED",
     submitted: "Nov 15, 2025 09:49AM",
+    reasonForConsent: "New Incorporation",
     aiDecision: "AI: Recommended Approval",
     status: "Pending",
-    source: "User",
-    aiScore: "67%",
-    sla: "8 Hours Remaining",
+    sla: "Done",
+    natureOfBusiness: "Information Technology",
+    applicants: "John Doe",
   },
   {
     id: 2,
@@ -36,11 +37,12 @@ const mockReservations = [
     avCode: "AV-2019-01",
     proposedName: "GLOBAL PETROLEUM SERVICES LIMITED",
     submitted: "Nov 14, 2025 09:50AM",
+    reasonForConsent: "Use Of Restricted Word",
     aiDecision: "AI: Needs Human Review",
     status: "Queried",
-    source: "AI Recommended",
-    aiScore: "34%",
-    sla: "8 Hours Remaining",
+    sla: "Done",
+    natureOfBusiness: "Oil & Gas",
+    applicants: "Ahmed Hassan",
   },
   {
     id: 3,
@@ -48,11 +50,12 @@ const mockReservations = [
     avCode: "AV-2019-01",
     proposedName: "SUNRISE VENTURES LIMITED",
     submitted: "Nov 14, 2025 12:09PM",
+    reasonForConsent: "Group Holdings/ Consortium",
     aiDecision: "AI: Recommended Approval",
     status: "Pending",
-    source: "AI Recommended",
-    aiScore: "80%",
-    sla: "8 Hours Remaining",
+    sla: "Done",
+    natureOfBusiness: "Investment & Finance",
+    applicants: "Mary Johnson",
   },
   {
     id: 4,
@@ -60,11 +63,12 @@ const mockReservations = [
     avCode: "AV-2019-01",
     proposedName: "NATIONAL BANK OF COMMERCE LIMITED",
     submitted: "Nov 10, 2025 01:34PM",
+    reasonForConsent: "Group Holdings/ consortium",
     aiDecision: "AI: Approved",
     status: "Approved",
-    source: "AI Recommended",
-    aiScore: "80%",
-    sla: "Done",
+    sla: "8 Hours Remaining",
+    natureOfBusiness: "Banking & Financial Services",
+    applicants: "Michael Chen",
   },
   {
     id: 5,
@@ -72,11 +76,12 @@ const mockReservations = [
     avCode: "AV-2019-01",
     proposedName: "SUNNET AGRO LIMITED",
     submitted: "Nov 14, 2025 05:12AM",
+    reasonForConsent: "New Incorporation",
     aiDecision: "AI: Approved",
     status: "Approved",
-    source: "AI Recommended",
-    aiScore: "90%",
-    sla: "Done",
+    sla: "24 Days Remaining",
+    natureOfBusiness: "Agriculture",
+    applicants: "David Okafor",
   },
   {
     id: 6,
@@ -84,11 +89,12 @@ const mockReservations = [
     avCode: "AV-2019-01",
     proposedName: "EDU FURNITURES LIMITED",
     submitted: "Nov 08, 2025 09:12PM",
+    reasonForConsent: "New Incorporation",
     aiDecision: "AI: Needs Human Review",
     status: "Approved",
-    source: "AI Recommended",
-    aiScore: "80%",
-    sla: "Done",
+    sla: "8 Hours Remaining",
+    natureOfBusiness: "Furniture Manufacturing",
+    applicants: "Grace Eze",
   },
   {
     id: 7,
@@ -96,15 +102,16 @@ const mockReservations = [
     avCode: "AV-2019-01",
     proposedName: "JAGORA VENTURES LIMITED",
     submitted: "Nov 14, 2025 09: 12AM",
+    reasonForConsent: "Group Holdings/ Consortium",
     aiDecision: "AI: Recommended Approval",
     status: "Under Review",
-    source: "AI Recommended",
-    aiScore: "90%",
-    sla: "24 Days Remaining",
+    sla: "8 Hours Remaining",
+    natureOfBusiness: "Logistics & Transportation",
+    applicants: "Chioma Nwankwo",
   },
 ]
 
-export function ReservationApplicationsList({ activeCategory, setActiveCategory }: ReservationApplicationsListProps) {
+export function AllPostActivityList({ activeCategory, setActiveCategory }: ApplicationsListProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const getStatusColor = (status: string) => {
@@ -132,58 +139,53 @@ export function ReservationApplicationsList({ activeCategory, setActiveCategory 
   return (
     <div className="space-y-6">
       <div>
-        <CategoryTabs activeCategory={activeCategory} onCategoryChange={setActiveCategory} type="reservation" />
+        <CategoryTabs activeCategory={activeCategory} onCategoryChange={setActiveCategory} type="consent" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {activeCategory === "business-name" && (
           <>
-            <MetricCard title="Total Business Name" value="10,340" icon="users" iconColor="gray" />
-            <MetricCard title="Auto Approved Reservations" value="9789" icon="checkmark" iconColor="green" />
-            <MetricCard title="Out of Turn Around Time" value="312" icon="cross" iconColor="red" />
-            <MetricCard title="Rejected by AI" value="3" icon="cross" iconColor="red" />
-            <MetricCard title="Pending AI Reviews" value="3" icon="clock" iconColor="blue" />
+            <MetricCard title="Auto Approved Filings" value="120" icon="users" iconColor="gray" />
+            <MetricCard title="Out of Turn Around Time" value="45" icon="cross" iconColor="red" />
+            <MetricCard title="Rejected Filing by AI" value="5" icon="cross" iconColor="red" />
+            <MetricCard title="Pending Filings by AI" value="10" icon="clock" iconColor="blue" />
           </>
         )}
         {activeCategory === "company-name" && (
           <>
-            <MetricCard title="Total Company Name" value="10,340" icon="users" iconColor="gray" />
-            <MetricCard title="Auto Approved Reservations" value="9789" icon="checkmark" iconColor="green" />
-            <MetricCard title="Out of Turn Around Time" value="312" icon="cross" iconColor="red" />
-            <MetricCard title="Rejected by AI" value="3" icon="cross" iconColor="red" />
-            <MetricCard title="Pending Review by AI" value="3" icon="clock" iconColor="blue" />
+            <MetricCard title="Auto Approved Filings" value="200" icon="users" iconColor="gray" />
+            <MetricCard title="Out of Turn Around Time" value="30" icon="cross" iconColor="red" />
+            <MetricCard title="Rejected Filing by AI" value="2" icon="cross" iconColor="red" />
+            <MetricCard title="Pending Filings by AI" value="8" icon="clock" iconColor="blue" />
           </>
         )}
         {activeCategory === "llp" && (
           <>
-            <MetricCard title="Total Limited Liability Partnership Name" value="10,340" icon="users" iconColor="gray" />
-            <MetricCard title="Auto Approved Reservations" value="9789" icon="checkmark" iconColor="green" />
-            <MetricCard title="Out of Turn Around Time" value="312" icon="cross" iconColor="red" />
-            <MetricCard title="Rejected by AI" value="3" icon="cross" iconColor="red" />
-            <MetricCard title="Pending AI Reviews" value="3" icon="clock" iconColor="blue" />
+            <MetricCard title="Auto Approved Filings" value="150" icon="users" iconColor="gray" />
+            <MetricCard title="Out of Turn Around Time" value="25" icon="cross" iconColor="red" />
+            <MetricCard title="Rejected Filing by AI" value="1" icon="cross" iconColor="red" />
+            <MetricCard title="Pending Filings by AI" value="5" icon="clock" iconColor="blue" />
           </>
         )}
         {activeCategory === "lp" && (
           <>
-            <MetricCard title="Total Limited Partnership Name" value="10,340" icon="users" iconColor="gray" />
-            <MetricCard title="Auto Approved Reservations" value="9789" icon="checkmark" iconColor="green" />
-            <MetricCard title="Out of Turn Around Time" value="312" icon="cross" iconColor="red" />
-            <MetricCard title="Rejected by AI" value="3" icon="cross" iconColor="red" />
-            <MetricCard title="Pending AI Reviews" value="3" icon="clock" iconColor="blue" />
+            <MetricCard title="Auto Approved Filings" value="180" icon="users" iconColor="gray" />
+            <MetricCard title="Out of Turn Around Time" value="40" icon="cross" iconColor="red" />
+            <MetricCard title="Rejected Filing by AI" value="4" icon="cross" iconColor="red" />
+            <MetricCard title="Pending Filings by AI" value="12" icon="clock" iconColor="blue" />
           </>
         )}
         {activeCategory === "it" && (
           <>
-            <MetricCard title="Total Incorporated Trustees" value="10,340" icon="users" iconColor="gray" />
-            <MetricCard title="Auto Approved Reservations" value="9789" icon="checkmark" iconColor="green" />
-            <MetricCard title="Out of Turn Around Time" value="312" icon="cross" iconColor="red" />
-            <MetricCard title="Rejected by AI" value="3" icon="cross" iconColor="red" />
-            <MetricCard title="Pending AI Reviews" value="3" icon="clock" iconColor="blue" />
+            <MetricCard title="Auto Approved Filings" value="220" icon="users" iconColor="gray" />
+            <MetricCard title="Out of Turn Around Time" value="35" icon="cross" iconColor="red" />
+            <MetricCard title="Rejected Filing by AI" value="3" icon="cross" iconColor="red" />
+            <MetricCard title="Pending Filings by AI" value="7" icon="clock" iconColor="blue" />
           </>
         )}
       </div>
 
-      <Card style={{width: "calc(100vw - 145px)"}}>
+      <Card style={{ width: "calc(100vw - 145px)" }}>
         <div className="border-b border-border p-6">
           <div className="flex items-center justify-between">
             <div className="flex flex-1 items-center gap-4">
@@ -208,55 +210,52 @@ export function ReservationApplicationsList({ activeCategory, setActiveCategory 
           </div>
         </div>
 
-        <div className="overflow-x-auto px-4">
-          <Table>
+        <div className="w-full overflow-x-auto p-4">
+          <Table className="w-full min-w-max">
             <TableHeader>
               <TableRow>
                 <TableHead>S/N</TableHead>
                 <TableHead>AV Code</TableHead>
                 <TableHead>Proposed Name</TableHead>
+                <TableHead>Nature of Business</TableHead>
                 <TableHead>Submitted</TableHead>
+                <TableHead>Applicants</TableHead>
+                <TableHead>Reason for Consent</TableHead>
                 <TableHead>AI Decision</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>AI Score</TableHead>
                 <TableHead>SLA</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockReservations.map((app) => (
+              {mockApplications.map((app) => (
                 <TableRow key={app.id} className="hover:bg-secondary">
                   <TableCell className="font-medium">{app.sn}</TableCell>
                   <TableCell>{app.avCode}</TableCell>
                   <TableCell>
                     <Link
-                      href={`/pre-incorporation/reservation/${app.id}`}
+                      href={`/post-incorporation/application/${app.id}`}
                       className="font-medium text-primary hover:underline"
                     >
                       {app.proposedName}
                     </Link>
                   </TableCell>
+                  <TableCell className="text-sm">{app.natureOfBusiness}</TableCell>
                   <TableCell className="text-sm">{app.submitted}</TableCell>
+                  <TableCell className="text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-white">
+                        {app.applicants.charAt(0)}
+                      </div>
+                      <span>{app.applicants}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm">{app.reasonForConsent}</TableCell>
                   <TableCell className={`text-sm font-medium ${getDecisionColor(app.aiDecision)}`}>
                     {app.aiDecision}
                   </TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(app.status)}>{app.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    <Badge className={app.source === "User" ? "bg-gray-100 text-gray-800" : "bg-purple-100 text-purple-800"}>
-                      {app.source}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    <Badge className={
-                      app.aiScore === "90%" || app.aiScore === "80%" ? "bg-green-100 text-green-800" :
-                        app.aiScore === "67%" ? "bg-yellow-100 text-yellow-800" :
-                          "bg-red-100 text-red-800"
-                    }>
-                      {app.aiScore}
-                    </Badge>
                   </TableCell>
                   <TableCell className="text-sm">
                     <div className="flex flex-col gap-2">
@@ -283,10 +282,23 @@ export function ReservationApplicationsList({ activeCategory, setActiveCategory 
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/pre-incorporation/reservation/${app.id}`}>View Details</Link>
+                          <Link href={`/post-incorporation/application/${app.id}`} className="flex items-center gap-2">
+                            <Eye className="h-4 w-4" />
+                            View Details
+                          </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Export</DropdownMenuItem>
+                        <DropdownMenuItem className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          Request Documents
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+                          <Flag className="h-4 w-4 text-red-600" />
+                          Flag
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                          Delete
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
