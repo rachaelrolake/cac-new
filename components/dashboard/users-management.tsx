@@ -561,8 +561,8 @@ export function UsersManagement() {
               setCurrentPage(1)
             }}
             className={`px-3 py-1 text-sm font-medium rounded-md transition-all whitespace-nowrap ${activeTab === tab
-                ? "bg-white text-gray-900 shadow-sm"
-                : "bg-transparent text-gray-500 hover:text-gray-700"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "bg-transparent text-gray-500 hover:text-gray-700"
               }`}
           >
             {tab}
@@ -779,13 +779,19 @@ export function UsersManagement() {
                           <DropdownMenuItem
                             className="gap-2"
                             onClick={() => {
-                              const typeParam =
-                                activeTab === "Public Users"
-                                  ? "?type=public-user"
-                                  : activeTab === "Accredited Agents"
-                                    ? "?type=accredited-agent"
-                                    : ""
-                              router.push(`/dashboard/users/${user.id}/details${typeParam}`)
+                              // Mapping the activeTab to the URL query parameter
+                              const typeMapping: Record<string, string> = {
+                                "System Admins": "system-admin",
+                                "Public Users": "public-user",
+                                "Accredited Agents": "accredited-agent",
+                                "Insolvency Agents": "insolvency-agent",
+                                "Entity Accounts": "entity-account",
+                              };
+
+                              const typeValue = typeMapping[activeTab] || "";
+                              const typeParam = typeValue ? `?type=${typeValue}` : "";
+                              console.log(activeTab);
+                              router.push(`/dashboard/users/${user.id}/details${typeParam}`);
                             }}
                           >
                             <Eye className="h-4 w-4" />
@@ -794,13 +800,19 @@ export function UsersManagement() {
                           <DropdownMenuItem
                             className="gap-2"
                             onClick={() => {
-                              const typeParam =
-                                activeTab === "Public Users"
-                                  ? "?type=public-user"
-                                  : activeTab === "Accredited Agents"
-                                    ? "?type=accredited-agent"
-                                    : ""
-                              router.push(`/dashboard/users/${user.id}/edit${typeParam}`)
+                              // Mapping the activeTab to the URL query parameter
+                              const typeMapping: Record<string, string> = {
+                                "System Admins": "system-admin",
+                                "Public Users": "public-user",
+                                "Accredited Agents": "accredited-agent",
+                                "Insolvency Agents": "insolvency-agent",
+                                "Entity Accounts": "entity-account",
+                              };
+
+                              const typeValue = typeMapping[activeTab] || "";
+                              const typeParam = typeValue ? `?type=${typeValue}` : "";
+                              console.log(activeTab);
+                              router.push(`/dashboard/users/${user.id}/edit${typeParam}`);
                             }}
                           >
                             <Edit2 className="h-4 w-4" />
