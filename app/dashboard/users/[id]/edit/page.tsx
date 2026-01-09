@@ -76,22 +76,20 @@ export default function EditUserPage() {
     <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header with Back button */}
-        <div className="mb-6 flex items-center gap-3">
-          <div className="bg-white border border-black rounded-lg p-2 w-fit">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="gap-2 p-0 h-auto text-black hover:bg-transparent"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </div>
+        <div className="flex items-center mb-5">
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="gap-2 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-10 px-4 rounded-lg shadow-sm"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="font-medium text-sm">Back</span>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* User Information Section */}
-          <Card className="border-2 border-blue-400 bg-white">
+          <Card className=" bg-white">
             <div
               className="flex items-center justify-between border-b px-6 py-4 cursor-pointer hover:bg-gray-50"
               onClick={() => toggleSection("User Information")}
@@ -103,9 +101,8 @@ export default function EditUserPage() {
                 <h3 className="font-semibold text-gray-900">User Information</h3>
               </div>
               <ChevronUp
-                className={`h-4 w-4 text-gray-600 transition-transform ${
-                  !expandedSections.includes("User Information") ? "rotate-180" : ""
-                }`}
+                className={`h-4 w-4 text-gray-600 transition-transform ${!expandedSections.includes("User Information") ? "rotate-180" : ""
+                  }`}
               />
             </div>
 
@@ -228,7 +225,7 @@ export default function EditUserPage() {
           </Card>
 
           {/* Permissions Section */}
-          <Card className="border-2 border-blue-400 bg-white">
+          <Card className=" bg-white">
             <div
               className="flex items-center justify-between border-b px-6 py-4 cursor-pointer hover:bg-gray-50"
               onClick={() => toggleSection("Permissions")}
@@ -238,9 +235,8 @@ export default function EditUserPage() {
                 <h3 className="font-semibold text-gray-900">Permissions</h3>
               </div>
               <ChevronUp
-                className={`h-4 w-4 text-gray-600 transition-transform ${
-                  !expandedSections.includes("Permissions") ? "rotate-180" : ""
-                }`}
+                className={`h-4 w-4 text-gray-600 transition-transform ${!expandedSections.includes("Permissions") ? "rotate-180" : ""
+                  }`}
               />
             </div>
 
@@ -347,7 +343,7 @@ export default function EditUserPage() {
           </Card>
 
           {/* User Management Section */}
-          <Card className="border-2 border-blue-400 bg-white">
+          <Card className=" bg-white">
             <div
               className="flex items-center justify-between border-b px-6 py-4 cursor-pointer hover:bg-gray-50"
               onClick={() => toggleSection("User Management")}
@@ -357,9 +353,8 @@ export default function EditUserPage() {
                 <h3 className="font-semibold text-gray-900">User Management</h3>
               </div>
               <ChevronUp
-                className={`h-4 w-4 text-gray-600 transition-transform ${
-                  !expandedSections.includes("User Management") ? "rotate-180" : ""
-                }`}
+                className={`h-4 w-4 text-gray-600 transition-transform ${!expandedSections.includes("User Management") ? "rotate-180" : ""
+                  }`}
               />
             </div>
 

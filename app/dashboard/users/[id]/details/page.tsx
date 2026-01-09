@@ -67,13 +67,20 @@ export default function UserDetailsPage() {
   return (
     <div className="space-y-4 p-6">
       {/* Back Button */}
-      <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4">
-        <ArrowLeft className="h-4 w-4" />
-        <span className="text-sm font-medium">Back</span>
-      </button>
+
+      <div className="flex items-center mb-5">
+        <Button
+          variant="outline"
+          onClick={() => router.back()}
+          className="gap-2 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-10 px-4 rounded-lg shadow-sm"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="font-medium text-sm">Back</span>
+        </Button>
+      </div>
 
       {/* Main Content Card with Blue Border */}
-      <Card className="border-2 border-blue-500 bg-white">
+      <Card className="bg-white">
         <CardHeader className="border-b bg-gray-50">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -130,7 +137,7 @@ export default function UserDetailsPage() {
       </Card>
 
       {/* Permissions Section */}
-      <Card className="border-2 border-blue-500 bg-white">
+      <Card className="bg-white">
         <CardHeader className="border-b bg-gray-50">
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-blue-500" />
@@ -167,7 +174,7 @@ export default function UserDetailsPage() {
       </Card>
 
       {/* Logs Section */}
-      <Card className="border-2 border-blue-500 bg-white">
+      <Card className="bg-white">
         <CardHeader className="border-b bg-gray-50">
           <CardTitle>Logs</CardTitle>
         </CardHeader>
@@ -188,7 +195,7 @@ export default function UserDetailsPage() {
         <Button variant="outline" onClick={() => router.back()}>
           Cancel
         </Button>
-        <Button className="bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
+        <Button className="bg-primary">Save Changes</Button>
       </div>
     </div>
   )

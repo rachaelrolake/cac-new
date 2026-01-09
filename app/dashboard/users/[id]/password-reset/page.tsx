@@ -31,20 +31,21 @@ export default function PasswordResetPage() {
     <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <div className="bg-white border border-black rounded-lg p-2 w-fit">
+          {/* Back Button */}
+          <div className="flex items-center">
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="gap-2 p-0 h-auto text-black hover:bg-transparent"
+              variant="outline"
+              onClick={() => router.back()}
+              className="gap-2 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-10 px-4 rounded-lg shadow-sm"
             >
               <ArrowLeft className="h-4 w-4" />
+              <span className="font-medium text-sm">Back</span>
             </Button>
           </div>
         </div>
 
         {/* Main Content Card */}
-        <Card className="border-2 border-blue-500 bg-white">
+        <Card className="bg-white">
           <CardHeader className="border-b bg-gray-50">
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5 text-blue-500" />
@@ -84,7 +85,7 @@ export default function PasswordResetPage() {
               <Button
                 onClick={handleSendLink}
                 disabled={isLoading}
-                className="bg-emerald-600 hover:bg-emerald-700 gap-2"
+                className="bg-primary gap-2"
               >
                 {isLoading ? "Sending..." : "Send Link"}
               </Button>

@@ -652,7 +652,7 @@ export function UsersManagement() {
                     console.log(activeTab);
                     router.push(`/dashboard/users/add${typeParam}`);
                   }}
-                  className="gap-2 bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
+                  className="gap-2 bg-primary w-full sm:w-auto"
                 >
                   + {addButtonLabel}
                 </Button>
@@ -730,7 +730,7 @@ export function UsersManagement() {
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent className="p-4">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">

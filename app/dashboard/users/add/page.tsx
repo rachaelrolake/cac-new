@@ -3,10 +3,10 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronUp, ArrowLeft, User, Lock, Users, LayoutDashboard, Check, ShieldCheck, PlusSquare } from "lucide-react"
+import { ChevronUp, ArrowLeft, User, Lock, Users, LayoutDashboard, Check, ShieldCheck, PlusSquare, Settings, Wallet, GitGraph, PieChart, PieChartIcon, AlertCircle, AlertCircleIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import {
@@ -17,6 +17,8 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Checkbox } from "@/components/ui/checkbox"
 
 
 const PERMISSIONS_DATA = [
@@ -52,6 +54,56 @@ const PERMISSIONS_DATA = [
       { id: "trustees", label: "Trustees" },
     ],
   },
+  {
+    id: "post-incorp",
+    title: "Post Incorporation",
+    icon: <PlusSquare className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+    items: [
+      { id: "company-account", label: "Company Acccounts" },
+      { id: "business-name", label: "Business Name Accounts" },
+      { id: "llp", label: "Limited Liability Partnership" },
+      { id: "lp", label: "Limited Partnership" },
+      { id: "incorporated-trustees", label: "Incorporated Trustees" },
+    ],
+  },
+  {
+    id: "system-configuration",
+    title: "System Configuration",
+    icon: <Settings className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+    items: [
+      { id: "resource-management", label: "Resource Management" },
+    ],
+  },
+  {
+    id: "transaction",
+    title: "Transactions",
+    icon: <Wallet className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+    items: [
+      { id: "financial-statements", label: "Financial Statements" },
+      { id: "financial-transactions", label: "Financial Transactions" },
+    ],
+  },
+  // {
+  //   id: "transaction",
+  //   title: "Fraud & Compliance",
+  //   icon: <ShieldCheck className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+  //   items: [
+  //     { id: "compliance", label: "Compliance" },
+  //   ],
+  // },
+  // {
+  //   id: "reports",
+  //   title: "Reports",
+  //   icon: <PieChartIcon className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+  //   items: [
+  //     { id: "compliance", label: "User Registration Reports" },
+  //     { id: "compliance", label: "SLA Compliance Reports" },
+  //     { id: "compliance", label: "Payment Transaction Reports" },
+  //     { id: "compliance", label: "Pre Incorporation Reports" },
+  //     { id: "compliance", label: "Post Incorporation Reports" },
+  //     { id: "compliance", label: "Post Incorporation Reports" },
+  //   ],
+  // },
   // Add System Configuration, Transactions, Reports, etc., following this pattern
 ];
 
@@ -81,6 +133,12 @@ export default function AddUserPage() {
     phone: "",
     userRole: roleMap[typeFromUrl as string] || "" as UserType | "",
     status: false,
+    permissions: PERMISSIONS_DATA.reduce((acc, section) => {
+      section.items.forEach(item => {
+        acc[item.id] = { read: false, write: false, full: false };
+      });
+      return acc;
+    }, {} as Record<string, { read: boolean; write: boolean; full: boolean }>)
   })
 
   const toggleSection = (section: string) => {
@@ -93,6 +151,19 @@ export default function AddUserPage() {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
+
+  const handlePermissionChange = (itemId: string, type: 'read' | 'write' | 'full', checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        [itemId]: {
+          ...prev.permissions[itemId],
+          [type]: checked
+        }
+      }
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] py-10 px-4 sm:px-6 lg:px-8 space-y-6">
@@ -184,77 +255,148 @@ export default function AddUserPage() {
 
           {/* Conditional Rendering for Permissions */}
           {formData.userRole === "System Admin" && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 px-1 pt-4 text-[#344054]">
-                <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                <span className="text-sm font-bold uppercase tracking-wider">Permissions</span>
+            <>
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 px-1 pt-4 text-[#344054]">
+                  <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                  <span className="text-sm font-bold uppercase tracking-wider">Permissions</span>
+                </div>
+
+                {PERMISSIONS_DATA.map((section) => (
+                  <Card key={section.id} className="border border-gray-200 shadow-sm overflow-hidden rounded-xl">
+                    <div
+                      className="flex items-center justify-between px-6 py-3 cursor-pointer bg-white"
+                      onClick={() => toggleSection(section.title)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
+                          {section.icon}
+                        </div>
+                        <h3 className="font-semibold text-gray-900">{section.title}</h3>
+                      </div>
+                      <ChevronUp
+                        className={cn(
+                          "h-5 w-5 text-gray-400 transition-transform",
+                          !expandedSections.includes(section.title) && "rotate-180"
+                        )}
+                      />
+                    </div>
+
+                    {expandedSections.includes(section.title) && (
+                      <div className="bg-white border-t border-gray-100">
+                        <div className="bg-[#FDFDFD] rounded-xl p-6 space-y-6 mt-6">
+
+                          {/* Header Row for alignment reference if needed */}
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-[#475467]">Access control</span>
+                            <div className="flex items-center gap-12">
+                              {["Read", "Write", "Full Access"].map((label) => (
+                                <div key={label} className="flex items-center gap-3 w-20 justify-end">
+                                  <Switch className="scale-125 data-[state=checked]:bg-primary" />
+                                  <span className="text-[10px] font-medium text-gray-800 uppercase">{label}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Sub-Items Mapped from Array */}
+                          {section.items.map((item) => (
+                            <div key={item.id} className="flex items-center justify-between border-t border-gray-100 pt-5">
+                              <span className="text-sm font-medium text-[#475467]">{item.label}</span>
+
+                              <div className="flex items-center gap-12">
+                                {/* Read Column */}
+                                <div className="w-20 flex justify-end">
+                                  <Checkbox
+                                    id={`${item.id}-read`}
+                                    checked={formData.permissions[item.id]?.read}
+                                    onCheckedChange={(checked) =>
+                                      handlePermissionChange(item.id, 'read', checked as boolean)
+                                    }
+                                    className="h-5 w-5 border-gray-300 data-[state=checked]:border-emerald-600 data-[state=checked]:bg-emerald-50 data-[state=checked]:text-emerald-600"
+                                  />
+                                </div>
+
+                                {/* Write Column */}
+                                <div className="w-20 flex justify-end">
+                                  <Checkbox
+                                    id={`${item.id}-write`}
+                                    checked={formData.permissions[item.id]?.write}
+                                    onCheckedChange={(checked) =>
+                                      handlePermissionChange(item.id, 'write', checked as boolean)
+                                    }
+                                    className="h-5 w-5 border-gray-300 data-[state=checked]:border-emerald-600 data-[state=checked]:bg-emerald-50 data-[state=checked]:text-emerald-600"
+                                  />
+                                </div>
+
+                                {/* Full Access Column */}
+                                <div className="w-20 flex justify-end">
+                                  <Checkbox
+                                    id={`${item.id}-full`}
+                                    checked={formData.permissions[item.id]?.full}
+                                    onCheckedChange={(checked) =>
+                                      handlePermissionChange(item.id, 'full', checked as boolean)
+                                    }
+                                    className="h-5 w-5 border-gray-300 data-[state=checked]:border-emerald-600 data-[state=checked]:bg-emerald-50 data-[state=checked]:text-emerald-600"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+
               </div>
 
-              {PERMISSIONS_DATA.map((section) => (
-                <Card key={section.id} className="border border-gray-200 shadow-sm overflow-hidden rounded-xl">
-                  <div
-                    className="flex items-center justify-between px-6 py-5 cursor-pointer bg-white"
-                    onClick={() => toggleSection(section.title)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
-                        {section.icon}
-                      </div>
-                      <h3 className="font-semibold text-gray-900">{section.title}</h3>
-                    </div>
-                    <ChevronUp
-                      className={cn(
-                        "h-5 w-5 text-gray-400 transition-transform",
-                        !expandedSections.includes(section.title) && "rotate-180"
-                      )}
+              <Card className="bg-white">
+                <CardHeader className="border-b bg-gray-50">
+                  <CardTitle className="flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-blue-500" />
+                    Password Reset Link
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  {/* Alert Box */}
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <AlertCircleIcon className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-sm text-blue-900 ml-2">
+                      You Are About To Initiate A Password Reset Request.
+                      <br />
+                      This action will send a secure reset link to the selected user.
+                      <br />
+                      Only proceed if this request is genuine and verified, as it affects account access and system security.
+                    </AlertDescription>
+                  </Alert>
+
+                  {/* Email Input */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-2">Email Address *</label>
+                    <Input
+                      type="email"
+                      placeholder="john@cac.gov.ng"
+                      // value={email}
+                      // onChange={(e) => setEmail(e.target.value)}
+                      className="w-full"
                     />
                   </div>
 
-                  {expandedSections.includes(section.title) && (
-                    <div className="px-8 pb-8 bg-white border-t border-gray-100">
-                      <div className="bg-[#FDFDFD] rounded-xl p-6 border border-gray-100 space-y-6 mt-6">
-
-                        {/* Header Row for alignment reference if needed */}
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold text-[#475467]">Access control</span>
-                          <div className="flex items-center gap-12">
-                            {["Read", "Write", "Full Access"].map((label) => (
-                              <div key={label} className="flex items-center gap-3 w-20 justify-end">
-                                <Switch className="scale-75 data-[state=checked]:bg-emerald-600" />
-                                <span className="text-[10px] font-medium text-gray-400 uppercase">{label}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Sub-Items Mapped from Array */}
-                        {section.items.map((item) => (
-                          <div key={item.id} className="flex items-center justify-between border-t border-gray-100 pt-5">
-                            <span className="text-sm font-medium text-[#475467]">{item.label}</span>
-                            <div className="flex items-center gap-12">
-                              {/* Read Column */}
-                              <div className="w-20 flex justify-end">
-                                <div className="h-5 w-5 rounded border-2 border-emerald-600 flex items-center justify-center bg-emerald-50">
-                                  <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[4]" />
-                                </div>
-                              </div>
-                              {/* Write Column */}
-                              <div className="w-20 flex justify-end">
-                                <div className="h-5 w-5 rounded border-2 border-gray-300 bg-white" />
-                              </div>
-                              {/* Full Access Column */}
-                              <div className="w-20 flex justify-end">
-                                <div className="h-5 w-5 rounded border-2 border-gray-300 bg-white" />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </Card>
-              ))}
-            </div>
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 justify-end pt-4 border-t">
+                    <Button variant="outline" >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="bg-primary gap-2"
+                    >
+                      Send Link
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
           )}
 
           {/* Action Footer */}
