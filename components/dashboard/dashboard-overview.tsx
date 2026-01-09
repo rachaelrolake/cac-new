@@ -16,6 +16,7 @@ import {
   Clock,
 } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { MetricCard } from "./metric-card"
 
 const chartData = [
   { month: "Jan", flagged: 600, users: 400, pending: 150 },
@@ -122,7 +123,7 @@ export function DashboardOverview() {
               <div>
                 <p className="text-sm text-gray-500">Total</p>
                 <p className="text-sm font-medium text-gray-500">Accredited Agents</p>
-                <p className="mt-2 text-3xl font-bold">9,90</p>
+                <p className="mt-2 text-3xl font-bold">9,790</p>
                 <div className="mt-2 flex items-center gap-1 text-sm">
                   <TrendingDown className="h-4 w-4 text-red-600" />
                   <span className="font-medium text-red-600">-5%</span>
@@ -193,81 +194,41 @@ export function DashboardOverview() {
 
       {/* Metrics Cards */}
       <div className="grid gap-6 md:grid-cols-5">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total Users</p>
-                <p className="mt-2 text-2xl font-bold">9100</p>
-              </div>
-              <div className="rounded-lg bg-emerald-50 p-2">
-                <Users className="h-5 w-5 text-emerald-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {activeTab === "Public Users" && (
+          <>
+            <MetricCard title="Total Users" value="9100" icon="users" iconColor="blue" />
+            <MetricCard title="Active Users" value="8234" icon="checkmark" iconColor="green" />
+            <MetricCard title="Suspended Users" value="30" icon="cross" iconColor="red" />
+            <MetricCard title="Pending Users" value="30" icon="clock" iconColor="blue" />
+            <MetricCard title="Flagged" value="18" icon="trending-down" iconColor="red" /></>
+        )}
+        {activeTab === "Accredited Agents" && (
+          <>
+            <MetricCard title="Total Acc. Agents" value="4500" icon="users" iconColor="blue" />
+            <MetricCard title="Active Acc. Agents" value="4000" icon="checkmark" iconColor="green" />
+            <MetricCard title="Suspended Acc. Agents" value="20" icon="cross" iconColor="red" />
+            <MetricCard title="Pending Acc. Agents" value="15" icon="clock" iconColor="blue" />
+            <MetricCard title="Active Filing" value="10" icon="trending-down" iconColor="blue" /></>
+        )}
+        {activeTab === "Insolvency Agents" && (
+          <>
+            <MetricCard title="Total Ins. Agents" value="1200" icon="users" iconColor="blue" />
+            <MetricCard title="Active Ins. Agents" value="1100" icon="checkmark" iconColor="green" />
+            <MetricCard title="Suspended Ins. Agents" value="5" icon="cross" iconColor="red" />
+            <MetricCard title="Pending Ins. Agents" value="8" icon="clock" iconColor="blue" />
+            <MetricCard title="Active Cases" value="4" icon="trending-down" iconColor="red" /></>
+        )}
+        {activeTab === "Entity Accounts" && (
+          <>
+            <MetricCard title="Total Entity Accounts" value="8000" icon="users" iconColor="blue" />
+            <MetricCard title="Active Accounts" value="7500" icon="checkmark" iconColor="green" />
+            <MetricCard title="Suspended Accounts" value="25" icon="cross" iconColor="red" />
+            <MetricCard title="Pending Accounts" value="20" icon="clock" iconColor="blue" />
+            <MetricCard title="Non compliant" value="12" icon="trending-down" iconColor="red" /></>
+        )}
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Active Users</p>
-                <p className="mt-2 text-2xl font-bold text-green-600">8234</p>
-                <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-gray-100">
-                  <div className="h-full w-[90%] bg-green-600"></div>
-                </div>
-              </div>
-              <div className="rounded-lg bg-green-50 p-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Suspended Users</p>
-                <p className="mt-2 text-2xl font-bold text-red-600">30</p>
-                <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-gray-100">
-                  <div className="h-full w-[3%] bg-red-600"></div>
-                </div>
-              </div>
-              <div className="rounded-lg bg-red-50 p-2">
-                <XCircle className="h-5 w-5 text-red-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Pending Users</p>
-                <p className="mt-2 text-2xl font-bold text-blue-600">30</p>
-                <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-gray-100">
-                  <div className="h-full w-[3%] bg-blue-600"></div>
-                </div>
-              </div>
-              <div className="rounded-lg bg-blue-50 p-2">
-                <Clock className="h-5 w-5 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Flagged</p>
-                <p className="mt-2 text-2xl font-bold text-red-600">18</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Chart */}
@@ -358,19 +319,19 @@ export function DashboardOverview() {
                 <div
                   key={index}
                   className={`rounded-lg border p-4 ${alert.type === "warning"
-                      ? "border-yellow-200 bg-yellow-50"
-                      : alert.type === "info"
-                        ? "border-blue-200 bg-blue-50"
-                        : "border-red-200 bg-red-50"
+                    ? "border-yellow-200 bg-yellow-50"
+                    : alert.type === "info"
+                      ? "border-blue-200 bg-blue-50"
+                      : "border-red-200 bg-red-50"
                     }`}
                 >
                   <div className="flex gap-3">
                     <div
                       className={`mt-0.5 h-5 w-5 shrink-0 rounded-full ${alert.type === "warning"
-                          ? "bg-yellow-500"
-                          : alert.type === "info"
-                            ? "bg-blue-500"
-                            : "bg-red-500"
+                        ? "bg-yellow-500"
+                        : alert.type === "info"
+                          ? "bg-blue-500"
+                          : "bg-red-500"
                         } flex items-center justify-center text-white`}
                     >
                       {alert.type === "warning" ? "!" : alert.type === "info" ? "i" : "!"}
@@ -386,21 +347,6 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
       </div>
-
-      {/* AI Assistant */}
-      <Button
-        className="fixed bottom-8 right-8 h-14 w-14 rounded-full bg-blue-600 shadow-lg hover:bg-blue-700"
-        size="icon"
-      >
-        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-          />
-        </svg>
-      </Button>
     </div>
   )
 }

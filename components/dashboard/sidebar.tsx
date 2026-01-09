@@ -52,12 +52,12 @@ const menuItems: MenuItem[] = [
       { label: "AI Review Queue", href: "/post-incorporation/ai-review", badge: 99 },
     ],
   },
-  { icon: SettingsIcon, label: "System Configuration", href: "/dashboard/system-config" },
-  { icon: CreditCard, label: "Transactions", href: "/dashboard/transactions" },
-  { icon: Shield, label: "Fraud & Compliance", href: "/dashboard/fraud" },
-  { icon: BarChart3, label: "Reports", href: "/dashboard/reports" },
-  { icon: Headphones, label: "Customers Support", href: "/dashboard/support" },
-  { icon: Clock, label: "Activity", href: "/dashboard/activity" },
+  { icon: SettingsIcon, label: "System Configuration", href: "/system-config" },
+  { icon: CreditCard, label: "Transactions", href: "/transactions" },
+  // { icon: Shield, label: "Fraud & Compliance", href: "/dashboard/fraud" },
+  { icon: BarChart3, label: "Reports", href: "/reports" },
+  // { icon: Headphones, label: "Customers Support", href: "/dashboard/support" },
+  { icon: Clock, label: "Activity", href: "/activity" },
 ]
 
 const bottomMenuItems: MenuItem[] = [

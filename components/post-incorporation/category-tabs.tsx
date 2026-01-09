@@ -16,7 +16,7 @@ interface CategoryTabsProps2 {
 
 export function CategoryTabs({ activeCategory, onCategoryChange, type }: CategoryTabsProps) {
   const consentCategories = [
-    { id: "company-name", label: "Company Name" },
+    { id: "company-name", label: "Company" },
     { id: "llp", label: "LLP" },
     { id: "lp", label: "LP" },
     { id: "business-name", label: "Business Name" },
@@ -24,7 +24,7 @@ export function CategoryTabs({ activeCategory, onCategoryChange, type }: Categor
   ]
 
   const reservationCategories = [
-    { id: "company-name", label: "Company Name" },
+    { id: "company-name", label: "Company" },
     { id: "llp", label: "LLP" },
     { id: "lp", label: "LP" },
     { id: "business-name", label: "Business Name" },

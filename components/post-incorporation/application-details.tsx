@@ -5,9 +5,17 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
-import { ArrowLeft, File, Eye, Search, Bell, Zap, Bot, Check } from "lucide-react"
+import { ArrowLeft, File, Eye, Search, Bell, Zap, Bot, Check, CheckCircle, CircleAlert, AlertCircle, X } from "lucide-react"
 import { Input } from "../ui/input"
 
 interface ApplicationDetailsProps {
@@ -21,6 +29,50 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
 
   const pageTitle = "Post Incorporation Activity Review"
+
+  const [modalType, setModalType] = useState<"override" | "approve" | "reject" | null>(null)
+  const [reason, setReason] = useState("")
+
+  const closeModal = () => {
+    setModalType(null)
+    setReason("")
+  }
+
+  const handleAction = () => {
+    console.log(`Action: ${modalType}, Reason: ${reason}`)
+    // Add your API call logic here
+    closeModal()
+  }
+
+  // Configuration for different modal states
+  const modalConfig = {
+    override: {
+      title: "Override AI Recommendation",
+      titleColor: "text-red-600",
+      description: "You are about to override an AI recommendation. This action will be logged and requires a reason.",
+      buttonClass: "bg-red-500 hover:bg-red-600",
+      buttonLabel: "Confirm Override",
+      icon: <AlertCircle className="h-6 w-6 text-red-600" />
+    },
+    approve: {
+      title: "Approve Application",
+      titleColor: "text-green-600",
+      description: "Are you sure you want to approve this filing? This will update the entity records.",
+      buttonClass: "bg-green-600 hover:bg-green-700",
+      buttonLabel: "Approve Filing",
+      icon: <CheckCircle className="h-6 w-6 text-green-600" />
+    },
+    reject: {
+      title: "Reject Application",
+      titleColor: "text-red-600",
+      description: "Please provide a reason for rejecting this application. The applicant will be notified.",
+      buttonClass: "bg-red-600 hover:bg-red-700",
+      buttonLabel: "Confirm Rejection",
+      icon: <X className="h-6 w-6 text-red-600" />
+    }
+  }
+
+  const currentModal = modalType ? modalConfig[modalType] : null
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -68,12 +120,12 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
                     <div>
                       <div className="flex items-center gap-3 mb-2">
                         <File className="h-5 w-5 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Proposed Name</p>
+                        <p className="text-sm text-muted-foreground">Business Name</p>
                         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                           Status: Approved
                         </Badge>
                         <Badge variant="outline" className="bg-gray-100">
-                          AI Score: 67%
+                          Activity: Annual Returns Filling
                         </Badge>
                       </div>
                       <h2 className="text-xl font-bold text-foreground">FEDERAL BANK OF NIGERIA LIMITED</h2>
@@ -83,7 +135,7 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
 
                   <div className="grid grid-cols-2 gap-6 border-t border-border pt-6">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">AV Code</p>
+                      <p className="text-sm font-medium text-muted-foreground">Registration Number</p>
                       <p className="text-lg font-semibold text-foreground">AV-2018-09</p>
                     </div>
                     <div>
@@ -104,6 +156,10 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
                     <div>
                       <p className="text-sm font-medium text-muted-foreground mb-2">Email Address</p>
                       <p className="text-foreground">jdoe@gmail.com</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-2">Phone Number</p>
+                      <p className="text-foreground">09065342516</p>
                     </div>
                   </div>
                 </Card>
@@ -276,19 +332,34 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold mb-4 text-foreground">Admin Actions</h3>
                   <div className="flex gap-3">
-                    <Button variant="outline" className="text-primary border-primary bg-transparent">
+                    <Button
+                      variant="outline"
+                      className="text-primary border-primary bg-transparent"
+                      onClick={() => setModalType("override")}
+                    >
                       Override AI Decisions
                     </Button>
-                    <Button variant="ghost" className="text-muted-foreground">
+                    <Button
+                      variant="outline"
+                      className="text-muted-foreground"
+                      onClick={() => setModalType("approve")}
+                    >
                       Approve
                     </Button>
-                    <Button variant="ghost" className="text-muted-foreground">
+                    <Button
+                      variant="outline"
+                      className="text-muted-foreground"
+                      onClick={() => setModalType("reject")}
+                    >
                       Reject
                     </Button>
-                    <Button variant="ghost" className="text-muted-foreground">
-                      Flag
-                    </Button>
+
+                    {/* <Button variant="default" className="text-white border-primary bg-primary cursor-pointer">
+                      Request Documents
+                    </Button> */}
                   </div>
+
+
                 </Card>
               </div>
 
@@ -300,82 +371,44 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
                     <Bot className="h-5 w-5 text-blue-600" />
                     <h3 className="font-semibold text-foreground">AI Analysis</h3>
                   </div>
-                  <Badge className="bg-orange-100 text-orange-800 mb-2">AI: Needs Manual Review</Badge>
+                  <Badge className="bg-green-100 text-green-800 mb-2">AI: Recommended for Approval</Badge>
 
                   <div className="space-y-4">
                     <div className="rounded-lg bg-white p-4">
                       <p className="text-sm font-medium text-muted-foreground mb-2">Confidence Score</p>
-                      <p className="text-2xl font-bold text-foreground">56%</p>
-                      <p className="text-xs text-orange-600">Low Confidence - Review Required</p>
+                      <p className="text-2xl font-bold text-foreground">90%</p>
+                      <p className="text-xs text-green-600">High Confidence</p>
                     </div>
 
                     <div className="space-y-2">
-                      <h4 className="text-sm font-semibold text-blue-600">Restricted Words Detected</h4>
-                      <div className="flex gap-2">
-                        <Badge className="bg-red-100 text-red-800">Federal</Badge>
-                        <Badge className="bg-red-100 text-red-800">Bank</Badge>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-semibold text-blue-600">Similarity Found</h4>
+                      <h4 className="text-sm font-semibold text-blue-600">Documents Verifications</h4>
                       <div className="space-y-2">
-                        {[
-                          { name: "Federal Bank PLC", status: "Active", match: "47% Match" },
-                          { name: "Nigerian Banking Corp", status: "Active", match: "28% Match" },
-                        ].map((item, idx) => (
+                        {["Audited Financial Statements", "Directors Report", "Tax Clearance Certificate", "Board Resolution"].map((item, idx) => (
                           <div key={idx} className="rounded-lg bg-white p-3 text-sm">
-                            <p className="font-medium text-foreground">{item.name}</p>
-                            <p className="text-xs text-muted-foreground">Status: {item.status}</p>
-                            <p className="text-xs font-medium text-muted-foreground mt-1">{item.match}</p>
+                            <div className="flex justify-between">
+                              <p>{item}</p>
+                              <span className="text-green-600 flex items-center gap-2 text-xs"><CheckCircle className="h-3 w-3" /> Verified</span>
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    <div className="rounded-lg bg-white p-3">
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Consents Required</p>
-                      <Badge className="bg-orange-100 text-orange-800">Yes - Multiple Authorities</Badge>
-                    </div>
-
-                    <div className="rounded-lg bg-white p-3">
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Restricted words Checked</p>
-                      <Badge className="bg-red-100 text-red-800">Failed - 2 Words Flagged</Badge>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Consent Status Card */}
-                <Card className="p-4">
-                  <h3 className="font-semibold mb-4 text-foreground flex items-center gap-2">
-                    <Check className="h-5 w-5 text-green-600" />
-                    Consent Status
-                  </h3>
-                  <div className="space-y-3">
-                    {[
-                      {
-                        org: "Central Bank of Nigeria",
-                        note: "Contains 'Bank' - Requires CBN Approval",
-                        status: "Pending",
-                      },
-                      {
-                        org: "Federal Government",
-                        note: "Contains 'Federal' - requires government consent",
-                        status: "Pending",
-                      },
-                    ].map((consent, idx) => (
-                      <div key={idx} className="rounded-lg border border-border p-4">
-                        <p className="font-medium text-foreground">{consent.org}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{consent.note}</p>
-                        <Badge variant="outline" className="mt-2 bg-orange-50 text-orange-700 border-orange-200">
-                          {consent.status}
-                        </Badge>
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold text-blue-600">Compliance Checks</h4>
+                      <div className="space-y-2">
+                        {["Business Name Active", "No Outstanding Fees", "Proprietor Identity Verified", "New Address Verification", "Payment of ₦60,000.00"].map((item, idx) => (
+                          <div key={idx} className="rounded-lg bg-white p-3 text-sm">
+                            <div className="flex justify-between">
+                              <p>{item}</p>
+                              <span className="text-green-600 flex items-center gap-2 text-xs"><CheckCircle className="h-3 w-3" /></span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
+
                   </div>
-                  <Button className="w-full mt-4 text-primary border-primary bg-transparent" variant="outline">
-                    Request Consent from Authority
-                  </Button>
                 </Card>
 
                 {/* Why AI Recommended */}
@@ -386,11 +419,9 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
                   </h3>
                   <ul className="space-y-2 text-sm">
                     {[
-                      "Name contains restricted word 'Federal' requiring government consent",
-                      "Name contains 'Bank' requiring Central Bank of Nigeria approval",
-                      "Consent verification pending from regulatory authority",
-                      "High-risk classification due to financial services sector",
-                      "Manual review recommended before proceeding",
+                      "All required documents submitted and verified",
+                      "Entity registration is valid and active",
+                      "Activity type is appropriate for this entity type",
                     ].map((reason, idx) => (
                       <li key={idx} className="flex gap-2">
                         <span className="text-green-600">✓</span>
@@ -399,13 +430,65 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
                     ))}
                   </ul>
                   <p className="text-xs text-muted-foreground mt-4 pt-4 border-t border-green-200">
-                    <Check className="h-4 w-4 text-green-600 inline mr-1" /> This Recommendation Was Generated Using CAC AI Review Engine.
+                    <CircleAlert className="h-4 w-4 text-green-600 inline mr-1" /> This Recommendation Was Generated Using CAC AI Review Engine.
                   </p>
                 </Card>
               </div>
             </div>
           </div>
         </main>
+
+        <Dialog open={!!modalType} onOpenChange={closeModal}>
+          <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none shadow-2xl">
+            {currentModal && (
+              <>
+                {/* Top Warning Banner (Matching your image) */}
+                <div className={`${modalType === 'approve' ? 'bg-green-50' : 'bg-red-50'} p-6 border-b`}>
+                  <div className="flex items-center gap-3">
+                    {currentModal.icon}
+                    <DialogTitle className={`text-xl font-bold ${currentModal.titleColor}`}>
+                      {currentModal.title}
+                    </DialogTitle>
+                  </div>
+                  <p className={`mt-2 text-sm ${modalType === 'approve' ? 'text-green-700' : 'text-red-600'}`}>
+                    {currentModal.description}
+                  </p>
+                </div>
+
+                {/* Input Area */}
+                <div className="p-6">
+                  <label className="text-sm font-bold text-gray-700 block mb-2">
+                    Reason for {modalType ? modalType.charAt(0).toUpperCase() + modalType.slice(1) : ''}
+                  </label>
+                  <Textarea
+                    placeholder={`Please provide a detailed reason for ${modalType}...`}
+                    className="min-h-[120px] bg-white border-gray-300"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                  />
+                  <p className="mt-4 text-xs text-gray-500 italic">
+                    This action will be recorded in the audit logs with your user identity and timestamp.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <DialogFooter className="p-6 pt-0 flex justify-end gap-3">
+                  <Button variant="outline" onClick={closeModal} className="border-green-600 text-green-700 hover:bg-green-50 px-8">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAction}
+                    className={`${currentModal.buttonClass} text-white px-8`}
+                    disabled={!reason && modalType !== 'approve'} // Require reason for override/reject
+                  >
+                    {currentModal.buttonLabel}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   )

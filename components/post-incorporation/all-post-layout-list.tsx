@@ -12,6 +12,7 @@ import { CategoryTabs } from "./category-tabs"
 import { MetricCard } from "./metric-card"
 import { Search, Filter, Download, MoreHorizontal, FileText, Flag, Trash2, Eye } from "lucide-react"
 
+
 interface ApplicationsListProps {
   activeCategory: string
   setActiveCategory: (category: string) => void
@@ -21,8 +22,8 @@ const mockApplications = [
   {
     id: 1,
     sn: 1,
-    avCode: "AV-2019-01",
-    proposedName: "TECH INNOVATIONS NIGERIA LIMITED",
+    avCode: "BN-2019-01",
+    proposedName: "GLOBAL VENTURES",
     submitted: "Nov 15, 2025 09:49AM",
     reasonForConsent: "New Incorporation",
     aiDecision: "AI: Recommended Approval",
@@ -30,12 +31,13 @@ const mockApplications = [
     sla: "Done",
     natureOfBusiness: "Information Technology",
     applicants: "John Doe",
+    activity: "Annual Returns Filing",
   },
   {
     id: 2,
     sn: 2,
-    avCode: "AV-2019-01",
-    proposedName: "GLOBAL PETROLEUM SERVICES LIMITED",
+    avCode: "BN-2019-01",
+    proposedName: "JOHNSON & SONS",
     submitted: "Nov 14, 2025 09:50AM",
     reasonForConsent: "Use Of Restricted Word",
     aiDecision: "AI: Needs Human Review",
@@ -43,11 +45,12 @@ const mockApplications = [
     sla: "Done",
     natureOfBusiness: "Oil & Gas",
     applicants: "Ahmed Hassan",
+    activity: "Change of Registered Address",
   },
   {
     id: 3,
     sn: 3,
-    avCode: "AV-2019-01",
+    avCode: "BN-2019-01",
     proposedName: "SUNRISE VENTURES LIMITED",
     submitted: "Nov 14, 2025 12:09PM",
     reasonForConsent: "Group Holdings/ Consortium",
@@ -56,11 +59,12 @@ const mockApplications = [
     sla: "Done",
     natureOfBusiness: "Investment & Finance",
     applicants: "Mary Johnson",
+    activity: "Increase in Share Capital",
   },
   {
     id: 4,
     sn: 4,
-    avCode: "AV-2019-01",
+    avCode: "BN-2019-01",
     proposedName: "NATIONAL BANK OF COMMERCE LIMITED",
     submitted: "Nov 10, 2025 01:34PM",
     reasonForConsent: "Group Holdings/ consortium",
@@ -69,11 +73,12 @@ const mockApplications = [
     sla: "8 Hours Remaining",
     natureOfBusiness: "Banking & Financial Services",
     applicants: "Michael Chen",
+    activity: "Appointment of Secretary",
   },
   {
     id: 5,
     sn: 5,
-    avCode: "AV-2019-01",
+    avCode: "BN-2019-01",
     proposedName: "SUNNET AGRO LIMITED",
     submitted: "Nov 14, 2025 05:12AM",
     reasonForConsent: "New Incorporation",
@@ -82,11 +87,12 @@ const mockApplications = [
     sla: "24 Days Remaining",
     natureOfBusiness: "Agriculture",
     applicants: "David Okafor",
+    activity: "Change of Directors",
   },
   {
     id: 6,
     sn: 6,
-    avCode: "AV-2019-01",
+    avCode: "BN-2019-01",
     proposedName: "EDU FURNITURES LIMITED",
     submitted: "Nov 08, 2025 09:12PM",
     reasonForConsent: "New Incorporation",
@@ -95,11 +101,12 @@ const mockApplications = [
     sla: "8 Hours Remaining",
     natureOfBusiness: "Furniture Manufacturing",
     applicants: "Grace Eze",
+    activity: "Filing of Financial Statements",
   },
   {
     id: 7,
     sn: 7,
-    avCode: "AV-2019-01",
+    avCode: "BN-2019-01",
     proposedName: "JAGORA VENTURES LIMITED",
     submitted: "Nov 14, 2025 09: 12AM",
     reasonForConsent: "Group Holdings/ Consortium",
@@ -108,8 +115,18 @@ const mockApplications = [
     sla: "8 Hours Remaining",
     natureOfBusiness: "Logistics & Transportation",
     applicants: "Chioma Nwankwo",
+    activity: "Annual Returns Filing",
   },
 ]
+
+const consentCategories: Record<string, string> = {
+  "company-name": "Company Account",
+  "llp": "LLP Account",
+  "lp": "LP Account",
+  "business-name": "Business Name Account",
+  "it": "IT Account",
+}
+
 
 export function AllPostActivityList({ activeCategory, setActiveCategory }: ApplicationsListProps) {
   const [searchQuery, setSearchQuery] = useState("")
@@ -215,14 +232,12 @@ export function AllPostActivityList({ activeCategory, setActiveCategory }: Appli
             <TableHeader>
               <TableRow>
                 <TableHead>S/N</TableHead>
-                <TableHead>AV Code</TableHead>
-                <TableHead>Proposed Name</TableHead>
-                <TableHead>Nature of Business</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead>Applicants</TableHead>
-                <TableHead>Reason for Consent</TableHead>
+                <TableHead>Reg Number</TableHead>
+                <TableHead>Business Name</TableHead>
+                <TableHead>Entity Type</TableHead>
+                <TableHead>Activity</TableHead>
+                <TableHead>Date Submitted</TableHead>
                 <TableHead>AI Decision</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>SLA</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -240,22 +255,13 @@ export function AllPostActivityList({ activeCategory, setActiveCategory }: Appli
                       {app.proposedName}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-sm">{app.natureOfBusiness}</TableCell>
-                  <TableCell className="text-sm">{app.submitted}</TableCell>
                   <TableCell className="text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-white">
-                        {app.applicants.charAt(0)}
-                      </div>
-                      <span>{app.applicants}</span>
-                    </div>
+                    <Badge variant="outline">{consentCategories[activeCategory] || "Unknown"}</Badge>
                   </TableCell>
-                  <TableCell className="text-sm">{app.reasonForConsent}</TableCell>
+                  <TableCell className="text-sm">{app.activity}</TableCell>
+                  <TableCell className="text-sm">{app.submitted}</TableCell>
                   <TableCell className={`text-sm font-medium ${getDecisionColor(app.aiDecision)}`}>
                     {app.aiDecision}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(app.status)}>{app.status}</Badge>
                   </TableCell>
                   <TableCell className="text-sm">
                     <div className="flex flex-col gap-2">
