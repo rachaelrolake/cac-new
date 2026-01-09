@@ -91,12 +91,10 @@ export function Sidebar({
       {/* Logo */}
       <div className="flex h-20 items-center border-b px-4">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="CAC Logo" className="h-12 w-16" />
-          {isExpanded && (
-            <div>
-              <div className="text-xs font-bold text-emerald-700">CORPORATE AFFAIRS</div>
-              <div className="text-xs font-bold text-emerald-700">COMMISSION</div>
-            </div>
+          {isExpanded ? (
+            <img src="/logo-extended.png" alt="CAC Logo" />
+          ) : (
+            <img src="/logo.png" alt="CAC Logo" />
           )}
         </div>
       </div>
