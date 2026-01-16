@@ -2,31 +2,140 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useRouter, useParams } from "next/navigation"
-import { ChevronUp, ArrowLeft, Shield } from "lucide-react"
+import { useRouter, useParams, useSearchParams } from "next/navigation"
+import { ChevronUp, ArrowLeft, Shield, User, Settings, Wallet, PlusSquare, Users, LayoutDashboard, ShieldCheck, Lock, AlertCircleIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import { Switch } from "@/components/ui/switch"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+
+const PERMISSIONS_DATA = [
+  {
+    id: "dashboard",
+    title: "Dashboard",
+    icon: <LayoutDashboard className="h-5 w-5 text-emerald-600" />,
+    items: [
+      { id: "overview", label: "Overview" },
+      { id: "exec-summary", label: "Executive Summary" },
+    ],
+  },
+  {
+    id: "user-management",
+    title: "User Management",
+    icon: <Users className="h-5 w-5 text-emerald-600" />,
+    items: [
+      { id: "sys-admins", label: "System Admins" },
+      { id: "acc-agents", label: "Accredited Agents" },
+      { id: "ins-agents", label: "Insolvency Agents" },
+      { id: "pub-users", label: "Public Users" },
+      { id: "ent-accounts", label: "Entity Accounts" },
+    ],
+  },
+  {
+    id: "pre-incorp",
+    title: "Pre Incorporation",
+    icon: <PlusSquare className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+    items: [
+      { id: "biz-reg", label: "Business Name Registration" },
+      { id: "name-res", label: "Name Reservation" },
+      { id: "consent", label: "Name Requiring Consent" },
+      { id: "trustees", label: "Trustees" },
+    ],
+  },
+  {
+    id: "post-incorp",
+    title: "Post Incorporation",
+    icon: <PlusSquare className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+    items: [
+      { id: "company-account", label: "Company Acccounts" },
+      { id: "business-name", label: "Business Name Accounts" },
+      { id: "llp", label: "Limited Liability Partnership" },
+      { id: "lp", label: "Limited Partnership" },
+      { id: "incorporated-trustees", label: "Incorporated Trustees" },
+    ],
+  },
+  {
+    id: "system-configuration",
+    title: "System Configuration",
+    icon: <Settings className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+    items: [
+      { id: "resource-management", label: "Resource Management" },
+    ],
+  },
+  {
+    id: "transaction",
+    title: "Transactions",
+    icon: <Wallet className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+    items: [
+      { id: "financial-statements", label: "Financial Statements" },
+      { id: "financial-transactions", label: "Financial Transactions" },
+    ],
+  },
+  // {
+  //   id: "transaction",
+  //   title: "Fraud & Compliance",
+  //   icon: <ShieldCheck className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+  //   items: [
+  //     { id: "compliance", label: "Compliance" },
+  //   ],
+  // },
+  // {
+  //   id: "reports",
+  //   title: "Reports",
+  //   icon: <PieChartIcon className="h-5 w-5 text-emerald-600" />, // Import PlusSquare or similar
+  //   items: [
+  //     { id: "compliance", label: "User Registration Reports" },
+  //     { id: "compliance", label: "SLA Compliance Reports" },
+  //     { id: "compliance", label: "Payment Transaction Reports" },
+  //     { id: "compliance", label: "Pre Incorporation Reports" },
+  //     { id: "compliance", label: "Post Incorporation Reports" },
+  //     { id: "compliance", label: "Post Incorporation Reports" },
+  //   ],
+  // },
+  // Add System Configuration, Transactions, Reports, etc., following this pattern
+];
+
+// Define the available user types
+type UserType = "System Admin" | "Public User" | "Accredited Agent" | "Insolvency Agent" | "Entity Account"
 
 export default function EditUserPage() {
   const router = useRouter()
   const params = useParams()
   const userId = params.id
 
-  const [expandedSections, setExpandedSections] = useState<string[]>([
-    "User Information",
-    "Permissions",
-    "User Management",
-  ])
+  const [expandedSections, setExpandedSections] = useState<string[]>(["User Information", "Permissions"])
+  const searchParams = useSearchParams();
+  const typeFromUrl = searchParams.get("type");
+
+  // Map the URL slug back to the readable Role name
+  const roleMap: Record<string, UserType> = {
+    "system-admin": "System Admin",
+    "public-user": "Public User",
+    "accredited-agent": "Accredited Agent",
+    "insolvency-agent": "Insolvency Agent",
+    "entity-account": "Entity Account",
+  };
+
   const [formData, setFormData] = useState({
     staffId: "CAC-2019-01",
     firstName: "John",
     lastName: "Doe",
     email: "john@cac.gov.ng",
     phone: "+234 913 450 7999",
-    userRole: "Super Admin",
-    status: "Active",
+    userRole: roleMap[typeFromUrl as string] || "" as UserType | "",
+    status: false,
     profileImage: null as File | null,
+    permissions: PERMISSIONS_DATA.reduce((acc, section) => {
+      section.items.forEach(item => {
+        acc[item.id] = { read: false, write: false, full: false };
+      });
+      return acc;
+    }, {} as Record<string, { read: boolean; write: boolean; full: boolean }>)
   })
 
   const [permissions, setPermissions] = useState({
@@ -62,6 +171,19 @@ export default function EditUserPage() {
     }
   }
 
+  const handlePermissionChange = (itemId: string, type: 'read' | 'write' | 'full', checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        [itemId]: {
+          ...prev.permissions[itemId],
+          [type]: checked
+        }
+      }
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     console.log("Form submitted:", { ...formData, permissions })
@@ -76,366 +198,245 @@ export default function EditUserPage() {
     <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header with Back button */}
-        <div className="mb-6 flex items-center gap-3">
-          <div className="bg-white border border-black rounded-lg p-2 w-fit">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="gap-2 p-0 h-auto text-black hover:bg-transparent"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </div>
+        <div className="flex items-center mb-5">
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="gap-2 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-10 px-4 rounded-lg shadow-sm"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="font-medium text-sm">Back</span>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* User Information Section */}
-          <Card className="border-2 border-blue-400 bg-white">
+
+          {/* Section 1: User Information */}
+          <Card className="border border-gray-200 shadow-sm overflow-hidden rounded-xl">
             <div
-              className="flex items-center justify-between border-b px-6 py-4 cursor-pointer hover:bg-gray-50"
+              className="flex items-center justify-between px-6 py-5 cursor-pointer bg-white"
               onClick={() => toggleSection("User Information")}
             >
-              <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 border border-blue-400">
-                  <Shield className="h-4 w-4 text-blue-600" />
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <User className="h-5 w-5" />
                 </div>
-                <h3 className="font-semibold text-gray-900">User Information</h3>
+                <h3 className="text-lg font-semibold text-gray-900">User Information</h3>
               </div>
-              <ChevronUp
-                className={`h-4 w-4 text-gray-600 transition-transform ${
-                  !expandedSections.includes("User Information") ? "rotate-180" : ""
-                }`}
-              />
+              <ChevronUp className={cn("h-5 w-5 text-gray-400 transition-transform", !expandedSections.includes("User Information") && "rotate-180")} />
             </div>
 
             {expandedSections.includes("User Information") && (
-              <div className="space-y-4 p-6">
-                <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
-                  {/* Left side form */}
-                  <div className="flex-1 space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Staff ID *</label>
-                      <Input
-                        name="staffId"
-                        placeholder="Enter Staff ID"
-                        value={formData.staffId}
-                        onChange={handleInputChange}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Last Name *</label>
-                      <Input
-                        name="lastName"
-                        placeholder="Enter Lastname"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Phone Number *</label>
-                      <Input
-                        name="phone"
-                        placeholder="+234"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Status *</label>
-                      <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                      >
-                        <option>Active</option>
-                        <option>Inactive</option>
-                        <option>Suspended</option>
-                      </select>
-                    </div>
+              <div className="p-8 pt-0 bg-white border-t border-gray-100">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6 mt-6">
+                  <div className="space-y-1.5">
+                    <Label className="text-[13px] font-bold text-[#344054]">Staff ID *</Label>
+                    <Input name="staffId" placeholder="Enter Staff ID" className="h-12 border-gray-300 rounded-lg placeholder:text-gray-400" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[13px] font-bold text-[#344054]">First Name *</Label>
+                    <Input name="firstName" placeholder="Enter Firstname" className="h-12 border-gray-300 rounded-lg" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[13px] font-bold text-[#344054]">Last Name *</Label>
+                    <Input name="lastName" placeholder="Enter Lastname" className="h-12 border-gray-300 rounded-lg" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[13px] font-bold text-[#344054]">Email Address *</Label>
+                    <Input name="email" type="email" placeholder="Enter Email Address" className="h-12 border-gray-300 rounded-lg" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[13px] font-bold text-[#344054]">Phone Number *</Label>
+                    <Input name="phone" placeholder="+234" className="h-12 border-gray-300 rounded-lg" />
                   </div>
 
-                  {/* Right side - Profile Image and other fields */}
-                  <div className="flex flex-1 flex-col gap-4">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-gray-50">
-                        {formData.profileImage ? (
-                          <img
-                            src={URL.createObjectURL(formData.profileImage) || "/placeholder.svg"}
-                            alt="Profile"
-                            className="h-full w-full rounded-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-xs text-gray-500">Profile Photo</span>
-                        )}
+                  {/* User Role Selection */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[13px] font-bold text-[#344054]">User role *</Label>
+                    <Select onValueChange={(val: UserType) => setFormData(prev => ({ ...prev, userRole: val }))}>
+                      <SelectTrigger className="h-12 border-gray-300 rounded-lg w-full">
+                        <SelectValue placeholder="Type Role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="System Admin">System Admin</SelectItem>
+                        <SelectItem value="Public User">Public User</SelectItem>
+                        <SelectItem value="Accredited Agent">Accredited Agent</SelectItem>
+                        <SelectItem value="Insolvency Agent">Insolvency Agent</SelectItem>
+                        <SelectItem value="Entity Account">Entity Account</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <Label className="text-[13px] font-bold text-[#344054]">Status *</Label>
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={formData.status}
+                        onCheckedChange={(val) => setFormData(prev => ({ ...prev, status: val }))}
+                        className="data-[state=checked]:bg-emerald-600"
+                      />
+                      <span className="text-sm text-gray-500">{formData.status ? "Active" : "Inactive"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* Conditional Rendering for Permissions */}
+          {formData.userRole === "System Admin" && (
+            <>
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 px-1 pt-4 text-[#344054]">
+                  <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                  <span className="text-sm font-bold uppercase tracking-wider">Permissions</span>
+                </div>
+
+                {PERMISSIONS_DATA.map((section) => (
+                  <Card key={section.id} className="border border-gray-200 shadow-sm overflow-hidden rounded-xl">
+                    <div
+                      className="flex items-center justify-between px-6 py-3 cursor-pointer bg-white"
+                      onClick={() => toggleSection(section.title)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
+                          {section.icon}
+                        </div>
+                        <h3 className="font-semibold text-gray-900">{section.title}</h3>
                       </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        id="profileImage"
-                      />
-                      <label htmlFor="profileImage" className="cursor-pointer">
-                        <span className="text-sm text-blue-600 hover:underline">Upload Photo</span>
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">First Name *</label>
-                      <Input
-                        name="firstName"
-                        placeholder="Enter Firstname"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        className="mt-1"
+                      <ChevronUp
+                        className={cn(
+                          "h-5 w-5 text-gray-400 transition-transform",
+                          !expandedSections.includes(section.title) && "rotate-180"
+                        )}
                       />
                     </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Email Address *</label>
-                      <Input
-                        name="email"
-                        type="email"
-                        placeholder="Enter Email Address"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="mt-1"
-                      />
-                    </div>
+                    {expandedSections.includes(section.title) && (
+                      <div className="bg-white border-t border-gray-100">
+                        <div className="bg-[#FDFDFD] rounded-xl p-6 space-y-6 mt-6">
 
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">User role *</label>
-                      <Input
-                        name="userRole"
-                        placeholder="Type Role"
-                        value={formData.userRole}
-                        onChange={handleInputChange}
-                        className="mt-1"
-                      />
-                    </div>
+                          {/* Header Row for alignment reference if needed */}
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-[#475467]">Access control</span>
+                            <div className="flex items-center gap-12">
+                              {["Read", "Write", "Full Access"].map((label) => (
+                                <div key={label} className="flex items-center gap-3 w-20 justify-end">
+                                  <Switch className="scale-125 data-[state=checked]:bg-primary" />
+                                  <span className="text-[10px] font-medium text-gray-800 uppercase">{label}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Sub-Items Mapped from Array */}
+                          {section.items.map((item) => (
+                            <div key={item.id} className="flex items-center justify-between border-t border-gray-100 pt-5">
+                              <span className="text-sm font-medium text-[#475467]">{item.label}</span>
+
+                              <div className="flex items-center gap-12">
+                                {/* Read Column */}
+                                <div className="w-20 flex justify-end">
+                                  <Checkbox
+                                    id={`${item.id}-read`}
+                                    checked={formData.permissions[item.id]?.read}
+                                    onCheckedChange={(checked) =>
+                                      handlePermissionChange(item.id, 'read', checked as boolean)
+                                    }
+                                    className="h-5 w-5 border-gray-300 data-[state=checked]:border-emerald-600 data-[state=checked]:bg-emerald-50 data-[state=checked]:text-emerald-600"
+                                  />
+                                </div>
+
+                                {/* Write Column */}
+                                <div className="w-20 flex justify-end">
+                                  <Checkbox
+                                    id={`${item.id}-write`}
+                                    checked={formData.permissions[item.id]?.write}
+                                    onCheckedChange={(checked) =>
+                                      handlePermissionChange(item.id, 'write', checked as boolean)
+                                    }
+                                    className="h-5 w-5 border-gray-300 data-[state=checked]:border-emerald-600 data-[state=checked]:bg-emerald-50 data-[state=checked]:text-emerald-600"
+                                  />
+                                </div>
+
+                                {/* Full Access Column */}
+                                <div className="w-20 flex justify-end">
+                                  <Checkbox
+                                    id={`${item.id}-full`}
+                                    checked={formData.permissions[item.id]?.full}
+                                    onCheckedChange={(checked) =>
+                                      handlePermissionChange(item.id, 'full', checked as boolean)
+                                    }
+                                    className="h-5 w-5 border-gray-300 data-[state=checked]:border-emerald-600 data-[state=checked]:bg-emerald-50 data-[state=checked]:text-emerald-600"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+
+              </div>
+
+              <Card className="bg-white">
+                <CardHeader className="border-b bg-gray-50">
+                  <CardTitle className="flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-blue-500" />
+                    Password Reset Link
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  {/* Alert Box */}
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <AlertCircleIcon className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-sm text-blue-900 ml-2">
+                      You Are About To Initiate A Password Reset Request.
+                      <br />
+                      This action will send a secure reset link to the selected user.
+                      <br />
+                      Only proceed if this request is genuine and verified, as it affects account access and system security.
+                    </AlertDescription>
+                  </Alert>
+
+                  {/* Email Input */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-2">Email Address *</label>
+                    <Input
+                      type="email"
+                      placeholder="john@cac.gov.ng"
+                      // value={email}
+                      // onChange={(e) => setEmail(e.target.value)}
+                      className="w-full"
+                    />
                   </div>
-                </div>
-              </div>
-            )}
-          </Card>
 
-          {/* Permissions Section */}
-          <Card className="border-2 border-blue-400 bg-white">
-            <div
-              className="flex items-center justify-between border-b px-6 py-4 cursor-pointer hover:bg-gray-50"
-              onClick={() => toggleSection("Permissions")}
-            >
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-blue-600" />
-                <h3 className="font-semibold text-gray-900">Permissions</h3>
-              </div>
-              <ChevronUp
-                className={`h-4 w-4 text-gray-600 transition-transform ${
-                  !expandedSections.includes("Permissions") ? "rotate-180" : ""
-                }`}
-              />
-            </div>
-
-            {expandedSections.includes("Permissions") && (
-              <div className="space-y-6 p-6">
-                {/* Dashboard */}
-                <div className="border-b pb-6">
-                  <div className="mb-4 flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm font-semibold text-gray-900">Dashboard</span>
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 justify-end pt-4 border-t">
+                    <Button variant="outline" >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="bg-primary gap-2"
+                    >
+                      Send Link
+                    </Button>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-gray-700">Access control</label>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={permissions.dashboard.accessControl}
-                          onChange={(e) =>
-                            setPermissions((prev) => ({
-                              ...prev,
-                              dashboard: { ...prev.dashboard, accessControl: e.target.checked },
-                            }))
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                      </label>
-                    </div>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="dashboard"
-                          checked={permissions.dashboard.read}
-                          onChange={() =>
-                            setPermissions((prev) => ({
-                              ...prev,
-                              dashboard: { ...prev.dashboard, read: true, write: false, fullAccess: false },
-                            }))
-                          }
-                        />
-                        <span className="text-sm">Read</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="dashboard"
-                          checked={permissions.dashboard.write}
-                          onChange={() =>
-                            setPermissions((prev) => ({
-                              ...prev,
-                              dashboard: { ...prev.dashboard, read: false, write: true, fullAccess: false },
-                            }))
-                          }
-                        />
-                        <span className="text-sm">Write</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="dashboard"
-                          checked={permissions.dashboard.fullAccess}
-                          onChange={() =>
-                            setPermissions((prev) => ({
-                              ...prev,
-                              dashboard: { ...prev.dashboard, read: false, write: false, fullAccess: true },
-                            }))
-                          }
-                        />
-                        <span className="text-sm">Full Access</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
 
-                {/* Overview */}
-                <div className="border-b pb-6">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={permissions.overview}
-                      onChange={(e) => setPermissions((prev) => ({ ...prev, overview: e.target.checked }))}
-                      className="rounded"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Overview</span>
-                  </label>
-                </div>
-
-                {/* Executive Summary */}
-                <div>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={permissions.executiveSummary}
-                      onChange={(e) => setPermissions((prev) => ({ ...prev, executiveSummary: e.target.checked }))}
-                      className="rounded"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Executive Summary</span>
-                  </label>
-                </div>
-              </div>
-            )}
-          </Card>
-
-          {/* User Management Section */}
-          <Card className="border-2 border-blue-400 bg-white">
-            <div
-              className="flex items-center justify-between border-b px-6 py-4 cursor-pointer hover:bg-gray-50"
-              onClick={() => toggleSection("User Management")}
-            >
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-blue-600" />
-                <h3 className="font-semibold text-gray-900">User Management</h3>
-              </div>
-              <ChevronUp
-                className={`h-4 w-4 text-gray-600 transition-transform ${
-                  !expandedSections.includes("User Management") ? "rotate-180" : ""
-                }`}
-              />
-            </div>
-
-            {expandedSections.includes("User Management") && (
-              <div className="space-y-4 p-6">
-                <div className="flex items-center justify-between pb-4 border-b">
-                  <label className="text-sm font-medium text-gray-700">Access control</label>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.userManagement.accessControl}
-                      onChange={(e) =>
-                        setPermissions((prev) => ({
-                          ...prev,
-                          userManagement: { ...prev.userManagement, accessControl: e.target.checked },
-                        }))
-                      }
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                  </label>
-                </div>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="userManagement"
-                      checked={permissions.userManagement.read}
-                      onChange={() =>
-                        setPermissions((prev) => ({
-                          ...prev,
-                          userManagement: { ...prev.userManagement, read: true, write: false, fullAccess: false },
-                        }))
-                      }
-                    />
-                    <span className="text-sm">Read</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="userManagement"
-                      checked={permissions.userManagement.write}
-                      onChange={() =>
-                        setPermissions((prev) => ({
-                          ...prev,
-                          userManagement: { ...prev.userManagement, read: false, write: true, fullAccess: false },
-                        }))
-                      }
-                    />
-                    <span className="text-sm">Write</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="userManagement"
-                      checked={permissions.userManagement.fullAccess}
-                      onChange={() =>
-                        setPermissions((prev) => ({
-                          ...prev,
-                          userManagement: { ...prev.userManagement, read: false, write: false, fullAccess: true },
-                        }))
-                      }
-                    />
-                    <span className="text-sm">Full Access</span>
-                  </label>
-                </div>
-              </div>
-            )}
-          </Card>
 
           {/* Action Buttons */}
           <div className="flex flex-col-reverse gap-3 border-t bg-white p-6 sm:flex-row sm:justify-end rounded-b">
             <Button type="button" variant="outline" onClick={handleBack} className="w-full sm:w-auto bg-transparent">
               Cancel
             </Button>
-            <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 sm:w-auto">
+            <Button type="submit" className="w-full bg-primary sm:w-auto">
               Save Changes
             </Button>
           </div>

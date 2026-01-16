@@ -78,13 +78,13 @@ export function AddItemContent() {
                   onChange={(e) => handleFormChange("name", e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
                 <Label htmlFor="appType">Application Type *</Label>
                 <Select
                   value={formData.applicationType || ""}
                   onValueChange={(value) => handleFormChange("applicationType", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="-- Select --" />
                   </SelectTrigger>
                   <SelectContent>
@@ -96,7 +96,7 @@ export function AddItemContent() {
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
                 <Select value={formData.category || ""} onValueChange={(value) => handleFormChange("category", value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full"> 
                     <SelectValue placeholder="-- Select --" />
                   </SelectTrigger>
                   <SelectContent>

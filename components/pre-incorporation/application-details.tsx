@@ -5,9 +5,17 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
-import { ArrowLeft, File, Eye, Search, Bell, Zap, Bot, Check } from "lucide-react"
+import { ArrowLeft, File, Eye, Search, Bell, Zap, Bot, Check, X, CheckCircle, AlertCircle, Flag } from "lucide-react"
 import { Input } from "../ui/input"
 
 interface ApplicationDetailsProps {
@@ -22,6 +30,58 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
 
   const isConsent = type === "consent"
   const pageTitle = isConsent ? "Name Requiring Consent Review" : "Name Reservation Review"
+
+  const [modalType, setModalType] = useState<"override" | "approve" | "reject" | "flag" | null>(null)
+  const [reason, setReason] = useState("")
+
+  const closeModal = () => {
+    setModalType(null)
+    setReason("")
+  }
+
+  const handleAction = () => {
+    console.log(`Action: ${modalType}, Reason: ${reason}`)
+    // Add your API call logic here
+    closeModal()
+  }
+
+  // Configuration for different modal states
+  const modalConfig = {
+    override: {
+      title: "Override AI Recommendation",
+      titleColor: "text-red-600",
+      description: "You are about to override an AI recommendation. This action will be logged and requires a reason.",
+      buttonClass: "bg-red-500 hover:bg-red-600",
+      buttonLabel: "Confirm Override",
+      icon: <AlertCircle className="h-6 w-6 text-red-600" />
+    },
+    approve: {
+      title: "Approve Application",
+      titleColor: "text-green-600",
+      description: "Are you sure you want to approve this filing? This will update the entity records.",
+      buttonClass: "bg-green-600 hover:bg-green-700",
+      buttonLabel: "Approve Filing",
+      icon: <CheckCircle className="h-6 w-6 text-green-600" />
+    },
+    reject: {
+      title: "Reject Application",
+      titleColor: "text-red-600",
+      description: "Please provide a reason for rejecting this application. The applicant will be notified.",
+      buttonClass: "bg-red-600 hover:bg-red-700",
+      buttonLabel: "Confirm Rejection",
+      icon: <X className="h-6 w-6 text-red-600" />
+    },
+    flag: {
+      title: "Flag Application",
+      titleColor: "text-red-600",
+      description: "Please provide a reason for flagging this application. The applicant will be notified.",
+      buttonClass: "bg-red-600 hover:bg-red-700",
+      buttonLabel: "Confirm Flagging",
+      icon: <Flag className="h-6 w-6 text-red-600" />
+    }
+  }
+
+  const currentModal = modalType ? modalConfig[modalType] : null
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -105,6 +165,10 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
                     <div>
                       <p className="text-sm font-medium text-muted-foreground mb-2">Email Address</p>
                       <p className="text-foreground">jdoe@gmail.com</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-2">Phone Number</p>
+                      <p className="text-foreground">09065342516</p>
                     </div>
                   </div>
                 </Card>
@@ -277,18 +341,41 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold mb-4 text-foreground">Admin Actions</h3>
                   <div className="flex gap-3">
-                    <Button variant="outline" className="text-primary border-primary bg-transparent">
-                      Override AI Decisions
-                    </Button>
-                    <Button variant="ghost" className="text-muted-foreground">
-                      Approve
-                    </Button>
-                    <Button variant="ghost" className="text-muted-foreground">
-                      Reject
-                    </Button>
-                    <Button variant="ghost" className="text-muted-foreground">
-                      Flag
-                    </Button>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        className="text-primary border-primary bg-transparent"
+                        onClick={() => setModalType("override")}
+                      >
+                        Override AI Decisions
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="text-muted-foreground"
+                        onClick={() => setModalType("approve")}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="text-muted-foreground"
+                        onClick={() => setModalType("reject")}
+                      >
+                        Reject
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="text-muted-foreground"
+                        onClick={() => setModalType("flag")}
+                      >
+                        Flag
+                      </Button>
+
+                      {/* <Button variant="default" className="text-white border-primary bg-primary cursor-pointer">
+                      Request Documents
+                    </Button> */}
+                    </div>
                   </div>
                 </Card>
               </div>
@@ -407,6 +494,59 @@ export function ApplicationDetails({ applicationId, type }: ApplicationDetailsPr
             </div>
           </div>
         </main>
+
+        <Dialog open={!!modalType} onOpenChange={closeModal}>
+          <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none shadow-2xl">
+            {currentModal && (
+              <>
+                {/* Top Warning Banner (Matching your image) */}
+                <div className={`${modalType === 'approve' ? 'bg-green-50' : 'bg-red-50'} p-6 border-b`}>
+                  <div className="flex items-center gap-3">
+                    {currentModal.icon}
+                    <DialogTitle className={`text-xl font-bold ${currentModal.titleColor}`}>
+                      {currentModal.title}
+                    </DialogTitle>
+                  </div>
+                  <p className={`mt-2 text-sm ${modalType === 'approve' ? 'text-green-700' : 'text-red-600'}`}>
+                    {currentModal.description}
+                  </p>
+                </div>
+
+                {/* Input Area */}
+                <div className="p-6">
+                  <label className="text-sm font-bold text-gray-700 block mb-2">
+                    Reason for {modalType ? modalType.charAt(0).toUpperCase() + modalType.slice(1) : ''}
+                  </label>
+                  <Textarea
+                    placeholder={`Please provide a detailed reason for ${modalType}...`}
+                    className="min-h-[120px] bg-white border-gray-300"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                  />
+                  <p className="mt-4 text-xs text-gray-500 italic">
+                    This action will be recorded in the audit logs with your user identity and timestamp.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <DialogFooter className="p-6 pt-0 flex justify-end gap-3">
+                  <Button variant="outline" onClick={closeModal} className="border-green-600 text-green-700 hover:bg-green-50 px-8">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAction}
+                    className={`${currentModal.buttonClass} text-white px-8`}
+                    disabled={!reason && modalType !== 'approve'} // Require reason for override/reject
+                  >
+                    {currentModal.buttonLabel}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+
       </div>
     </div>
   )

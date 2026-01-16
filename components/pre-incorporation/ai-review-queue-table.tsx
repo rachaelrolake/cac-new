@@ -1,8 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { MoreVertical } from "lucide-react"
+import { Eye, Flag, MoreHorizontal, MoreVertical, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface QueueItem {
   id: string
@@ -123,67 +125,87 @@ const mockData: QueueItem[] = [
 export function AIReviewQueueTable() {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b bg-gray-50">
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-600">S/N</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-600">AV Code</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-600">Proposed Name</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-600">Category</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-600">Reason for Review</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-600">Confidence Level</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-600">AI Decision</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-600">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-600">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>S/N</TableHead>
+            <TableHead>AV Code</TableHead>
+            <TableHead>Proposed Name</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Reason for Review</TableHead>
+            <TableHead>Confidence Level</TableHead>
+            <TableHead>AI Decision</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {mockData.map((item) => (
-            <tr key={item.id} className="border-b hover:bg-gray-50">
-              <td className="px-6 py-4 text-sm text-gray-900">{item.sn}</td>
-              <td className="px-6 py-4 text-sm text-gray-600">{item.avCode}</td>
-              <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                <Link href={`/pre-incorporation/ai-review/${item.id}`} className="hover:underline">
+            <TableRow key={item.id} className="border-b hover:bg-gray-50">
+              <TableCell>{item.sn}</TableCell>
+              <TableCell>{item.avCode}</TableCell>
+              <TableCell>
+                <Link href={`/pre-incorporation/ai-review/${item.id}`} className="font-medium text-primary hover:underline">
                   {item.proposedName}
                 </Link>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-600">{item.category}</td>
-              <td className="px-6 py-4 text-sm text-gray-600">
+              </TableCell>
+              <TableCell>{item.category}</TableCell>
+              <TableCell>
                 <div className="max-w-xs">{item.reasonForReview}</div>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-600">
+              </TableCell>
+              <TableCell>
                 <div className="flex flex-col gap-1">
                   <span className="font-medium">{item.confidencePercent}</span>
                   <span className="text-xs text-gray-500">{item.timeInQueue}</span>
                 </div>
-              </td>
-              <td className="px-6 py-4 text-sm">
+              </TableCell>
+              <TableCell className="px-6 py-4 text-sm">
                 <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">
                   {item.aiDecision}
                 </span>
-              </td>
-              <td className="px-6 py-4 text-sm">
+              </TableCell>
+              <TableCell className="px-6 py-4 text-sm">
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    item.riskLevel === "High Risk"
-                      ? "bg-red-100 text-red-700"
-                      : item.riskLevel === "Medium Risk"
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-green-100 text-green-700"
-                  }`}
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${item.riskLevel === "High Risk"
+                    ? "bg-red-100 text-red-700"
+                    : item.riskLevel === "Medium Risk"
+                      ? "bg-orange-100 text-orange-700"
+                      : "bg-green-100 text-green-700"
+                    }`}
                 >
                   {item.status}
                 </span>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-900">
-                <Button variant="ghost" size="sm">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </td>
-            </tr>
+              </TableCell>
+              <TableCell className="px-6 py-4 text-sm text-gray-900">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href={`/pre-incorporation/ai-review/${item.id}`} className="flex items-center gap-2">
+                        <Eye className="h-4 w-4" />
+                        View Details
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+                      <Flag className="h-4 w-4 text-red-600" />
+                      Flag
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
 
       {/* Pagination */}
       <div className="mt-6 flex items-center justify-between">

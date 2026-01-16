@@ -276,7 +276,7 @@ const mockAccreditedAgents: User[] = [
   },
 ]
 
-const mockInadmissibleAgents: User[] = [
+const mockInsolvencyAgents: User[] = [
   {
     id: 22,
     name: "Samson Yul",
@@ -450,7 +450,7 @@ const mockEntityAccounts: User[] = [
   },
 ]
 
-const tabs = ["System Admins", "Public Users", "Accredited Agents", "Inadmissible Agents", "Entity Accounts"]
+const tabs = ["System Admins", "Public Users", "Accredited Agents", "Insolvency Agents", "Entity Accounts"]
 
 export function UsersManagement() {
   const router = useRouter()
@@ -484,9 +484,9 @@ export function UsersManagement() {
       addButtonLabel = "Add New Agent"
       totalLabel = "Total Users"
       break
-    case "Inadmissible Agents":
-      mockUsers = mockInadmissibleAgents
-      tabLabel = "Inadmissible Agents"
+    case "Insolvency Agents":
+      mockUsers = mockInsolvencyAgents
+      tabLabel = "Insolvency Agents"
       addButtonLabel = "Add New User"
       totalLabel = "Total Users"
       break
@@ -560,11 +560,10 @@ export function UsersManagement() {
               setActiveTab(tab)
               setCurrentPage(1)
             }}
-            className={`px-3 py-1 text-sm font-medium rounded-md transition-all whitespace-nowrap ${
-              activeTab === tab
-                ? "bg-white text-gray-900 shadow-sm"
-                : "bg-transparent text-gray-500 hover:text-gray-700"
-            }`}
+            className={`px-3 py-1 text-sm font-medium rounded-md transition-all whitespace-nowrap ${activeTab === tab
+              ? "bg-white text-gray-900 shadow-sm"
+              : "bg-transparent text-gray-500 hover:text-gray-700"
+              }`}
           >
             {tab}
           </button>
@@ -651,15 +650,21 @@ export function UsersManagement() {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <Button
                   onClick={() => {
-                    const typeParam =
-                      activeTab === "Public Users"
-                        ? "?type=public-user"
-                        : activeTab === "Accredited Agents"
-                          ? "?type=accredited-agent"
-                          : ""
-                    router.push(`/dashboard/users/add${typeParam}`)
+                    // Mapping the activeTab to the URL query parameter
+                    const typeMapping: Record<string, string> = {
+                      "System Admins": "system-admin",
+                      "Public Users": "public-user",
+                      "Accredited Agents": "accredited-agent",
+                      "Insolvency Agents": "insolvency-agent",
+                      "Entity Accounts": "entity-account",
+                    };
+
+                    const typeValue = typeMapping[activeTab] || "";
+                    const typeParam = typeValue ? `?type=${typeValue}` : "";
+                    console.log(activeTab);
+                    router.push(`/dashboard/users/add${typeParam}`);
                   }}
-                  className="gap-2 bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
+                  className="gap-2 bg-primary w-full sm:w-auto"
                 >
                   + {addButtonLabel}
                 </Button>
@@ -688,7 +693,7 @@ export function UsersManagement() {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  
+
                 </div>
               </div>
             </div>
@@ -708,36 +713,36 @@ export function UsersManagement() {
               </div>
 
               <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="gap-1 bg-transparent h-8 px-2 text-xs w-full sm:w-auto">
-                        <Filter className="h-3 w-3" />
-                        <span className="hidden sm:inline">Filters</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <div className="p-2 space-y-2">
-                        {["Active", "Suspended", "Pending"].map((status) => (
-                          <label
-                            key={status}
-                            className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded hover:bg-gray-100"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={activeFilters.includes(status)}
-                              onChange={() => toggleFilter(status)}
-                              className="rounded"
-                            />
-                            <span className="text-sm">{status}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-1 bg-transparent h-8 px-2 text-xs w-full sm:w-auto">
+                    <Filter className="h-3 w-3" />
+                    <span className="hidden sm:inline">Filters</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="p-2 space-y-2">
+                    {["Active", "Suspended", "Pending"].map((status) => (
+                      <label
+                        key={status}
+                        className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded hover:bg-gray-100"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={activeFilters.includes(status)}
+                          onChange={() => toggleFilter(status)}
+                          className="rounded"
+                        />
+                        <span className="text-sm">{status}</span>
+                      </label>
+                    ))}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent className="p-4">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
@@ -786,13 +791,19 @@ export function UsersManagement() {
                           <DropdownMenuItem
                             className="gap-2"
                             onClick={() => {
-                              const typeParam =
-                                activeTab === "Public Users"
-                                  ? "?type=public-user"
-                                  : activeTab === "Accredited Agents"
-                                    ? "?type=accredited-agent"
-                                    : ""
-                              router.push(`/dashboard/users/${user.id}/details${typeParam}`)
+                              // Mapping the activeTab to the URL query parameter
+                              const typeMapping: Record<string, string> = {
+                                "System Admins": "system-admin",
+                                "Public Users": "public-user",
+                                "Accredited Agents": "accredited-agent",
+                                "Insolvency Agents": "insolvency-agent",
+                                "Entity Accounts": "entity-account",
+                              };
+
+                              const typeValue = typeMapping[activeTab] || "";
+                              const typeParam = typeValue ? `?type=${typeValue}` : "";
+                              console.log(activeTab);
+                              router.push(`/dashboard/users/${user.id}/details${typeParam}`);
                             }}
                           >
                             <Eye className="h-4 w-4" />
@@ -801,13 +812,19 @@ export function UsersManagement() {
                           <DropdownMenuItem
                             className="gap-2"
                             onClick={() => {
-                              const typeParam =
-                                activeTab === "Public Users"
-                                  ? "?type=public-user"
-                                  : activeTab === "Accredited Agents"
-                                    ? "?type=accredited-agent"
-                                    : ""
-                              router.push(`/dashboard/users/${user.id}/edit${typeParam}`)
+                              // Mapping the activeTab to the URL query parameter
+                              const typeMapping: Record<string, string> = {
+                                "System Admins": "system-admin",
+                                "Public Users": "public-user",
+                                "Accredited Agents": "accredited-agent",
+                                "Insolvency Agents": "insolvency-agent",
+                                "Entity Accounts": "entity-account",
+                              };
+
+                              const typeValue = typeMapping[activeTab] || "";
+                              const typeParam = typeValue ? `?type=${typeValue}` : "";
+                              console.log(activeTab);
+                              router.push(`/dashboard/users/${user.id}/edit${typeParam}`);
                             }}
                           >
                             <Edit2 className="h-4 w-4" />
