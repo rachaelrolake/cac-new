@@ -15,9 +15,7 @@ import {
   Trash2,
   RotateCcw,
   Users,
-  CheckCircle2,
   XCircle,
-  Clock,
   Shield,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -25,6 +23,8 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import Image from "next/image"
+
 
 interface User {
   id: number
@@ -579,7 +579,7 @@ export function UsersManagement() {
                 <p className="text-sm font-medium text-gray-600">{totalLabel}</p>
                 <p className="text-2xl font-bold text-gray-900">{statusCounts.total}</p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gray-100">
                 <Users className="h-6 w-6 text-black" />
               </div>
             </div>
@@ -593,8 +593,14 @@ export function UsersManagement() {
                 <p className="text-sm font-medium text-gray-600">Active</p>
                 <p className="text-2xl font-bold text-emerald-600">{statusCounts.active}</p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-emerald-100">
+                <Image
+                  src="/active.png"
+                  alt="Active"
+                  width={24}
+                  height={24}
+                />
+
               </div>
             </div>
           </CardContent>
@@ -607,7 +613,7 @@ export function UsersManagement() {
                 <p className="text-sm font-medium text-gray-600">Suspended</p>
                 <p className="text-2xl font-bold text-rose-600">{statusCounts.suspended}</p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100">
+              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-rose-100">
                 <XCircle className="h-6 w-6 text-rose-600" />
               </div>
             </div>
@@ -621,8 +627,14 @@ export function UsersManagement() {
                 <p className="text-sm font-medium text-gray-600">Pending</p>
                 <p className="text-2xl font-bold text-orange-600">{statusCounts.pending}</p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
-                <Clock className="h-6 w-6 text-orange-600" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gray-100">
+                <Image
+                  src="/pending.png"
+                  alt="Pending"
+                  width={24}
+                  height={24}
+                />
+
               </div>
             </div>
           </CardContent>
