@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Users,
   UserCheck,
@@ -11,93 +10,79 @@ import {
   FileText,
   TrendingUp,
   TrendingDown,
-  CheckCircle2,
-  XCircle,
-  Clock,
+  MoreHorizontal,
+  Flag,
+  Eye,
+  Trash2,
+  PlusSquare,
+  Building2,
+  File,
 } from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { MetricCard } from "./metric-card"
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "../ui/table"
+import Link from "next/link"
 
-const chartData = [
-  { month: "Jan", flagged: 600, users: 400, pending: 150 },
-  { month: "Feb", flagged: 620, users: 420, pending: 170 },
-  { month: "Mar", flagged: 630, users: 430, pending: 180 },
-  { month: "Apr", flagged: 640, users: 420, pending: 185 },
-  { month: "May", flagged: 650, users: 430, pending: 190 },
-  { month: "Jun", flagged: 670, users: 450, pending: 180 },
-  { month: "Jul", flagged: 680, users: 460, pending: 200 },
-  { month: "Aug", flagged: 700, users: 470, pending: 210 },
-  { month: "Sep", flagged: 720, users: 490, pending: 220 },
-  { month: "Oct", flagged: 740, users: 500, pending: 230 },
-  { month: "Nov", flagged: 760, users: 510, pending: 235 },
-  { month: "Dec", flagged: 780, users: 520, pending: 240 },
-]
+const mockData = [
+  {
+    applicationId: "NR12345",
+    applicationType: "Name Reservation",
+    avCode: "AV12345",
+    applicant: "Adebayo Johnson",
+    entityName: "Tech Innovation Solutions Ltd",
+    submittedOn: "Sept 17, 2025",
+    status: "Approved"
+  },
+  {
+    applicationId: "RC78901",
+    applicationType: "Company Registration",
+    avCode: "AV12346",
+    applicant: "Chioma Nwosu",
+    entityName: "Green Energy Holdings Ltd",
+    submittedOn: "Sept 16, 2025",
+    status: "Pending"
+  },
+  {
+    applicationId: "AR45678",
+    applicationType: "Annual Return",
+    avCode: "Nil",
+    applicant: "Ibrahim Musa",
+    entityName: "XYZ Enterprises Ltd",
+    submittedOn: "Sept 15, 2025",
+    status: "Pending"
+  },
+  {
+    applicationId: "NR23456",
+    applicationType: "Name Reservation",
+    avCode: "AV12348",
+    applicant: "Funke Akindele",
+    entityName: "Digital Marketing Hub Ltd",
+    submittedOn: "Sept 14, 2025",
+    status: "Pending"
+  },
+  {
+    applicationId: "BN67890",
+    applicationType: "Change of Directors",
+    avCode: "Nil",
+    applicant: "Oluwaseun Adekunle",
+    entityName: "ABC Manufacturing Ltd",
+    submittedOn: "Sept 13, 2025",
+    status: "Pending"
+  }
+];
 
-const applications = [
-  {
-    id: "BN-18392",
-    type: "Business Name",
-    priority: "High",
-    status: "Under Review",
-    submittedBy: "Grace Okoro",
-    timeAgo: "4hours ago",
-    sla: "2days Remaining",
-  },
-  {
-    id: "AV-18392",
-    type: "Name Reservation",
-    priority: "Normal",
-    status: "Pending",
-    submittedBy: "Ibrahim Ismail",
-    timeAgo: "1hours ago",
-    sla: "60days Remaining",
-  },
-  {
-    id: "RC-18392",
-    type: "Insolvency Filling",
-    priority: "High",
-    status: "Queried",
-    submittedBy: "Akpan John",
-    timeAgo: "4hours ago",
-    sla: "8days Remaining",
-  },
-  {
-    id: "RC-18392",
-    type: "Annual Return",
-    priority: "Normal",
-    status: "Pending",
-    submittedBy: "ABC Company LTD",
-    timeAgo: "4hours ago",
-    sla: "2days Remaining",
-  },
-]
-
-const alerts = [
-  {
-    type: "warning",
-    message: "High Volume Of Name Reservation Applications Detected",
-    time: "20 minutes ago",
-  },
-  {
-    type: "info",
-    message: "Scheduled Maintenance On Friday 10:00 PM - 12:00 AM",
-    time: "5 hours ago",
-  },
-  {
-    type: "error",
-    message: "5 Cases Exceeded SLA Timeline",
-    time: "5 hours ago",
-  },
-]
+const quickActions = [
+  { label: "Assign Case", icon: PlusSquare, bgColor: "bg-blue-100", textColor: "text-blue-700", iconColor: "text-blue-700" },
+  { label: "Send Announcement", icon: Building2, bgColor: "bg-green-100", textColor: "text-green-700", iconColor: "text-green-700" },
+  { label: "Update Service Fees", icon: FileText, bgColor: "bg-orange-50", textColor: "text-orange-800", iconColor: "text-orange-800" },
+  { label: "View Reports", icon: File, bgColor: "bg-purple-100", textColor: "text-purple-700", iconColor: "text-purple-700" },
+];
 
 export function DashboardOverview() {
-  const [activeTab, setActiveTab] = useState("Public Users")
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="py-0">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
@@ -106,9 +91,8 @@ export function DashboardOverview() {
                 <p className="mt-2 text-3xl font-bold">10,790</p>
                 <div className="mt-2 flex items-center gap-1 text-sm">
                   <TrendingUp className="h-4 w-4 text-green-600" />
-                  <span className="font-medium text-green-600">+12.5%</span>
+                  <span className="font-medium text-green-600">+8% this month</span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">20 New this week</p>
               </div>
               <div className="rounded-lg bg-emerald-50 p-3">
                 <Users className="h-6 w-6 text-emerald-700" />
@@ -117,7 +101,7 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="py-0">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
@@ -125,10 +109,9 @@ export function DashboardOverview() {
                 <p className="text-sm font-medium text-gray-500">Accredited Agents</p>
                 <p className="mt-2 text-3xl font-bold">9,790</p>
                 <div className="mt-2 flex items-center gap-1 text-sm">
-                  <TrendingDown className="h-4 w-4 text-red-600" />
-                  <span className="font-medium text-red-600">-5%</span>
+                  <TrendingDown className="h-4 w-4 text-green-600" />
+                  <span className="font-medium text-green-600">+12% this month</span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">7 New Last week</p>
               </div>
               <div className="rounded-lg bg-purple-50 p-3">
                 <UserCheck className="h-6 w-6 text-purple-700" />
@@ -137,7 +120,7 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="py-0">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
@@ -146,9 +129,8 @@ export function DashboardOverview() {
                 <p className="mt-2 text-3xl font-bold">10,790</p>
                 <div className="mt-2 flex items-center gap-1 text-sm">
                   <TrendingUp className="h-4 w-4 text-green-600" />
-                  <span className="font-medium text-green-600">+9.5%</span>
+                  <span className="font-medium text-green-600">+9.5% this month</span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">60 Pending Verifications</p>
               </div>
               <div className="rounded-lg bg-orange-50 p-3">
                 <Building className="h-6 w-6 text-orange-700" />
@@ -157,7 +139,7 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="py-0">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
@@ -168,7 +150,6 @@ export function DashboardOverview() {
                   <TrendingDown className="h-4 w-4 text-red-600" />
                   <span className="font-medium text-red-600">-8%</span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">23 Urgent ({"< 24hrs"})</p>
               </div>
               <div className="rounded-lg bg-blue-50 p-3">
                 <FileText className="h-6 w-6 text-blue-700" />
@@ -178,175 +159,105 @@ export function DashboardOverview() {
         </Card>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 rounded-lg bg-gray-100 p-1">
-        {["Public Users", "Accredited Agents", "Insolvency Agents", "Entity Accounts"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${activeTab === tab ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
-              }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Metrics Cards */}
-      <div className="grid gap-6 md:grid-cols-5">
-        {activeTab === "Public Users" && (
-          <>
-            <MetricCard title="Total Users" value="9100" icon="users" iconColor="blue" />
-            <MetricCard title="Active Users" value="8234" icon="checkmark" iconColor="green" />
-            <MetricCard title="Suspended Users" value="30" icon="cross" iconColor="red" />
-            <MetricCard title="Pending Users" value="30" icon="clock" iconColor="blue" />
-            <MetricCard title="Flagged" value="18" icon="trending-down" iconColor="red" /></>
-        )}
-        {activeTab === "Accredited Agents" && (
-          <>
-            <MetricCard title="Total Acc. Agents" value="4500" icon="users" iconColor="blue" />
-            <MetricCard title="Active Acc. Agents" value="4000" icon="checkmark" iconColor="green" />
-            <MetricCard title="Suspended Acc. Agents" value="20" icon="cross" iconColor="red" />
-            <MetricCard title="Pending Acc. Agents" value="15" icon="clock" iconColor="blue" />
-            <MetricCard title="Active Filing" value="10" icon="trending-down" iconColor="blue" /></>
-        )}
-        {activeTab === "Insolvency Agents" && (
-          <>
-            <MetricCard title="Total Ins. Agents" value="1200" icon="users" iconColor="blue" />
-            <MetricCard title="Active Ins. Agents" value="1100" icon="checkmark" iconColor="green" />
-            <MetricCard title="Suspended Ins. Agents" value="5" icon="cross" iconColor="red" />
-            <MetricCard title="Pending Ins. Agents" value="8" icon="clock" iconColor="blue" />
-            <MetricCard title="Active Cases" value="4" icon="trending-down" iconColor="red" /></>
-        )}
-        {activeTab === "Entity Accounts" && (
-          <>
-            <MetricCard title="Total Entity Accounts" value="8000" icon="users" iconColor="blue" />
-            <MetricCard title="Active Accounts" value="7500" icon="checkmark" iconColor="green" />
-            <MetricCard title="Suspended Accounts" value="25" icon="cross" iconColor="red" />
-            <MetricCard title="Pending Accounts" value="20" icon="clock" iconColor="blue" />
-            <MetricCard title="Non compliant" value="12" icon="trending-down" iconColor="red" /></>
-        )}
-
-
-
-      </div>
-
-      {/* Chart */}
+      {/* Quick Actions Section */}
       <Card>
-        <CardContent className="p-6">
-          <div className="mb-4 flex items-center justify-end gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-red-500"></div>
-              <span className="text-gray-600">Flagged</span>
+        <CardContent>
+          <section>
+            <div className="mb-6">
+              <span className="px-4 py-1.5 text-sm font-semibold border rounded-lg shadow-sm bg-white">
+                Quick Actions
+              </span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-green-500"></div>
-              <span className="text-gray-600">Users</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-gray-900"></div>
-              <span className="text-gray-600">Pending</span>
-            </div>
-          </div>
 
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" stroke="#999" />
-              <YAxis stroke="#999" />
-              <Tooltip />
-              <Line type="monotone" dataKey="flagged" stroke="#ef4444" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="users" stroke="#10b981" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="pending" stroke="#1f2937" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {/* Assign Case */}
+              <button className="flex items-center gap-3 p-6 rounded-xl bg-[#E3F2FD] text-[#1976D2] hover:bg-[#BBDEFB] transition-all cursor-pointer">
+                <PlusSquare className="h-6 w-6" />
+                <span className="font-bold text-sm">Assign Case</span>
+              </button>
+
+              {/* Send Announcement */}
+              <button className="flex items-center gap-3 p-6 rounded-xl bg-[#E8F5E9] text-[#2E7D32] hover:bg-[#C8E6C9] transition-all cursor-pointer">
+                <Building2 className="h-6 w-6" />
+                <span className="font-bold text-sm">Send Announcement</span>
+              </button>
+
+              {/* Update Service Fees */}
+              <button className="flex items-center gap-3 p-6 rounded-xl bg-[#F9F3E3] text-[#856404] hover:bg-[#F1E4C1] transition-all cursor-pointer">
+                <FileText className="h-6 w-6" />
+                <span className="font-bold text-sm">Update Service Fees</span>
+              </button>
+
+              {/* View Reports */}
+              <button className="flex items-center gap-3 p-6 rounded-xl bg-[#F3E5F5] text-[#7B1FA2] hover:bg-[#E1BEE7] transition-all cursor-pointer">
+                <File className="h-6 w-6" />
+                <span className="font-bold text-sm">View Reports</span>
+              </button>
+            </div>
+          </section>
         </CardContent>
       </Card>
 
       {/* Recent Applications and System Alerts */}
-      <div className="grid gap-6 lg:grid-cols-[1.5fr,1fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Applications</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {applications.map((app, index) => (
-                <div key={index} className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-gray-900">{app.id}</span>
-                      <Badge variant={app.priority === "High" ? "destructive" : "secondary"}>{app.priority}</Badge>
-                    </div>
-                    <div className="text-sm font-medium text-gray-900">{app.type}</div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <span>{app.submittedBy}</span>
-                      <span>•</span>
-                      <span>{app.timeAgo}</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge
-                      variant="outline"
-                      className={
-                        app.status === "Under Review"
-                          ? "border-blue-200 bg-blue-50 text-blue-700"
-                          : app.status === "Pending"
-                            ? "border-yellow-200 bg-yellow-50 text-yellow-700"
-                            : "border-red-200 bg-red-50 text-red-700"
-                      }
-                    >
-                      {app.status}
-                    </Badge>
-                    <div className="mt-2 text-xs text-gray-500">SLA: {app.sla}</div>
-                    <Button size="sm" variant="outline" className="mt-2 bg-transparent">
-                      Review
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>System Alerts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {alerts.map((alert, index) => (
-                <div
-                  key={index}
-                  className={`rounded-lg border p-4 ${alert.type === "warning"
-                    ? "border-yellow-200 bg-yellow-50"
-                    : alert.type === "info"
-                      ? "border-blue-200 bg-blue-50"
-                      : "border-red-200 bg-red-50"
-                    }`}
-                >
-                  <div className="flex gap-3">
-                    <div
-                      className={`mt-0.5 h-5 w-5 shrink-0 rounded-full ${alert.type === "warning"
-                        ? "bg-yellow-500"
-                        : alert.type === "info"
-                          ? "bg-blue-500"
-                          : "bg-red-500"
-                        } flex items-center justify-center text-white`}
-                    >
-                      {alert.type === "warning" ? "!" : alert.type === "info" ? "i" : "!"}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{alert.message}</p>
-                      <p className="mt-1 text-xs text-gray-600">{alert.time}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="col-span-full">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Recent Applications</CardTitle>
+          <Button variant="ghost" className="text-primary" size="sm">See all applications</Button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-gray-50">
+                <TableRow>
+                  <TableHead className="font-semibold text-gray-600">Application ID</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Application Type</TableHead>
+                  <TableHead className="font-semibold text-gray-600">AV Code</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Applicant</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Entity Name</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Submitted On</TableHead>
+                  <TableHead className="font-semibold text-gray-600">Status ↓</TableHead>
+                  <TableHead className="text-right font-semibold text-gray-600">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {mockData.map((item) => (
+                  <TableRow key={item.applicationId} className="border-b hover:bg-gray-50/30 transition-colors py-10">
+                    <TableCell className="text-gray-500 font-medium py-4">{item.applicationId}</TableCell>
+                    <TableCell className="text-gray-600 py-4">{item.applicationType}</TableCell>
+                    <TableCell className="text-gray-500 py-4">{item.avCode}</TableCell>
+                    <TableCell className="text-gray-600 py-4">{item.applicant}</TableCell>
+                    <TableCell className="text-gray-600 py-4">{item.entityName}</TableCell>
+                    <TableCell className="text-gray-500 py-4">{item.submittedOn}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${item.status === "Approved"
+                          ? "bg-green-50 text-green-700 ring-1 ring-inset ring-green-100"
+                          : "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-100"
+                          }`}
+                      >
+                        {item.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/review/${item.applicationId}`}
+                          className="font-bold text-[#2E7D32] hover:text-[#1b5e20] text-sm transition-colors"
+                        >
+                          View
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+              <TableFooter>
+                <p className="p-4">Page 1 of 1</p>
+              </TableFooter>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

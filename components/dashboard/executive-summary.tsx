@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   BarChart,
@@ -16,7 +16,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
-import { TrendingUp, TrendingDown, Search, Calendar, Download } from "lucide-react"
+import { TrendingUp, TrendingDown, Search, Calendar, Download, ChevronRight, AlertTriangle, ShieldAlert, Info } from "lucide-react"
 import {
 
   // Sample data for metrics
@@ -33,391 +33,256 @@ import {
   Tag,
   Scale,
 } from "lucide-react"
+import { SectionHeader } from "../reusables/section-header"
 
-const metricsData = [
-  {
-    title: "Total Financial Revenue",
-    value: "₦1,000,790,000",
-    change: 12.5,
-    subtitle: "3 Payments this week",
-    icon: <DollarSign className="h-6 w-6" />,
-    color: "emerald",
-  },
-  {
-    title: "Total Accredited Agents",
-    value: "9,790",
-    change: -5,
-    subtitle: "7 New Last week",
-    icon: <UserCheck className="h-6 w-6" />,
-    color: "purple",
-  },
-  {
-    title: "Total Entity Accounts",
-    value: "10,790",
-    change: 9.5,
-    subtitle: "60 Pending Verifications",
-    icon: <Building2 className="h-6 w-6" />,
-    color: "orange",
-  },
-  {
-    title: "Pending Applications",
-    value: "98",
-    change: -8,
-    subtitle: "23 Urgent (< 24hrs)",
-    icon: <ClipboardList className="h-6 w-6" />,
-    color: "blue",
-  },
-  {
-    title: "Total Public Users",
-    value: "10,790",
-    change: 12.5,
-    subtitle: "20 New this week",
-    icon: <Users className="h-6 w-6" />,
-    color: "emerald",
-  },
-  {
-    title: "Total Insolvent Agents",
-    value: "9,790",
-    change: -5,
-    subtitle: "7 New Last week",
-    icon: <AlertCircle className="h-6 w-6" />,
-    color: "purple",
-  },
-  {
-    title: "Total Name Reservations",
-    value: "10,790",
-    change: 9.5,
-    subtitle: "60 Pending Verifications",
-    icon: <FileText className="h-6 w-6" />,
-    color: "orange",
-  },
-  {
-    title: "Total Annual Filings",
-    value: "98",
-    change: -8,
-    subtitle: "23 Urgent (< 24hrs)",
-    icon: <FileCheck className="h-6 w-6" />,
-    color: "blue",
-  },
-  {
-    title: "Total System Admins",
-    value: "10,790",
-    change: 12.5,
-    subtitle: "20 New this week",
-    icon: <Settings className="h-6 w-6" />,
-    color: "emerald",
-  },
-  {
-    title: "Total Limited Liability Company",
-    value: "9,790",
-    change: -5,
-    subtitle: "7 New Last week",
-    icon: <Building className="h-6 w-6" />,
-    color: "purple",
-  },
-  {
-    title: "Total Business Names",
-    value: "10,790",
-    change: 9.5,
-    subtitle: "60 Pending Verifications",
-    icon: <Tag className="h-6 w-6" />,
-    color: "orange",
-  },
-  {
-    title: "Total Trustees",
-    value: "98",
-    change: -8,
-    subtitle: "23 Urgent (< 24hrs)",
-    icon: <Scale className="h-6 w-6" />,
-    color: "blue",
-  },
+const pendingApprovals = [
+  { "label": "Name reservation", "value": 87, "oldest": "4 days" },
+  { "label": "Registrations", "value": 64, "oldest": "2 days" },
+  { "label": "Name Requiring Consent", "value": 43, "oldest": "6 days" },
+  { "label": "Insolvency Filings", "value": 52, "oldest": "6 days" }
 ]
 
-// Chart data
-const barChartData = [
-  { month: "Jan", value: 400 },
-  { month: "Feb", value: 600 },
-  { month: "Mar", value: 450 },
-  { month: "Apr", value: 650 },
-  { month: "May", value: 400 },
-  { month: "Jun", value: 500 },
+const financialOversight = [
+  { "label": "Total Transaction", "value": "₦1,000,790,000", "background": "#F1F9F1" },
+  { "label": "Transactions Today", "value": "1,234", "background": "#F9FAFB" },
+  { "label": "Failed Payments", "value": "45", "background": "#FFF5F5" }
 ]
 
-const pieChartData = [
-  { name: "Resolved", value: 35 },
-  { name: "Escalated", value: 25 },
-  { name: "Pending", value: 40 },
-]
+const slaData = {
+  "stats": [
+    { "label": "Within SLA", "value": 285, "color": "text-green-600" },
+    { "label": "Nearing Breach", "value": 52, "color": "text-orange-500" },
+    { "label": "Breached", "value": 39, "color": "text-red-500" }
+  ],
+  "contributors": [
+    { "name": "Consent Applications", "count": 15 },
+    { "name": "Insolvency Filings", "count": 12 },
+    { "name": "Change of Directors", "count": 8 }
+  ]
+}
 
-const COLORS = ["#10b981", "#ef4444", "#84cc16"]
+const complianceStatus = [
+  {
+    "title": "Non-Compliant Entities",
+    "sub": "Overdue Annual Returns",
+    "value": "1,247",
+    "bg": "bg-[#FFF5F5]",
+    "text": "text-[#C53030]"
+  },
+  {
+    "title": "Blocked Entities",
+    "sub": "Service restrictions active",
+    "value": "89",
+    "bg": "bg-[#FFF7ED]",
+    "text": "text-[#F54900]"
+  }
+]
 
 export function ExecutiveSummary() {
-  const [viewMode, setViewMode] = useState<"cards" | "charts">("cards")
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 8
-  const totalPages = Math.ceil(metricsData.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedData = metricsData.slice(startIndex, startIndex + itemsPerPage)
-
-  const colorMap: Record<string, { bg: string; text: string }> = {
-    emerald: { bg: "bg-emerald-50", text: "text-emerald-700" },
-    purple: { bg: "bg-purple-50", text: "text-purple-700" },
-    orange: { bg: "bg-orange-50", text: "text-orange-700" },
-    blue: { bg: "bg-blue-50", text: "text-blue-700" },
-  }
-
   return (
     <div className="space-y-6">
-      {/* Header with filters and export */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search"
-              className="rounded-lg border border-gray-200 bg-white pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
 
-          <select className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-            <option>--Select--</option>
-          </select>
-
-          <div className="relative">
-            <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="mm/dd/yy"
-              className="rounded-lg border border-gray-200 bg-white pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-        </div>
-
-        <Button className="flex items-center gap-2 bg-white text-gray-900 hover:bg-gray-50 border border-gray-200">
-          <Download className="h-4 w-4" />
-          Export
-        </Button>
-      </div>
-
-      {/* View toggle and cards/charts tabs */}
-      <div className="flex items-center gap-3">
-        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-          <button
-            onClick={() => setViewMode("cards")}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${viewMode === "cards" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
-              }`}
-          >
-            Cards
-          </button>
-          <button
-            onClick={() => setViewMode("charts")}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${viewMode === "charts" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
-              }`}
-          >
-            Charts
-          </button>
-        </div>
-      </div>
-
-      {/* Cards View */}
-      {viewMode === "cards" && (
-        <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {paginatedData.map((metric, index) => {
-              const colors = colorMap[metric.color as keyof typeof colorMap]
-              return (
-                <Card key={index} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">{metric.title}</p>
-                        <p className="mt-3 text-2xl font-bold text-gray-900">{metric.value}</p>
-                        <div className="mt-3 flex items-center gap-1">
-                          {metric.change >= 0 ? (
-                            <>
-                              <TrendingUp className="h-4 w-4 text-green-600" />
-                              <span className="text-sm font-medium text-green-600">+{metric.change}%</span>
-                            </>
-                          ) : (
-                            <>
-                              <TrendingDown className="h-4 w-4 text-red-600" />
-                              <span className="text-sm font-medium text-red-600">{metric.change}%</span>
-                            </>
-                          )}
-                        </div>
-                        <p className="mt-2 text-xs text-gray-500">{metric.subtitle}</p>
-                      </div>
-                      <div className={`rounded-lg ${colors.bg} p-3`}>
-                        <span className="text-2xl">{metric.icon}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between pt-6">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-            >
-              ← Previous
-            </Button>
-
-            <div className="flex gap-2">
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${currentPage === i + 1
-                    ? "bg-emerald-700 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
-                    }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
+      {/* Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="py-0">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total</p>
+                <p className="text-sm font-medium text-gray-500">Public Users</p>
+                <p className="mt-2 text-3xl font-bold">10,790</p>
+              </div>
+              <div className="rounded-lg bg-emerald-50 p-3">
+                <Users className="h-6 w-6 text-emerald-700" />
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next →
-            </Button>
+        <Card className="py-0">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total</p>
+                <p className="text-sm font-medium text-gray-500">Accredited Agents</p>
+                <p className="mt-2 text-3xl font-bold">9,790</p>
+              </div>
+              <div className="rounded-lg bg-purple-50 p-3">
+                <UserCheck className="h-6 w-6 text-purple-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="py-0">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total</p>
+                <p className="text-sm font-medium text-gray-500">Entity Accounts</p>
+                <p className="mt-2 text-3xl font-bold">10,790</p>
+              </div>
+              <div className="rounded-lg bg-orange-50 p-3">
+                <Building className="h-6 w-6 text-orange-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="py-0">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total Insolvency</p>
+                <p className="text-sm font-medium text-gray-500">Practitioners</p>
+                <p className="mt-2 text-3xl font-bold">98</p>
+              </div>
+              <div className="rounded-lg bg-blue-50 p-3">
+                <FileText className="h-6 w-6 text-blue-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* SECTION: SUMMARIES (Pending & Financial) */}
+      <div className="grid grid-cols-1 gap-8">
+        {/* Pending Approvals */}
+        <Card className="border-none shadow-sm">
+          <CardHeader>
+            <SectionHeader>Pending Approvals Summary (246)</SectionHeader>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Map through pendingApprovals JSON here */}
+            {["Name reservation", "Registrations", "Name Requiring Consent", "Insolvency Filings"].map((item, i) => (
+              <div key={i} className="p-4 bg-[#F9FAFB] rounded-xl flex justify-between items-center group cursor-pointer transition-all">
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-500">{item}</p>
+                  <p className="text-xl font-bold">87</p>
+                  <p className="text-[10px] text-gray-400">Oldest: 4 days</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-600" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Financial Oversight */}
+        <Card className="border-none shadow-sm">
+          <CardHeader>
+            <SectionHeader>Financial Oversight</SectionHeader>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {financialOversight.map((financially, i) => (
+              <div className={`p-6 bg-[${financially.background}] rounded-xl flex justify-between items-center`} key={i}>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">{financially.label}</p>
+                  <p className="text-xl font-bold text-[#1B4332]">{financially.value}</p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-gray-400" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* SLA Overview */}
+        <Card className="p-6">
+          <SectionHeader>SLA Overview</SectionHeader>
+          <div className="grid grid-cols-3 text-center mb-8">
+            {slaData.stats.map((stat, i) => (
+              <div key={i}>
+                <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+              </div>
+            ))}
           </div>
-        </>
-      )}
-
-      {/* Charts View */}
-      {viewMode === "charts" && (
-        <div className="grid gap-6">
-          {/* Bar Charts */}
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">Total Financial Revenue</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={barChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">Total Name Reservation</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={barChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+          <div className="space-y-3">
+            <p className="text-sm font-bold text-gray-700">Top Contributors to Breaches</p>
+            {slaData.contributors.map((item, i) => (
+              <div key={i} className="flex justify-between text-sm">
+                <span className="text-gray-500">{item.name}</span>
+                <span className="font-bold text-red-600">{item.count}</span>
+              </div>
+            ))}
           </div>
+        </Card>
 
-          {/* Pie Charts */}
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">Total Escalated Cases</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie data={pieChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value">
-                      {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">Total Annual Filings</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie data={pieChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value">
-                      {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">Total Name Reservation</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie data={pieChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value">
-                      {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+        {/* Fraud & Compliance Alerts */}
+        <Card className="p-6">
+          <SectionHeader>Fraud & Compliance Alerts</SectionHeader>
+          <div className="space-y-3">
+            {[
+              { label: "Flagged Users/Entities", val: 12, icon: AlertTriangle },
+              { label: "New Fraud Flags Today", val: 3, icon: ShieldAlert },
+              { label: "Escalated Cases", val: 7, icon: Info }
+            ].map((alert, i) => (
+              <div key={i} className="flex items-center justify-between p-4 border rounded-xl hover:bg-gray-50 cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <alert.icon className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="text-xs text-gray-500">{alert.label}</p>
+                    <p className="text-lg font-bold">{alert.val}</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-600" />
+              </div>
+            ))}
           </div>
+        </Card>
+      </div>
 
-          {/* More Bar Charts */}
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">Total Business Names</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={barChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* SLA Overview */}
+        <Card className="p-6">
+          <SectionHeader>SLA Overview</SectionHeader>
 
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">Total Limited Liability Companies</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={barChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+          <div className="space-y-4">
+            {complianceStatus.map((item, i) => (
+              <div
+                key={i}
+                className={`${item.bg} p-6 rounded-2xl flex justify-between items-center border border-transparent hover:border-gray-200 transition-all cursor-pointer group`}
+              >
+                <div>
+                  <h3 className="text-md font-bold text-gray-900">{item.title}</h3>
+                  <p className="text-sm text-gray-500">{item.sub}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className={`text-xl font-black ${item.text}`}>{item.value}</span>
+                  <ChevronRight className="h-5 w-5 text-gray-400 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      )}
+        </Card>
+
+        {/* Support & System Issues */}
+        <Card className="p-6">
+          <SectionHeader>Support & System Issues</SectionHeader>
+          <div className="space-y-3">
+            {[
+              { label: "Open Support Tickets", val: 87, icon: AlertCircle },
+              { label: "High Priority Tickets", val: 14, icon: AlertTriangle },
+              { label: "Escalated Tickets", val: 9, icon: TrendingUp }
+            ].map((alert, i) => (
+              <div key={i} className="flex items-center justify-between p-4 border rounded-xl hover:bg-gray-50 cursor-pointer group">
+                <div className="flex items-center gap-3">
+                  <alert.icon className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="text-xs text-gray-500">{alert.label}</p>
+                    <p className="text-lg font-bold">{alert.val}</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-600" />
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+
+
     </div>
   )
 }
