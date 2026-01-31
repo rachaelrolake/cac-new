@@ -235,7 +235,7 @@ export function NormalFilingsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/pre-incorporation/name-requiring-consent/${app.id}`}>
+                          <Link href={`/post-incorporation/normal-filings/${app.id}`}>
                             <Eye className="w-4 h-4" /> View Application Details
                           </Link>
                         </DropdownMenuItem>

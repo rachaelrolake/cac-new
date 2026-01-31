@@ -209,7 +209,7 @@ export function InsolvencyFilingsPage() {
                   <TableCell>{app.avCode}</TableCell>
                   <TableCell>
                     <Link
-                      href={`/pre-incorporation/name-reservation/${app.id}`}
+                      href={`/post-incorporation/insolvency-filings/${app.id}`}
                       className=""
                     >
                       {app.proposedName}

@@ -14,6 +14,105 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
+const mockApplications = [
+  {
+    id: 1,
+    sn: 1,
+    avCode: "AV-2019-01",
+    proposedName: "TECH INNOVATIONS NIGERIA LIMITED",
+    submitted: "Nov 15, 2025 09:49AM",
+    reasonForConsent: "New Incorporation",
+    aiDecision: "AI: Recommended Approval",
+    status: "Pending",
+    sla: "Done",
+    entityClassification: "Business Name",
+    entityType: "Business Name",
+    filingType: "Annual Returns Filing",
+    applicants: "John Doe",
+    applicantsType: "Entity Admin",
+  },
+  {
+    id: 2,
+    sn: 2,
+    avCode: "AV-2019-01",
+    proposedName: "GLOBAL PETROLEUM SERVICES LIMITED",
+    submitted: "Nov 14, 2025 09:50AM",
+    reasonForConsent: "Use Of Restricted Word",
+    aiDecision: "AI: Needs Human Review",
+    status: "Queried",
+    sla: "54d left",
+    entityClassification: "Company",
+    entityType: "Public Limited by Guarantee",
+    filingType: "Notice of Change in Address, Email or Phone Number",
+    applicants: "Ahmed Hassan",
+    applicantsType: "Entity Admin",
+  },
+  {
+    id: 3,
+    sn: 3,
+    avCode: "AV-2019-01",
+    proposedName: "SUNRISE VENTURES LIMITED",
+    submitted: "Nov 14, 2025 12:09PM",
+    reasonForConsent: "Group Holdings/ Consortium",
+    aiDecision: "AI: Recommended Approval",
+    status: "Pending",
+    sla: "54d left",
+    entityClassification: "Company",
+    entityType: "Private Unlimited",
+    filingType: "Increase in Share Capital",
+    applicants: "Mary Johnson",
+    applicantsType: "Agent",
+  },
+  {
+    id: 4,
+    sn: 4,
+    avCode: "AV-2019-01",
+    proposedName: "NATIONAL BANK OF COMMERCE LIMITED",
+    submitted: "Nov 10, 2025 01:34PM",
+    reasonForConsent: "Group Holdings/ consortium",
+    aiDecision: "AI: Approved",
+    status: "Approved",
+    sla: "8d left",
+    entityClassification: "Limited Liability Partnership",
+    entityType: "Limited Liability Partnership",
+    filingType: "Filing of Financial Statements",
+    applicants: "Michael Chen",
+    applicantsType: "Entity Admin",
+  },
+  {
+    id: 5,
+    sn: 5,
+    avCode: "AV-2019-01",
+    proposedName: "SUNNET AGRO LIMITED",
+    submitted: "Nov 14, 2025 05:12AM",
+    reasonForConsent: "New Incorporation",
+    aiDecision: "AI: Approved",
+    status: "Approved",
+    sla: "24d left",
+    entityClassification: "Limited Partnership",
+    entityType: "Limited Partnership",
+    filingType: "Change of Directors",
+    applicants: "David Okafor",
+    applicantsType: "Agent",
+  },
+  {
+    id: 6,
+    sn: 6,
+    avCode: "AV-2019-01",
+    proposedName: "EDU FURNITURES LIMITED",
+    submitted: "Nov 08, 2025 09:12PM",
+    reasonForConsent: "New Incorporation",
+    aiDecision: "AI: Needs Human Review",
+    status: "Approved",
+    sla: "54d left",
+    entityClassification: "Incorporated Trustee",
+    entityType: "Incorporated Trustee",
+    filingType: "Change of Company Name",
+    applicants: "Grace Eze",
+    applicantsType: "Entity Admin",
+  }
+]
+
 export default function NormalFilingsDetails({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [openSections, setOpenSections] = useState({
@@ -106,366 +205,7 @@ export default function NormalFilingsDetails({ params }: { params: Promise<{ id:
             </CardContent>
           </Card>
 
-          {/* Company Details */}
-          <Collapsible open={openSections.company} onOpenChange={() => toggleSection('company')}>
-            <Card className="mb-4">
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-5 h-5 text-gray-600" />
-                      <CardTitle className="text-lg font-medium">Company Details</CardTitle>
-                    </div>
-                    {openSections.company ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-                  </div>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-500">Company Name</p>
-                      <p className="font-medium">TechVista Solutions Limited</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">RC Number</p>
-                      <p className="font-medium">1234567890</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-
-          {/* Details of Person who Appointed */}
-          <Collapsible open={openSections.personDetails} onOpenChange={() => toggleSection('personDetails')}>
-            <Card className="mb-4">
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-gray-600" />
-                      <CardTitle className="text-lg font-medium">Details of the Person who Appointed or Obtained an Order to Appoint an Administrator, Receiver, Manager or Supervisor</CardTitle>
-                    </div>
-                    {openSections.personDetails ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-                  </div>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent>
-                  <p className="text-sm font-medium text-gray-700 mb-3">Personal Information</p>
-                  <div className="grid grid-cols-4 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-gray-500">Name</p>
-                      <p className="font-medium">Basheer Madu</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Phone number</p>
-                      <p className="font-medium">07121387621 3</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Email</p>
-                      <p className="font-medium">abujabank@example.com</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Number/Building Name</p>
-                      <p className="font-medium">12</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Street Name</p>
-                      <p className="font-medium">One Way Street</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">City/Town/Village</p>
-                      <p className="font-medium">abujabank@example.com</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">LGA</p>
-                      <p className="font-medium">Nassarawa</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Identity Type</p>
-                      <p className="font-medium">National Identity</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-gray-500">Identity Number</p>
-                      <p className="font-medium">1234567890</p>
-                    </div>
-                    <div className="col-span-3">
-                      <div className="flex items-center gap-3 border rounded-lg p-3 w-fit">
-                        <FileText className="w-6 h-6 text-gray-400" />
-                        <div>
-                          <p className="text-sm font-medium">Nationalid.pdf</p>
-                          <p className="text-xs text-gray-500">200 KB</p>
-                          <a href="#" className="text-green-600 text-sm hover:underline">Click to view</a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-sm font-medium text-gray-700 mb-3 mt-6">Date of Appointment</p>
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-gray-500">Appointment Date</p>
-                      <p className="font-medium">12/12/2025</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Appointment Type</p>
-                      <p className="font-medium">Administrator</p>
-                    </div>
-                  </div>
-
-                  <p className="text-sm font-medium text-gray-700 mb-3 mt-6">Details of Appointment</p>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-500">Appointment Date</p>
-                      <p className="font-medium">12/12/2025</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Mode of appointment</p>
-                      <p className="font-medium">Under the powers contained in the instrument</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-
-          {/* Statutory Declaration */}
-          <Collapsible open={openSections.statutory} onOpenChange={() => toggleSection('statutory')}>
-            <Card className="mb-4">
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Scale className="w-5 h-5 text-gray-600" />
-                      <CardTitle className="text-lg font-medium">Statutory Declaration (Pursuant to Section 455(2), CAMA Part B</CardTitle>
-                    </div>
-                    {openSections.statutory ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-                  </div>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-gray-500">Holder Name</p>
-                      <p className="font-medium">Madu Gbenu</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Holder Capacity</p>
-                      <p className="font-medium">Administrator</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Holder Address</p>
-                      <p className="font-medium">123 Qtrs, Maitama</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
-                        <span className="text-white text-xs">i</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900 mb-2">Declaration</p>
-                        <p className="text-sm text-gray-700">
-                          WE <strong>Madu Gbenu</strong> of <strong>123 Qtrs, Maitama</strong> being the <strong>Administrator</strong> do solemnly and sincerely declare:
-                        </p>
-                        <ol className="text-sm text-gray-700 mt-2 space-y-1 list-decimal list-inside">
-                          <li>That we hold floating charge in respect of the Company's property.</li>
-                          <li>That each floating charge is enforceable on the date of the appointment.</li>
-                          <li>That consents of holders of prior floating charges have been obtained where applicable.</li>
-                          <li>That the appointment is in accordance with Chapter 17 and other general provisions of the Companies and Allied Matters Act.</li>
-                        </ol>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-gray-500">Declared at</p>
-                      <p className="font-medium">Court of Appeal Kano</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Date of Declaration</p>
-                      <p className="font-medium">12/02/2025</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-500">Commissioner for Oaths / Notary Public</p>
-                      <p className="font-medium">Adamu Garba</p>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-3 border rounded-lg p-3 w-fit">
-                        <FileText className="w-6 h-6 text-gray-400" />
-                        <div>
-                          <p className="text-sm font-medium">Signature.pdf</p>
-                          <p className="text-xs text-gray-500">200 KB</p>
-                          <a href="#" className="text-green-600 text-sm hover:underline">Click to view</a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-
-          {/* Statement by Administrator */}
-          <Collapsible open={openSections.statement} onOpenChange={() => toggleSection('statement')}>
-            <Card className="mb-4">
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-5 h-5 text-gray-600" />
-                      <CardTitle className="text-lg font-medium">Statement by Administrator (Pursuant to Section 455(3), CAMA Part C</CardTitle>
-                    </div>
-                    {openSections.statement ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-                  </div>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-gray-500">Administrator Name(s)</p>
-                      <p className="font-medium">Adamu Danjuma</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Company/Entity Name</p>
-                      <p className="font-medium">Dangote Industries</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
-                        <span className="text-white text-xs">i</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900 mb-2">Statement</p>
-                        <p className="text-sm text-gray-700">
-                          I(we), <strong>Adamu Danjuma</strong>, consent to my(our) appointment as Administrator(s) in respect of <strong>Dangote Industries</strong>.
-                          That in my(our) opinion the purpose of administration is likely to be achieved.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-gray-500">Phone number</p>
-                      <p className="font-medium">09123392123</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Email</p>
-                      <p className="font-medium">adamu@example.com</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 border rounded-lg p-3 w-fit">
-                    <FileText className="w-6 h-6 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium">Signature.pdf</p>
-                      <p className="text-xs text-gray-500">200 KB</p>
-                      <a href="#" className="text-green-600 text-sm hover:underline">Click to view</a>
-                    </div>
-                  </div>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-
-          {/* Authentication */}
-          <Collapsible open={openSections.authentication} onOpenChange={() => toggleSection('authentication')}>
-            <Card className="mb-4">
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-5 h-5 text-gray-600" />
-                      <CardTitle className="text-lg font-medium">Authentication</CardTitle>
-                    </div>
-                    {openSections.authentication ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-                  </div>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-gray-500">Declarant Name</p>
-                      <p className="font-medium">Basheer Madu</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Position</p>
-                      <p className="font-medium">Director</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Date of Declaration</p>
-                      <p className="font-medium">12/12/2025</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Signature</p>
-                      <div className="flex items-center gap-3 border rounded-lg p-3 w-fit mt-1">
-                        <FileText className="w-6 h-6 text-gray-400" />
-                        <div>
-                          <p className="text-sm font-medium">Signature.pdf</p>
-                          <p className="text-xs text-gray-500">200 KB</p>
-                          <a href="#" className="text-green-600 text-sm hover:underline">Click to view</a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-
-          {/* Presenter */}
-          <Collapsible open={openSections.presenter} onOpenChange={() => toggleSection('presenter')}>
-            <Card className="mb-4">
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <UserCheck className="w-5 h-5 text-gray-600" />
-                      <CardTitle className="text-lg font-medium">Presenter</CardTitle>
-                    </div>
-                    {openSections.presenter ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-                  </div>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-500">Presenter Name</p>
-                      <p className="font-medium">Sarah Okafor</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Email Address</p>
-                      <p className="font-medium">sarah@example.com</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Phone Number</p>
-                      <p className="font-medium">09140912345</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Accreditation Number</p>
-                      <p className="font-medium">Age/14091234 5</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
+          
         </div>
 
         {/* Modals */}

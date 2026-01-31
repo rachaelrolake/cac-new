@@ -204,7 +204,7 @@ export function NameRequiringConsent() {
                   <TableCell>{app.avCode}</TableCell>
                   <TableCell>
                     <Link
-                      href={`/pre-incorporation/name-reservation/${app.id}`}
+                      href={`/pre-incorporation/name-requiring-consent/${app.id}`}
                       className=""
                     >
                       {app.proposedName}

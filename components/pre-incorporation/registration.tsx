@@ -203,7 +203,7 @@ export function RegistrationPage() {
                   <TableCell>{app.avCode}</TableCell>
                   <TableCell>
                     <Link
-                      href={`/pre-incorporation/name-reservation/${app.id}`}
+                      href={`/pre-incorporation/registration/${app.id}`}
                       className=""
                     >
                       {app.proposedName}
