@@ -1,12 +1,12 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, CheckCircle2, XCircle, Clock, Users } from "lucide-react"
+import { TrendingUp, TrendingDown, CheckCircle2, XCircle, Clock, Users, Files, FilePlus } from "lucide-react"
 
 interface MetricCardProps {
   title: string
   value: string | number
-  icon: "checkmark" | "cross" | "clock" | "trending-up" | "trending-down" | "users"
+  icon: "checkmark" | "cross" | "clock" | "trending-up" | "trending-down" | "users" | "files" | "filesplus"
   iconColor: "green" | "red" | "orange" | "blue" | "gray"
   subtitle?: string
 }
@@ -18,6 +18,8 @@ const iconMap = {
   "trending-up": TrendingUp,
   "trending-down": TrendingDown,
   users: Users,
+  files: Files,
+  filesplus: FilePlus
 }
 
 const colorMap = {
@@ -36,7 +38,7 @@ export function MetricCard({ title, value, icon, iconColor, subtitle }: MetricCa
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">{value}</p>
+          <p className="mt-5 text-3xl font-bold text-foreground">{value}</p>
           {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         <div className={`rounded-lg p-3 ${colorMap[iconColor]}`}>

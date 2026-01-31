@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   Search,
@@ -19,12 +19,21 @@ import {
   XCircle,
   Clock,
   Shield,
+  FilePlus,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 interface User {
   id: number
@@ -99,31 +108,7 @@ const mockSystemAdmins: User[] = [
     lastLogin: "-/-",
     status: "Pending",
     avatar: "AB",
-  },
-  {
-    id: 6,
-    name: "Luther Urreri",
-    staffId: "CAC-2019-01",
-    email: "luther@cac.gov.ng",
-    phone: "080-1234-5678",
-    role: "Support",
-    createdAt: "Nov 08, 2025",
-    lastLogin: "Nov 04, 2025",
-    status: "Suspended",
-    avatar: "LU",
-  },
-  {
-    id: 7,
-    name: "Sandra Harris",
-    staffId: "CAC-2019-01",
-    email: "sandra@cac.gov.ng",
-    phone: "080-1234-5678",
-    role: "Support",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "10 mins ago",
-    status: "Active",
-    avatar: "SH",
-  },
+  }
 ]
 
 const mockPublicUsers: User[] = [
@@ -452,6 +437,14 @@ const mockEntityAccounts: User[] = [
 
 const tabs = ["System Admins", "Public Users", "Accredited Agents", "Insolvency Agents", "Entity Accounts"]
 
+const TAB_CONFIG: Record<string, { label: string; type: string; addButton: string }> = {
+  "System Admins": { label: "System Admins", type: "system-admin", addButton: "Add New User" },
+  "Public Users": { label: "Public Users", type: "public-user", addButton: "Add New User" },
+  "Accredited Agents": { label: "Accredited Agents", type: "accredited-agent", addButton: "Add New Agent" },
+  "Insolvency Agents": { label: "Insolvency Agents", type: "insolvency-agent", addButton: "Add New User" },
+  "Entity Accounts": { label: "Entity Accounts", type: "entity-account", addButton: "Add New Entity" },
+}
+
 export function UsersManagement() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("System Admins")
@@ -460,86 +453,75 @@ export function UsersManagement() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 7
 
-  let mockUsers: User[] = []
-  let tabLabel = ""
-  let addButtonLabel = ""
-  let totalLabel = ""
+  // Determine current dataset based on tab
+  const currentMockData = useMemo(() => {
+    switch (activeTab) {
+      case "System Admins": return mockSystemAdmins
+      case "Public Users": return mockPublicUsers
+      case "Accredited Agents": return mockAccreditedAgents
+      case "Insolvency Agents": return mockInsolvencyAgents
+      case "Entity Accounts": return mockEntityAccounts
+      default: return []
+    }
+  }, [activeTab])
 
-  switch (activeTab) {
-    case "System Admins":
-      mockUsers = mockSystemAdmins
-      tabLabel = "System Admins"
-      addButtonLabel = "Add New User"
-      totalLabel = "Total Users"
-      break
-    case "Public Users":
-      mockUsers = mockPublicUsers
-      tabLabel = "Public Users"
-      addButtonLabel = "Add New User"
-      totalLabel = "Total Users"
-      break
-    case "Accredited Agents":
-      mockUsers = mockAccreditedAgents
-      tabLabel = "Accredited Agents"
-      addButtonLabel = "Add New Agent"
-      totalLabel = "Total Users"
-      break
-    case "Insolvency Agents":
-      mockUsers = mockInsolvencyAgents
-      tabLabel = "Insolvency Agents"
-      addButtonLabel = "Add New User"
-      totalLabel = "Total Users"
-      break
-    case "Entity Accounts":
-      mockUsers = mockEntityAccounts
-      tabLabel = "Entity Accounts"
-      addButtonLabel = "Add New Entity"
-      totalLabel = "Total Entities"
-      break
+  const config = TAB_CONFIG[activeTab]
+
+  const stats = {
+    total: currentMockData.length,
+    active: currentMockData.filter((u) => u.status === "Active").length,
+    suspended: currentMockData.filter((u) => u.status === "Suspended").length,
+    pending: currentMockData.filter((u) => u.status === "Pending").length,
   }
 
-  const statusCounts = {
-    total: mockUsers.length,
-    active: mockUsers.filter((u) => u.status === "Active").length,
-    suspended: mockUsers.filter((u) => u.status === "Suspended").length,
-    pending: mockUsers.filter((u) => u.status === "Pending").length,
-  }
-
-  const filteredUsers = mockUsers.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.staffId.toLowerCase().includes(searchQuery.toLowerCase())
-
-    if (activeFilters.length === 0) return matchesSearch
-
-    return matchesSearch && activeFilters.includes(user.status)
+  // Filtering & Pagination
+  const filteredUsers = currentMockData.filter((user) => {
+    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesFilter = activeFilters.length === 0 || activeFilters.includes(user.status)
+    return matchesSearch && matchesFilter
   })
+
+  // Mapping which table to show based on the tab
+  const renderActiveTable = () => {
+    const props = {
+      data: paginatedUsers,
+      actions: { getStatusColor, getRoleColor, renderMenu: (user: User) => <UserActions user={user} userType={config.type} /> }
+    }
+
+    switch (activeTab) {
+      case "System Admins": return <SystemAdminTable {...props} />
+      case "Accredited Agents": return <AccreditedAgentTable {...props} />
+      case "Public Users":
+        return <PublicUserTable {...props} /> // You can create a PublicUserTable similarly
+      default: return <SystemAdminTable {...props} />
+    }
+  }
 
   const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      Active: "bg-emerald-100 text-emerald-700",
+      Suspended: "bg-rose-100 text-rose-700",
+      Pending: "bg-orange-100 text-orange-700",
+    }
+    return colors[status] || "bg-gray-100 text-gray-700"
+  }
 
   const toggleFilter = (status: string) => {
     setActiveFilters((prev) => (prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]))
     setCurrentPage(1)
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active":
-        return "bg-emerald-100 text-emerald-700"
-      case "Suspended":
-        return "bg-rose-100 text-rose-700"
-      case "Pending":
-        return "bg-orange-100 text-orange-700"
-      default:
-        return "bg-gray-100 text-gray-700"
-    }
-  }
-
   const getRoleColor = (role: string) => {
     switch (role) {
       case "Accredited Agent":
+        return "bg-purple-100 text-purple-700"
+      case "Admin":
+        return "bg-blue-100 text-blue-700"
+      case "Support":
         return "bg-purple-100 text-purple-700"
       case "Insolvency Agent":
         return "bg-teal-100 text-teal-700"
@@ -551,18 +533,14 @@ export function UsersManagement() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2 overflow-x-auto bg-gray-200 rounded-md p-2 border-0 w-fit">
-        {tabs.map((tab) => (
+    <div className="space-y-6">
+      {/* Tab Switcher */}
+      <div className="flex gap-2 overflow-x-auto bg-gray-200 rounded-md p-2 w-fit">
+        {Object.keys(TAB_CONFIG).map((tab) => (
           <button
             key={tab}
-            onClick={() => {
-              setActiveTab(tab)
-              setCurrentPage(1)
-            }}
-            className={`px-3 py-1 text-sm font-medium rounded-md transition-all whitespace-nowrap ${activeTab === tab
-              ? "bg-white text-gray-900 shadow-sm"
-              : "bg-transparent text-gray-500 hover:text-gray-700"
+            onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
+            className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${activeTab === tab ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
           >
             {tab}
@@ -570,341 +548,273 @@ export function UsersManagement() {
         ))}
       </div>
 
+      {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{totalLabel}</p>
-                <p className="text-2xl font-bold text-gray-900">{statusCounts.total}</p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-                <Users className="h-6 w-6 text-black" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-emerald-600">{statusCounts.active}</p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Suspended</p>
-                <p className="text-2xl font-bold text-rose-600">{statusCounts.suspended}</p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100">
-                <XCircle className="h-6 w-6 text-rose-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-orange-600">{statusCounts.pending}</p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
-                <Clock className="h-6 w-6 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard title={activeTab === "Entity Accounts" ? "Total Entities" : "Total Users"} value={stats.total} icon={<Users className="h-6 w-6" />} />
+        <StatCard title="Active" value={stats.active} icon={<CheckCircle2 className="h-6 w-6" />} color="emerald" />
+        <StatCard title="Suspended" value={stats.suspended} icon={<XCircle className="h-6 w-6" />} color="rose" />
+        <StatCard title="Inactive" value={stats.pending} icon={<Users className="h-6 w-6" />} />
       </div>
 
       <Card className="bg-white">
-        <CardHeader className="border-b">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <CardTitle className="text-lg">
-                {tabLabel} ({filteredUsers.length})
-              </CardTitle>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-                <Button
-                  onClick={() => {
-                    // Mapping the activeTab to the URL query parameter
-                    const typeMapping: Record<string, string> = {
-                      "System Admins": "system-admin",
-                      "Public Users": "public-user",
-                      "Accredited Agents": "accredited-agent",
-                      "Insolvency Agents": "insolvency-agent",
-                      "Entity Accounts": "entity-account",
-                    };
-
-                    const typeValue = typeMapping[activeTab] || "";
-                    const typeParam = typeValue ? `?type=${typeValue}` : "";
-                    console.log(activeTab);
-                    router.push(`/dashboard/users/add${typeParam}`);
-                  }}
-                  className="gap-2 bg-primary w-full sm:w-auto"
-                >
-                  + {addButtonLabel}
-                </Button>
-
-                <div className="flex flex-col gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="gap-2 bg-transparent w-full sm:w-auto">
-                        <Download className="h-3 w-3" />
-                        <span className="hidden sm:inline">Export</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem className="gap-2">
-                        <Download className="h-4 w-4" />
-                        Export as PDF
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-2">
-                        <Download className="h-4 w-4" />
-                        Export as CSV
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-2">
-                        <Download className="h-4 w-4" />
-                        Export as Excel
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-
-                </div>
-              </div>
+        <CardHeader className="border-b space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardTitle className="text-lg">{config.label} ({filteredUsers.length})</CardTitle>
+            <div className="flex gap-3 w-full sm:w-auto">
+              <Button
+                onClick={() => router.push(`/dashboard/users/add?type=${config.type}`)}
+                className="gap-2 flex-1 sm:flex-none py-6"
+              >
+                <FilePlus className="h-4 w-4" /> {config.addButton}
+              </Button>
+              <ExportButton />
             </div>
+          </div>
 
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2 justify-between">
-              <div className="relative w-1/3">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Input
-                  placeholder="Search by name or email"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value)
-                    setCurrentPage(1)
-                  }}
-                  className="pl-9 h-9 text-sm"
-                />
-              </div>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-1 bg-transparent h-8 px-2 text-xs w-full sm:w-auto">
-                    <Filter className="h-3 w-3" />
-                    <span className="hidden sm:inline">Filters</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <div className="p-2 space-y-2">
-                    {["Active", "Suspended", "Pending"].map((status) => (
-                      <label
-                        key={status}
-                        className="flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded hover:bg-gray-100"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={activeFilters.includes(status)}
-                          onChange={() => toggleFilter(status)}
-                          className="rounded"
-                        />
-                        <span className="text-sm">{status}</span>
-                      </label>
-                    ))}
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+          <div className="flex flex-col sm:flex-row justify-between gap-4">
+            <div className="relative w-full sm:w-1/3">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                className="pl-9"
+              />
             </div>
+            <FilterDropdown activeFilters={activeFilters} setActiveFilters={setActiveFilters} />
           </div>
         </CardHeader>
 
-        <CardContent className="p-4">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr className="border-b">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">S/N</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Name</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Email Address</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Phone Number</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Created At</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Last Login</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Role</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedUsers.map((user, index) => (
-                  <tr key={user.id} className="border-b hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4 text-sm text-gray-900">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                    <td className="px-4 py-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-700 text-xs font-bold text-white">
-                          {user.avatar}
-                        </div>
-                        <span className="text-gray-900">{user.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-600">{user.email}</td>
-                    <td className="px-4 py-4 text-sm text-gray-600">{user.phone}</td>
-                    <td className="px-4 py-4 text-sm text-gray-600">{user.createdAt}</td>
-                    <td className="px-4 py-4 text-sm text-gray-600">{user.lastLogin}</td>
-                    <td className="px-4 py-4 text-sm">
-                      <Badge className={getRoleColor(user.role)}>{user.role}</Badge>
-                    </td>
-                    <td className="px-4 py-4 text-sm">
-                      <Badge className={getStatusColor(user.status)}>{user.status}</Badge>
-                    </td>
-                    <td className="px-4 py-4">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            className="gap-2"
-                            onClick={() => {
-                              // Mapping the activeTab to the URL query parameter
-                              const typeMapping: Record<string, string> = {
-                                "System Admins": "system-admin",
-                                "Public Users": "public-user",
-                                "Accredited Agents": "accredited-agent",
-                                "Insolvency Agents": "insolvency-agent",
-                                "Entity Accounts": "entity-account",
-                              };
-
-                              const typeValue = typeMapping[activeTab] || "";
-                              const typeParam = typeValue ? `?type=${typeValue}` : "";
-                              console.log(activeTab);
-                              router.push(`/dashboard/users/${user.id}/details${typeParam}`);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="gap-2"
-                            onClick={() => {
-                              // Mapping the activeTab to the URL query parameter
-                              const typeMapping: Record<string, string> = {
-                                "System Admins": "system-admin",
-                                "Public Users": "public-user",
-                                "Accredited Agents": "accredited-agent",
-                                "Insolvency Agents": "insolvency-agent",
-                                "Entity Accounts": "entity-account",
-                              };
-
-                              const typeValue = typeMapping[activeTab] || "";
-                              const typeParam = typeValue ? `?type=${typeValue}` : "";
-                              console.log(activeTab);
-                              router.push(`/dashboard/users/${user.id}/edit${typeParam}`);
-                            }}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="gap-2"
-                            onClick={() => router.push(`/dashboard/users/${user.id}/password-reset`)}
-                          >
-                            <Lock className="h-4 w-4" />
-                            Password Reset
-                          </DropdownMenuItem>
-                          {user.status === "Active" && (
-                            <DropdownMenuItem className="gap-2 text-rose-600">
-                              <Shield className="h-4 w-4" />
-                              Suspend
-                            </DropdownMenuItem>
-                          )}
-                          {user.status === "Suspended" && (
-                            <DropdownMenuItem className="gap-2 text-emerald-600">
-                              <RotateCcw className="h-4 w-4" />
-                              Activate
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem className="gap-2 text-rose-600">
-                            <Trash2 className="h-4 w-4" />
-                            De-activate
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <CardContent className="p-4"> {/* P-0 because Table handles internal padding */}
+          {/* Dynamically render the specific table */}
+          {renderActiveTable()}
 
           {paginatedUsers.length === 0 && (
-            <div className="flex items-center justify-center py-12">
-              <p className="text-gray-500">No users found</p>
-            </div>
+            <div className="py-20 text-center text-gray-500">No records found.</div>
           )}
         </CardContent>
 
+        {/* Pagination Logic */}
         {totalPages > 1 && (
-          <div className="flex flex-col gap-4 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between p-4 border-t">
             <p className="text-sm text-gray-600">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-              {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of {filteredUsers.length}
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)}
             </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="gap-1"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
-              </Button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .slice(Math.max(0, currentPage - 2), Math.min(totalPages, currentPage + 1))
-                  .map((page) => (
-                    <Button
-                      key={page}
-                      variant={page === currentPage ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(page)}
-                      className={page === currentPage ? "bg-emerald-600" : ""}
-                    >
-                      {page}
-                    </Button>
-                  ))}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                className="gap-1"
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+            <PaginationControls current={currentPage} total={totalPages} setPage={setCurrentPage} />
           </div>
         )}
       </Card>
+    </div>
+  )
+}
+
+const SystemAdminTable = ({ data, actions }: { data: User[], actions: any }) => (
+  <Table>
+    <TableHeader className="bg-gray-50">
+      <TableRow>
+        <TableHead className="w-[50px]">S/N</TableHead>
+        <TableHead>Admin ID</TableHead>
+        <TableHead>Name</TableHead>
+        <TableHead>Email Address</TableHead>
+        <TableHead>Role</TableHead>
+        <TableHead>Created At</TableHead>
+        <TableHead>Status</TableHead>
+        <TableHead className="text-right">Actions</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {data.map((user, index) => (
+        <TableRow key={user.id}>
+          <TableCell>{index + 1}</TableCell>
+          <TableCell>{user.staffId}</TableCell>
+          <TableCell>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-emerald-700 flex items-center justify-center text-[10px] text-white overflow-hidden">
+                <img src="/images/Avatar.png" alt="avatar" />
+              </div>
+              <span className="font-medium text-gray-900">{user.name}</span>
+            </div>
+          </TableCell>
+          <TableCell className="text-gray-600">{user.email}</TableCell>
+          <TableCell>
+            <Badge className={actions.getRoleColor(user.role)}>{user.role}</Badge>
+          </TableCell>
+          <TableCell className="text-gray-600">{user.createdAt}</TableCell>
+          <TableCell>
+            <Badge className={actions.getStatusColor(user.status)}>{user.status}</Badge>
+          </TableCell>
+          <TableCell className="text-right">{actions.renderMenu(user)}</TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+)
+
+const PublicUserTable = ({ data, actions }: { data: User[], actions: any }) => (
+  <Table>
+    <TableHeader className="bg-gray-50">
+      <TableRow>
+        <TableHead className="w-[50px]">S/N</TableHead>
+        <TableHead>User ID</TableHead>
+        <TableHead>Name</TableHead>
+        <TableHead>Email Address</TableHead>
+        <TableHead>Created At</TableHead>
+        <TableHead>Last Login</TableHead>
+        <TableHead>Status</TableHead>
+        <TableHead className="text-right">Actions</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {data.map((user, index) => (
+        <TableRow key={user.id}>
+          <TableCell>{index + 1}</TableCell>
+          <TableCell>{user.staffId}</TableCell>
+          <TableCell>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-emerald-700 flex items-center justify-center text-[10px] text-white overflow-hidden">
+                <img src="/images/Avatar.png" alt="avatar" />
+              </div>
+              <span className="font-medium text-gray-900">{user.name}</span>
+            </div>
+          </TableCell>
+          <TableCell className="text-gray-600">{user.email}</TableCell>
+          <TableCell className="text-gray-600">{user.createdAt}</TableCell>
+          <TableCell className="text-gray-600">{user.lastLogin}</TableCell>
+          <TableCell>
+            <Badge className={actions.getStatusColor(user.status)}>{user.status}</Badge>
+          </TableCell>
+          <TableCell className="text-right">{actions.renderMenu(user)}</TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+)
+
+const AccreditedAgentTable = ({ data, actions }: { data: User[], actions: any }) => (
+  <Table>
+    <TableHeader className="bg-gray-50">
+      <TableRow>
+        <TableHead className="w-[50px]">S/N</TableHead>
+        <TableHead>Agent/Firm Name</TableHead>
+        <TableHead>Accreditation ID</TableHead>
+        <TableHead>Contact Email</TableHead>
+        <TableHead>Phone</TableHead>
+        <TableHead>Status</TableHead>
+        <TableHead className="text-right">Actions</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {data.map((user, i) => (
+        <TableRow key={user.id}>
+          <TableCell>{i + 1}</TableCell>
+          <TableCell className="font-medium text-emerald-700">{user.name}</TableCell>
+          <TableCell>{user.staffId}</TableCell>
+          <TableCell>{user.email}</TableCell>
+          <TableCell>{user.phone}</TableCell>
+          <TableCell><Badge className={actions.getStatusColor(user.status)}>{user.status}</Badge></TableCell>
+          <TableCell className="text-right">{actions.renderMenu(user)}</TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+)
+
+function StatCard({ title, value, icon, color }: { title: string, value: number, icon: React.ReactNode, color?: string }) {
+  const colorClass = color === 'emerald' ? 'bg-emerald-100 text-emerald-600' : color === 'rose' ? 'bg-rose-100 text-rose-600' : 'bg-gray-100 text-black';
+  return (
+    <Card>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <p className="text-2xl font-bold mt-5">{value}</p>
+          </div>
+          <div className={`h-12 w-12 rounded-lg flex items-center justify-center ${colorClass}`}>
+            {icon}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function UserActions({ user, userType }: { user: User, userType: string }) {
+  const router = useRouter()
+  const detailPath = `/dashboard/users/${user.id}/details?type=${userType}`
+  const editPath = `/dashboard/users/${user.id}/edit?type=${userType}`
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => router.push(detailPath)} className="gap-2">
+          <Eye className="h-4 w-4" /> View Details
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push(editPath)} className="gap-2">
+          <Edit2 className="h-4 w-4" /> Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push(`/dashboard/users/${user.id}/password-reset`)} className="gap-2">
+          <Lock className="h-4 w-4" /> Reset Password
+        </DropdownMenuItem>
+        {user.status === "Active" ? (
+          <DropdownMenuItem className="gap-2 text-rose-600"><Shield className="h-4 w-4" /> Suspend</DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem className="gap-2 text-emerald-600"><RotateCcw className="h-4 w-4" /> Activate</DropdownMenuItem>
+        )}
+        <DropdownMenuItem className="gap-2 text-rose-600"><Trash2 className="h-4 w-4" /> De-activate</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function ExportButton() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="gap-2 py-6"><Download className="h-4 w-4" /> Export</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem>Export as PDF</DropdownMenuItem>
+        <DropdownMenuItem>Export as CSV</DropdownMenuItem>
+        <DropdownMenuItem>Export as Excel</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function FilterDropdown({ activeFilters, setActiveFilters }: any) {
+  const toggle = (s: string) => {
+    setActiveFilters((prev: string[]) => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
+  }
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2"><Filter className="h-3 w-3" /> Filters</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40">
+        {["Active", "Suspended", "Pending"].map(status => (
+          <div key={status} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer" onClick={() => toggle(status)}>
+            <input type="checkbox" checked={activeFilters.includes(status)} readOnly />
+            <span className="text-sm">{status}</span>
+          </div>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function PaginationControls({ current, total, setPage }: any) {
+  return (
+    <div className="flex items-center gap-2">
+      <Button variant="outline" size="sm" disabled={current === 1} onClick={() => setPage(current - 1)}><ChevronLeft className="h-4 w-4" /></Button>
+      <div className="flex gap-1">
+        {Array.from({ length: total }, (_, i) => i + 1).map(p => (
+          <Button key={p} size="sm" variant={p === current ? "default" : "outline"} onClick={() => setPage(p)} className={p === current ? "bg-emerald-600" : ""}>{p}</Button>
+        ))}
+      </div>
+      <Button variant="outline" size="sm" disabled={current === total} onClick={() => setPage(current + 1)}><ChevronRight className="h-4 w-4" /></Button>
     </div>
   )
 }
