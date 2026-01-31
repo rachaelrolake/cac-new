@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MetricCard } from "./metric-card"
+import { MetricCard } from "../reusables/metric-card"
 import { Search, Filter, Download, MoreHorizontal, FileText, Flag, Trash2, Eye, Settings, ListFilter } from "lucide-react"
 
 const mockApplications = [

@@ -47,11 +47,12 @@ const menuItems: MenuItem[] = [
   {
     icon: Building,
     label: "Post-Incorporation",
-    children: [
-      { label: "All Post Activity", href: "/post-incorporation/all-post-activity", badge: 99 },
-      { label: "Insolvency", href: "/post-incorporation/insolvency", badge: 99 },
-      { label: "AI Review Queue", href: "/post-incorporation/ai-review", badge: 99 },
-    ],
+    href: "/post-incorporation"
+    // children: [
+    //   { label: "All Post Activity", href: "/post-incorporation/all-post-activity", badge: 99 },
+    //   { label: "Insolvency", href: "/post-incorporation/insolvency", badge: 99 },
+    //   { label: "AI Review Queue", href: "/post-incorporation/ai-review", badge: 99 },
+    // ],
   },
   { icon: SettingsIcon, label: "System Configuration", href: "/system-config" },
   { icon: CreditCard, label: "Transactions", href: "/transactions" },

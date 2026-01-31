@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MetricCard } from "../reusables/metric-card"
+import { MetricCard } from "@/components/reusables/metric-card"
 import { Download, Eye, ListFilter, MoreVertical, Pencil } from "lucide-react"
 
 const mockApplications = [
@@ -24,8 +24,9 @@ const mockApplications = [
     sla: "Done",
     entityClassification: "Business Name",
     entityType: "Business Name",
+    filingType: "Appointment of Receiver/Manager/Administrator",
     applicants: "John Doe",
-    applicantsType: "Public User",
+    applicantsType: "Insolvency Practitioner",
   },
   {
     id: 2,
@@ -39,8 +40,9 @@ const mockApplications = [
     sla: "54d left",
     entityClassification: "Company",
     entityType: "Public Limited by Guarantee",
+    filingType: "Cessation of Receiver/Manager/Administrator",
     applicants: "Ahmed Hassan",
-    applicantsType: "Public User",
+    applicantsType: "Insolvency Practitioner",
   },
   {
     id: 3,
@@ -54,6 +56,7 @@ const mockApplications = [
     sla: "54d left",
     entityClassification: "Company",
     entityType: "Private Unlimited",
+    filingType: "Re-listing of a Struck-off Company",
     applicants: "Mary Johnson",
     applicantsType: "Agent",
   },
@@ -69,8 +72,9 @@ const mockApplications = [
     sla: "8d left",
     entityClassification: "Limited Liability Partnership",
     entityType: "Limited Liability Partnership",
+    filingType: "Notice of Statutory Declaration of Solvency",
     applicants: "Michael Chen",
-    applicantsType: "Public User",
+    applicantsType: "Insolvency Practitioner",
   },
   {
     id: 5,
@@ -84,8 +88,9 @@ const mockApplications = [
     sla: "24d left",
     entityClassification: "Limited Partnership",
     entityType: "Limited Partnership",
+    filingType: "Notice of Resolution for Voluntary Winding Up",
     applicants: "David Okafor",
-    applicantsType: "Agent",
+    applicantsType: "Insolvency Practitioner",
   },
   {
     id: 6,
@@ -99,12 +104,13 @@ const mockApplications = [
     sla: "54d left",
     entityClassification: "Incorporated Trustee",
     entityType: "Incorporated Trustee",
+    filingType: "Appointment of Liquidator",
     applicants: "Grace Eze",
-    applicantsType: "Public User",
+    applicantsType: "Insolvency Practitioner",
   }
 ]
 
-export function NameRequiringConsent() {
+export function InsolvencyFilingsPage() {
   const [searchQuery, setSearchQuery] = useState("")
 
   const getStatusColor = (status: string) => {
@@ -133,10 +139,10 @@ export function NameRequiringConsent() {
     <div className="space-y-6">
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard title="Total Reservations" value="300" icon="filesplus" iconColor="gray" />
-        <MetricCard title="Approved" value="297" icon="filesplus" iconColor="green" />
-        <MetricCard title="Pending" value="2" icon="filesplus" iconColor="orange" />
-        <MetricCard title="Queried" value="1" icon="filesplus" iconColor="red" />
+        <MetricCard title="Total Reservations" value="300" icon="buildings" iconColor="gray" />
+        <MetricCard title="Approved" value="297" icon="buildings" iconColor="green" />
+        <MetricCard title="Pending" value="2" icon="buildings" iconColor="orange" />
+        <MetricCard title="Queried" value="1" icon="buildings" iconColor="red" />
       </div>
 
       <Card style={{ width: "calc(100vw - 145px)" }}>
@@ -187,11 +193,10 @@ export function NameRequiringConsent() {
             <TableHeader className="bg-gray-50">
               <TableRow>
                 <TableHead className="text-sm text-gray-500">S/N</TableHead>
-                <TableHead className="text-sm text-gray-500">AV Code</TableHead>
+                <TableHead className="text-sm text-gray-500">Reg. Number</TableHead>
                 <TableHead className="text-sm text-gray-500">Entity Name</TableHead>
                 <TableHead className="text-sm text-gray-500">Entity Classification</TableHead>
-                <TableHead className="text-sm text-gray-500">Entity Type</TableHead>
-                <TableHead className="text-sm text-gray-500">Reason for Consent</TableHead>
+                <TableHead className="text-sm text-gray-500">Filing Type</TableHead>
                 <TableHead className="text-sm text-gray-500">Applicants</TableHead>
                 <TableHead className="text-sm text-gray-500">Status</TableHead>
                 <TableHead className="text-sm text-gray-500">Actions</TableHead>
@@ -212,7 +217,6 @@ export function NameRequiringConsent() {
                   </TableCell>
                   <TableCell className="text-sm">{app.entityClassification}</TableCell>
                   <TableCell>{app.entityType}</TableCell>
-                  <TableCell>{app.reasonForConsent}</TableCell>
                   <TableCell className="text-sm">
                     <div className="flex flex-col">
                       <span>{app.applicants}</span>
@@ -231,7 +235,7 @@ export function NameRequiringConsent() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/pre-incorporation/name-requiring-consent/${app.id}`}>
+                          <Link href={`/post-incorporation/insolvency-filings/${app.id}`}>
                             <Eye className="w-4 h-4" /> View Application Details
                           </Link>
                         </DropdownMenuItem>
