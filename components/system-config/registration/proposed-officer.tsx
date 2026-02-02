@@ -13,24 +13,24 @@ import {
 } from "@/components/ui/dialog"
 
 const data = [
-  { sn: 1, name: "Business Name ", entityType: "Sole Proprietor/Partnership", reason: "Group Holdings / Consortium", createdAt: "Nov 15, 2025", timestamp: "2hrs ago", createdBy: "Super Admin" },
-  { sn: 2, name: "Business Name ", entityType: "Sole Proprietor/Partnership", reason: "Use of Restricted Word", createdAt: "Nov 14, 2025", timestamp: "1 min ago", createdBy: "Admin" },
-  { sn: 3, name: "Company ", entityType: "Public/Private Company Limited By Shares", reason: "Business Name Upgrade To Limited", createdAt: "Nov 14, 2025", timestamp: "1 min ago", createdBy: "Support" },
-  { sn: 4, name: "Limited Partnership (LP)", entityType: "Limited Partnership (LP)", reason: "Group Holdings / Consortium", createdAt: "Nov 14, 2025", timestamp: "1 min ago", createdBy: "Support" },
-  { sn: 5, name: "Bulk SMS Services", entityType: "Bulk SMS Services", reason: "Group Holdings / Consortium", createdAt: "Nov 14, 2025", timestamp: "1 min ago", createdBy: "Support" },
-  { sn: 6, name: "Arts, Crafts and designing", entityType: "Arts, Crafts and designing", reason: "Change Of Name Of Business / Company", createdAt: "Nov 14, 2025", timestamp: "1 min ago", createdBy: "Support" },
-  { sn: 7, name: "Automobile Repairs / Mechanical Services", entityType: "Automobile Repairs / Mechanical Services", reason: "Group Holdings / Consortium", createdAt: "Nov 14, 2025", timestamp: "1 min ago", createdBy: "Support" },
-  { sn: 8, name: "Information Technology Consultancy ", entityType: "Information Technology Consultancy ", reason: "Group Holdings / Consortium ", createdAt: "Nov 14, 2025 ", timestamp: "1 min ago ", createdBy: "Support" }
+  { sn: 1, name: "Business Name ", proposedOfficer: "Proprietor", category: "Individual", category2: "Corporate", reason: "Group Holdings / Consortium", createdAt: "Nov 15, 2025", timestamp: "2hrs ago", createdBy: "Super Admin" },
+  { sn: 2, name: "Business Name ", proposedOfficer: "Partner", category: "Individual", category2: "Corporate", reason: "Use of Restricted Word", createdAt: "Nov 14, 2025", timestamp: "1 min ago", createdBy: "Admin" },
+  { sn: 3, name: "Company ", proposedOfficer: "Director", category: "Individual", category2: "Corporate", reason: "Business Name Upgrade To Limited", createdAt: "Nov 14, 2025", timestamp: "1 min ago", createdBy: "Support" },
+  { sn: 4, name: "Limited Partnership (LP)", proposedOfficer: "General Partner", category: "Individual", category2: "Corporate", reason: "Group Holdings / Consortium", createdAt: "Nov 14, 2025", timestamp: "1 min ago", createdBy: "Support" },
+  { sn: 5, name: "Bulk SMS Services", proposedOfficer: "Manager", category: "N/A", category2: "Corporate", reason: "Group Holdings / Consortium ", createdAt: "Nov 14, 2025 ", timestamp: "1 min ago ", createdBy: "Support" },
+  { sn: 6, name: "Arts, Crafts and designing", proposedOfficer: "Director", category: "N/A", category2: "Corporate", reason: "Change Of Name Of Business / Company ", createdAt: "Nov 14, 2025 ", timestamp: "1 min ago ", createdBy: "Support" },
+  { sn: 7, name: "Automobile Repairs / Mechanical Services", proposedOfficer: "Trustee", category: "N/A", category2: "Corporate", reason: "Group Holdings / Consortium ", createdAt: "Nov 14, 2025 ", timestamp: "1 min ago ", createdBy: "Support" },
+  { sn: 8, name: "Information Technology Consultancy ", proposedOfficer: "Secretary", category: "Corporate", category2: "Limited Partner", reason: "Group Holdings / Consortium ", createdAt: "Nov 14, 2025 ", timestamp: "1 min ago ", createdBy: "Support" }
 ]
 
-export default function ReasonForConsentPage() {
+export default function ProposedOfficerPage() {
   return (
     <>
       <div className="bg-white rounded-xl border shadow-sm p-6">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-800">
-            Reason for Consent (9)
+            Proposed Officer Types (4)
           </h2>
           <div className="flex gap-3">
             <AddEntityModal />
@@ -53,8 +53,10 @@ export default function ReasonForConsentPage() {
               <TableRow>
                 <TableHead className="w-16">S/N</TableHead>
                 <TableHead>Entity Classification</TableHead>
-                <TableHead className="w-[200px]">Entity Types</TableHead>
-                <TableHead>Reasons for Consent Request</TableHead>
+                <TableHead className="w-[200px]">Proposed Officers</TableHead>
+                <TableHead>Nationality</TableHead>
+                <TableHead>Category 1</TableHead>
+                <TableHead>Category 2</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Timestamp</TableHead>
                 <TableHead>Created by ↓</TableHead>
@@ -66,8 +68,10 @@ export default function ReasonForConsentPage() {
                 <TableRow key={row.sn}>
                   <TableCell>{row.sn}</TableCell>
                   <TableCell className="font-medium text-gray-600">{row.name}</TableCell>
-                  <TableCell className="font-medium text-gray-600 w-[200px]">{row.entityType}</TableCell>
-                  <TableCell className="font-medium text-gray-600">{row.reason}</TableCell>
+                  <TableCell className="font-medium text-gray-600 w-[200px]">{row.proposedOfficer}</TableCell>
+                  <TableCell className="font-medium text-gray-600">Nigerian</TableCell>
+                  <TableCell className="font-medium text-gray-600">{row.category}</TableCell>
+                  <TableCell className="font-medium text-gray-600">{row.category2}</TableCell>
                   <TableCell>{row.createdAt}</TableCell>
                   <TableCell>{row.timestamp}</TableCell>
                   <TableCell>
@@ -99,7 +103,7 @@ export function AddEntityModal() {
       <DialogContent className="sm:max-w-[600px] py-5">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">
-            Add Specific Nature of Business
+            Add Proposed Officer
           </DialogTitle>
         </DialogHeader>
 
@@ -119,9 +123,23 @@ export function AddEntityModal() {
 
         <div className="mb-2">
           <label className="text-sm font-medium mb-2 block">
-            Name of Reason for Consent <span className="text-red-500">*</span>
+            Nationality <span className="text-red-500">*</span>
           </label>
-          <Input placeholder="Enter reason for consent" />
+          <Input placeholder="Select Nationality" />
+        </div>
+
+        <div className="mb-2">
+          <label className="text-sm font-medium mb-2 block">
+            Category 1 <span className="text-red-500">*</span>
+          </label>
+          <Input placeholder="Select Category" />
+        </div>
+
+        <div className="mb-2">
+          <label className="text-sm font-medium mb-2 block">
+            Category 2 <span className="text-red-500">*</span>
+          </label>
+          <Input placeholder="Select Category 2" />
         </div>
 
         <DialogFooter className="flex justify-end sm:justify-end gap-2">
@@ -129,7 +147,7 @@ export function AddEntityModal() {
             Cancel
           </Button>
           <Button className="w-auto bg-green-800 hover:bg-green-900 px-6">
-            Add Reason for Consent
+            Add Proposed Officer
           </Button>
         </DialogFooter>
       </DialogContent>

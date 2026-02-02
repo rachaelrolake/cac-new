@@ -23,8 +23,8 @@ const configOptions = {
       "id": "registration-setup",
       "label": "Registration Setup",
       "items": [
-        { "title": "Proposed Officer Types", "description": "View and manage the different officer types available.", "href": "/system-config/officers" },
-        { "title": "Identification Type", "description": "View and manage the different identification types available.", "href": "/system-config/id-types" }
+        { "title": "Proposed Officer Types", "description": "View and manage the different officer types available.", "href": "/system-config/registration?pageType=proposed-officers" },
+        { "title": "Identification Type", "description": "View and manage the different identification types available.", "href": "/system-config/registration?pageType=identification-types" }
       ]
     },
     {
