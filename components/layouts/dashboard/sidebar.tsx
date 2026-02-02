@@ -55,6 +55,7 @@ const menuItems: MenuItem[] = [
     // ],
   },
   { icon: SettingsIcon, label: "System Configuration", href: "/system-config" },
+  { icon: Shield, label: "Fraud & Compliance", href: "/fraud-compliance" },
   { icon: CreditCard, label: "Transactions", href: "/transactions" },
   // { icon: Shield, label: "Fraud & Compliance", href: "/dashboard/fraud" },
   // { icon: BarChart3, label: "Reports", href: "/reports" },

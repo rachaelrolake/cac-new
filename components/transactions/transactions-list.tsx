@@ -25,10 +25,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MetricCard } from "./metric-card"
 import { Search, Filter, Download, MoreHorizontal, FileText, Flag, Trash2, Eye, X, Calendar, MoreVertical } from "lucide-react"
 
-interface TransactionListProps {
-  activeCategory: string
-  setActiveCategory: (category: string) => void
-}
+
 
 const mockTransactions = [
   { id: 1, sn: 1, txId: "TXN-7654321", orgName: "GLOBAL VENTURES", service: "Change of Name", paidBy: "John Doe", amount: "N50,000", method: "Remitta", date: "Nov 15, 2025 09:49AM", status: "Completed" },
@@ -37,7 +34,7 @@ const mockTransactions = [
   { id: 4, sn: 4, txId: "TXN-7654321", orgName: "NATIONAL BANK OF COMMERCE LIMITED", service: "Name Req Consent", paidBy: "John Doe", amount: "N50,000", method: "Remitta", date: "Nov 10, 2025 01:34PM", status: "Completed" },
 ]
 
-export function TransactionList({ activeCategory, setActiveCategory }: TransactionListProps) {
+export function TransactionList() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
@@ -148,7 +145,25 @@ export function TransactionList({ activeCategory, setActiveCategory }: Transacti
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4 text-gray-400" />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4 text-gray-400" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <Link href={`/transactions/${tx.id}/details`}>
+                            <DropdownMenuItem className="gap-2 cursor-pointer">
+                              <Eye className="h-4 w-4" />
+                              View transaction details
+                            </DropdownMenuItem>
+                          </Link>
+                          <DropdownMenuItem className="gap-2 cursor-pointer text-red-600">
+                            <Flag className="h-4 w-4 text-red-600" />
+                            Flag
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -228,11 +243,11 @@ export function TransactionList({ activeCategory, setActiveCategory }: Transacti
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
                   <SelectItem value="Business Name">Business Name</SelectItem>
-                    <SelectItem value="Company">Company</SelectItem>
-                    <SelectItem value="Limited Liability Partnership">Limited Liability Partnership</SelectItem>
-                    <SelectItem value="Limited Partnership">Limited Partnership</SelectItem>
-                    <SelectItem value="Limited by Guarantee">Limited by Guarantee</SelectItem>
-                    <SelectItem value="Incorporated Trustees">Incorporated Trustees</SelectItem>
+                  <SelectItem value="Company">Company</SelectItem>
+                  <SelectItem value="Limited Liability Partnership">Limited Liability Partnership</SelectItem>
+                  <SelectItem value="Limited Partnership">Limited Partnership</SelectItem>
+                  <SelectItem value="Limited by Guarantee">Limited by Guarantee</SelectItem>
+                  <SelectItem value="Incorporated Trustees">Incorporated Trustees</SelectItem>
                 </SelectContent>
               </Select>
             </div>
