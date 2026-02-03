@@ -14,6 +14,12 @@ import {
 import { TabsList, Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
 import React from "react"
 import CompaniesFeesPage from "./services-fee/companies-fees"
+import LLPFeesPage from "./services-fee/llp-fees"
+import LPFeesPage from "./services-fee/lp-fees"
+import BNFeesPage from "./services-fee/bn-fees"
+import ITFeesPage from "./services-fee/it-fees"
+import PenaltiesFees from "./services-fee/penalty-fees"
+import OtherFees from "./services-fee/other-fees"
 
 const data = [
   { sn: 1, name: "NIN", createdAt: "Nov 15, 2025", timestamp: "2hrs ago", createdBy: "Super Admin" },
@@ -60,25 +66,25 @@ export default function ServiceFeesPage() {
         )}
 
         {activeTab === "llp" && (
-          <CompaniesFeesPage />
+          <LLPFeesPage />
         )}
 
         {activeTab === "lp" && (
-          <CompaniesFeesPage />
+          <LPFeesPage />
         )}
 
         {activeTab === "business-name" && (
-          <CompaniesFeesPage />
+          <BNFeesPage />
         )}
 
         {activeTab === "it" && (
-          <CompaniesFeesPage />
+          <ITFeesPage />
         )}
         {activeTab === "penalties" && (
-          <CompaniesFeesPage />
+          <PenaltiesFees />
         )}
         {activeTab === "others" && (
-          <CompaniesFeesPage />
+          <OtherFees />
         )}
 
 

@@ -11,6 +11,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
 
 const data = [
   {
@@ -91,7 +92,7 @@ export default function CompaniesFeesPage() {
           <Table className="table-fixed">
             <TableHeader className="bg-gray-100">
               <TableRow>
-                <TableHead className="text-xs">S/N</TableHead>
+                <TableHead className="text-xs w-[50px]">S/N</TableHead>
                 <TableHead className="text-xs">Fee Name</TableHead>
                 <TableHead className="text-xs">Description</TableHead>
                 <TableHead className="text-xs">Ltd/Gte Fee (₦)</TableHead>
@@ -145,15 +146,53 @@ export function AddEntityModal() {
       <DialogContent className="sm:max-w-[600px] py-5">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">
-            Add Identification Type
+            Add Companies Fee
           </DialogTitle>
         </DialogHeader>
 
         <div className="mb-2">
           <label className="text-sm font-medium mb-2 block">
-            Name of Identification Type <span className="text-red-500">*</span>
+            Fee Name <span className="text-red-500">*</span>
           </label>
-          <Input placeholder="Enter name of Identification" />
+          <Input placeholder="Enter name of Fee" />
+        </div>
+
+        <div className="mb-2">
+          <label className="text-sm font-medium mb-2 block">
+            Description <span className="text-red-500">*</span>
+          </label>
+          <Textarea placeholder="Enter description"></Textarea>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="mb-2">
+            <label className="text-sm font-medium mb-2 block">
+              Ltd/Gte Fee (₦) <span className="text-red-500">*</span>
+            </label>
+            <Input placeholder="Enter Ltd/Gte Fee" />
+          </div>
+
+          <div className="mb-2">
+            <label className="text-sm font-medium mb-2 block">
+              Small Company Fee (₦) <span className="text-red-500">*</span>
+            </label>
+            <Input placeholder="Enter Small Company Fee" />
+          </div>
+
+          <div className="mb-2">
+            <label className="text-sm font-medium mb-2 block">
+              Private other than small Fee (₦) <span className="text-red-500">*</span>
+            </label>
+            <Input placeholder="Enter Private other than small Fee" />
+          </div>
+
+          <div className="mb-2">
+            <label className="text-sm font-medium mb-2 block">
+              Public Fee (₦) <span className="text-red-500">*</span>
+            </label>
+            <Input placeholder="Enter Public Fee" />
+          </div>
+
         </div>
 
         <DialogFooter className="flex justify-end sm:justify-end gap-2">
@@ -161,7 +200,7 @@ export function AddEntityModal() {
             Cancel
           </Button>
           <Button className="w-auto bg-green-800 hover:bg-green-900 px-6">
-            Add Identification Type
+            Add Fee
           </Button>
         </DialogFooter>
       </DialogContent>
