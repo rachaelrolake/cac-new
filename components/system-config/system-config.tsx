@@ -42,9 +42,9 @@ const configOptions = {
       "id": "ai-configuration",
       "label": "AI Configuration",
       "items": [
-        { "title": "Pre-Incorporation", "description": "View and manage AI configuration for pre-incorporation activities.", "href": "#" },
-        { "title": "Post Incorporation", "description": "View and manage AI configuration for post-incorporation activities.", "href": "#" },
-        { "title": "Insolvency", "description": "View and manage AI configuration for insolvency filings.", "href": "#" }
+        { "title": "Pre-Incorporation", "description": "View and manage AI configuration for pre-incorporation activities.", "href": "/system-config/ai-config/pre-incorporation" },
+        { "title": "Post Incorporation", "description": "View and manage AI configuration for post-incorporation activities.", "href": "/system-config/ai-config/post-incorporation" },
+        { "title": "Insolvency", "description": "View and manage AI configuration for insolvency filings.", "href": "/system-config/ai-config/insolvency" }
       ]
     }
   ]
