@@ -2,11 +2,11 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ChevronUp, ArrowLeft, User, Lock, Users, LayoutDashboard, Check, ShieldCheck, PlusSquare, Settings, Wallet, GitGraph, PieChart, PieChartIcon, AlertCircle, AlertCircleIcon } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { ChevronUp, ArrowLeft, User, Users, LayoutDashboard, ShieldCheck, PlusSquare, Settings, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import {
@@ -17,7 +17,6 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { PageHeader } from "@/components/reusables/page-header"
 
@@ -109,9 +108,13 @@ const PERMISSIONS_DATA = [
 ];
 
 
-export default function AddUserPage() {
+export default function EditUserPageClient() {
   const router = useRouter()
   const [expandedSections, setExpandedSections] = useState<string[]>(["User Information", "Permissions"])
+  const searchParams = useSearchParams();
+  const typeFromUrl = searchParams.get("type");
+
+
 
   const [formData, setFormData] = useState({
     staffId: "",
@@ -155,7 +158,7 @@ export default function AddUserPage() {
 
   return (
     <div>
-      <PageHeader title="Add New Administrator" />
+      <PageHeader title="Edit Administrator" />
 
       <div className="min-h-screen bg-[#F9FAFB] py-10 px-4 sm:px-6 lg:px-8 space-y-6 pt-24">
         <div className="max-w-5xl mx-auto space-y-6">
