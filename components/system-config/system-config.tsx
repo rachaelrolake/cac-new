@@ -33,16 +33,18 @@ const configOptions = {
       "items": [
         { "title": "Service Fees & Penalties", "description": "View and manage the service fees and penalties applied to the system.", "href": "/system-config/sys-config?pageType=fees" },
         { "title": "Restricted / Banned Words", "description": "View and manage the list of restricted and banned words.", "href": "/system-config/sys-config?pageType=banned-words" },
-        { "title": "Notice Configuration", "description": "Create and send notification to users across the platform.", "href": "/system-config/sys-config?pageType=notifications" }
+        // { "title": "Notice Configuration", "description": "Create and send notification to users across the platform.", "href": "/system-config/sys-config?pageType=notifications" }
+        { "title": "Notice Configuration", "description": "Create and send notification to users across the platform.", "href": "#" }
+
       ]
     },
     {
       "id": "ai-configuration",
       "label": "AI Configuration",
       "items": [
-        { "title": "Pre-Incorporation", "description": "View and manage AI configuration for pre-incorporation activities.", "href": "/system-config/pre-inc" },
-        { "title": "Post Incorporation", "description": "View and manage AI configuration for post-incorporation activities.", "href": "/system-config/post-inc" },
-        { "title": "Insolvency", "description": "View and manage AI configuration for insolvency filings.", "href": "/system-config/insolvency" }
+        { "title": "Pre-Incorporation", "description": "View and manage AI configuration for pre-incorporation activities.", "href": "#" },
+        { "title": "Post Incorporation", "description": "View and manage AI configuration for post-incorporation activities.", "href": "#" },
+        { "title": "Insolvency", "description": "View and manage AI configuration for insolvency filings.", "href": "#" }
       ]
     }
   ]
