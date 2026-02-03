@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
 
-export default function SystemConfigPage() {
+export default function SystemConfigReservePage() {
   const searchParams = useSearchParams()
   const pageType = searchParams.get("pageType")
   const router = useRouter()

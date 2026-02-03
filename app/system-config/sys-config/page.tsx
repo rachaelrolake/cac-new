@@ -1,12 +1,12 @@
 "use client"
 import DashboardLayout from "@/components/layouts/dashboard/dashboard-layout"
-import IdentificationTypePage from "@/components/system-config/registration/identification-type"
-import ProposedOfficerPage from "@/components/system-config/registration/proposed-officer"
+import RestrictedBannedWordsPage from "@/components/system-config/sys-config/restricted-banned-words"
+import ServiceFeesPage from "@/components/system-config/sys-config/service-fees"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
 
-export default function SystemConfigRegPage() {
+export default function SystemConfigSysConPage() {
   const searchParams = useSearchParams()
   const pageType = searchParams.get("pageType")
   const router = useRouter()
@@ -18,13 +18,14 @@ export default function SystemConfigRegPage() {
       </div>
 
 
-      {pageType === "proposed-officers" && (
-        <ProposedOfficerPage />
+      {pageType === "fees" && (
+        <ServiceFeesPage />
       )}
 
-      {pageType === "identification-types" && (
-        <IdentificationTypePage />
+      {pageType === "banned-words" && (
+        <RestrictedBannedWordsPage />
       )}
+
 
     </DashboardLayout>
   )

@@ -31,9 +31,9 @@ const configOptions = {
       "id": "system-configuration",
       "label": "System Configuration",
       "items": [
-        { "title": "Service Fees & Penalties", "description": "View and manage the service fees and penalties applied to the system.", "href": "/system-config/fees" },
-        { "title": "Restricted / Banned Words", "description": "View and manage the list of restricted and banned words.", "href": "/system-config/banned-words" },
-        { "title": "Notice Configuration", "description": "Create and send notification to users across the platform.", "href": "/system-config/notifications" }
+        { "title": "Service Fees & Penalties", "description": "View and manage the service fees and penalties applied to the system.", "href": "/system-config/sys-config?pageType=fees" },
+        { "title": "Restricted / Banned Words", "description": "View and manage the list of restricted and banned words.", "href": "/system-config/sys-config?pageType=banned-words" },
+        { "title": "Notice Configuration", "description": "Create and send notification to users across the platform.", "href": "/system-config/sys-config?pageType=notifications" }
       ]
     },
     {
