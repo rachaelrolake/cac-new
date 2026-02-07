@@ -81,7 +81,7 @@ export function DashboardOverview() {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
         <Card className="py-0">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
@@ -169,7 +169,7 @@ export function DashboardOverview() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {/* Assign Case */}
               <button className="flex items-center gap-3 p-6 rounded-xl bg-[#E3F2FD] text-[#1976D2] hover:bg-[#BBDEFB] transition-all cursor-pointer">
                 <PlusSquare className="h-6 w-6" />

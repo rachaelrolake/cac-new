@@ -95,13 +95,12 @@ const alerts = [
 
 export function DashboardContent() {
   const [activeTab2, setActiveTab2] = useState<"overview" | "executive">("overview")
-  const [activeTab, setActiveTab] = useState("Public Users")
   const [showWelcomeModal, setShowWelcomeModal] = useState(true)
 
   return (
     <div className="space-y-6">
       {showWelcomeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 h-[100vh]">
           <Card className="w-full max-w-md">
             <CardHeader className="relative">
               <button
