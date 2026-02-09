@@ -1,4 +1,5 @@
-import { ActivityLayout } from "@/components/activity/activity-layout"
+import { ActivityList } from "@/components/activity/activity-list"
+import DashboardLayout from "@/components/layouts/dashboard/dashboard-layout"
 
 export const metadata = {
   title: "Activity",
@@ -7,10 +8,8 @@ export const metadata = {
 
 export default function ActivityLayoutPage() {
   return (
-    <ActivityLayout>
-      <div className="space-y-6">
-        
-      </div>
-    </ActivityLayout>
+    <DashboardLayout pageTitle="Activity Logs" pageSubTitle="">
+      <ActivityList />
+    </DashboardLayout>
   )
 }

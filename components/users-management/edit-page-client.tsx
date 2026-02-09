@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { usersAPI, type User } from "@/lib/api/users-management"
 import { toast } from "sonner"
+import { PermissionsSelector } from "@/components/users-management/permissions-selector"
 import { PageHeader } from "../reusables/page-header"
 
 const editUserSchema = z.object({
@@ -32,6 +33,7 @@ export default function EditUserPageClient() {
   const userId = params.id as string
   const [user, setUser] = useState<User | null>(null)
   const [isLoadingUser, setIsLoadingUser] = useState(true)
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
 
   const {
     register,
@@ -53,8 +55,10 @@ export default function EditUserPageClient() {
   const fetchUserDetails = async () => {
     setIsLoadingUser(true)
     try {
+      // Fetch user details
       const userData = await usersAPI.getUserById(userId)
       setUser(userData)
+
       // Populate form with user data
       reset({
         firstName: userData.firstName || "",
@@ -64,6 +68,11 @@ export default function EditUserPageClient() {
         organizationName: userData.organizationName || "",
         isActive: userData.isActive,
       })
+
+      // Fetch user permissions
+      const permissionsData = await usersAPI.getUserPermissions(userId)
+      const permissionIds = permissionsData.permissions.map(p => p.resourceId)
+      setSelectedPermissions(permissionIds)
     } catch (error: any) {
       toast.error("Failed to load user details", {
         description: error.response?.data?.message || "Please try again"
@@ -76,8 +85,16 @@ export default function EditUserPageClient() {
 
   const onSubmit = async (data: EditUserFormData) => {
     try {
+      // Step 1: Update user info
       await usersAPI.updateUser(userId, data)
-      toast.success("User updated successfully")
+
+      // Step 2: Update permissions (bulk replace)
+      await usersAPI.updateUserPermissions(userId, selectedPermissions)
+
+      toast.success("User updated successfully", {
+        description: `User updated with ${selectedPermissions.length} permission(s)`
+      })
+
       router.push(`/users-management/${userId}/details?userType=system-admin`)
     } catch (error: any) {
       toast.error("Failed to update user", {
@@ -99,166 +116,172 @@ export default function EditUserPageClient() {
   }
 
   return (
-    <>
-      <PageHeader title="User Details" />
+    <div>
+      <PageHeader title="Edit Administrator" />
 
-      <div className="space-y-4 p-6 pt-24">
-        <div className="mb-6">
-          <Button
-            variant="outline"
-            onClick={() => router.back()}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-        </div>
-
-        <div className="flex justify-center">
-          <div className="w-[70%]">
-            {/* Back Button */}
-
-
-            <Card>
-              <CardHeader className="border-b">
-                <CardTitle className="text-xl">Edit User</CardTitle>
-                <p className="text-sm text-gray-500">Update user information</p>
-              </CardHeader>
-
-              <CardContent className="pt-6">
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Read-only Email */}
-                  <div className="space-y-2">
-                    <Label>Email Address</Label>
-                    <Input
-                      type="email"
-                      value={user.email}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                    <p className="text-xs text-gray-500">Email cannot be changed</p>
-                  </div>
-
-                  {/* First Name */}
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name *</Label>
-                    <Input
-                      id="firstName"
-                      {...register("firstName")}
-                      placeholder="Enter first name"
-                      disabled={isSubmitting}
-                    />
-                    {errors.firstName && (
-                      <p className="text-xs text-red-600">{errors.firstName.message}</p>
-                    )}
-                  </div>
-
-                  {/* Last Name */}
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name *</Label>
-                    <Input
-                      id="lastName"
-                      {...register("lastName")}
-                      placeholder="Enter last name"
-                      disabled={isSubmitting}
-                    />
-                    {errors.lastName && (
-                      <p className="text-xs text-red-600">{errors.lastName.message}</p>
-                    )}
-                  </div>
-
-                  {/* Staff ID */}
-                  <div className="space-y-2">
-                    <Label htmlFor="staffId">Staff ID</Label>
-                    <Input
-                      id="staffId"
-                      {...register("staffId")}
-                      placeholder="Enter staff ID"
-                      disabled={isSubmitting}
-                    />
-                    {errors.staffId && (
-                      <p className="text-xs text-red-600">{errors.staffId.message}</p>
-                    )}
-                  </div>
-
-                  {/* Phone Number */}
-                  <div className="space-y-2">
-                    <Label htmlFor="phoneNumber">Phone Number</Label>
-                    <Input
-                      id="phoneNumber"
-                      {...register("phoneNumber")}
-                      placeholder="+234..."
-                      disabled={isSubmitting}
-                    />
-                    {errors.phoneNumber && (
-                      <p className="text-xs text-red-600">{errors.phoneNumber.message}</p>
-                    )}
-                  </div>
-
-                  {/* Organization Name */}
-                  <div className="space-y-2">
-                    <Label htmlFor="organizationName">Organization Name</Label>
-                    <Input
-                      id="organizationName"
-                      {...register("organizationName")}
-                      placeholder="Enter organization name"
-                      disabled={isSubmitting}
-                    />
-                    {errors.organizationName && (
-                      <p className="text-xs text-red-600">{errors.organizationName.message}</p>
-                    )}
-                  </div>
-
-                  {/* Account Status */}
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-0.5">
-                      <Label>Account Status</Label>
-                      <p className="text-sm text-gray-500">
-                        {isActive ? "User account is active" : "User account is suspended"}
-                      </p>
-                    </div>
-                    <Switch
-                      checked={isActive}
-                      onCheckedChange={(checked) => setValue("isActive", checked)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-3 justify-end pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => router.back()}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="gap-2"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4" />
-                          Save Changes
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+      <div className="min-h-screen bg-[#F9FAFB] py-10 px-4 sm:px-6 lg:px-8 space-y-6 pt-24">
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* Back Button */}
+          <div className="flex items-center">
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              className="gap-2 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-10 px-4 rounded-lg shadow-sm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="font-medium text-sm">Back</span>
+            </Button>
           </div>
+
+
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="text-xl">Edit User</CardTitle>
+              <p className="text-sm text-gray-500">Update user information</p>
+            </CardHeader>
+
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {/* User Information Card */}
+
+                {/* Read-only Email */}
+                <div className="space-y-2">
+                  <Label>Email Address</Label>
+                  <Input
+                    type="email"
+                    value={user.email}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                  <p className="text-xs text-gray-500">Email cannot be changed</p>
+                </div>
+
+                {/* First Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    {...register("firstName")}
+                    placeholder="Enter first name"
+                    disabled={isSubmitting}
+                  />
+                  {errors.firstName && (
+                    <p className="text-xs text-red-600">{errors.firstName.message}</p>
+                  )}
+                </div>
+
+                {/* Last Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    {...register("lastName")}
+                    placeholder="Enter last name"
+                    disabled={isSubmitting}
+                  />
+                  {errors.lastName && (
+                    <p className="text-xs text-red-600">{errors.lastName.message}</p>
+                  )}
+                </div>
+
+                {/* Staff ID */}
+                <div className="space-y-2">
+                  <Label htmlFor="staffId">Staff ID</Label>
+                  <Input
+                    id="staffId"
+                    {...register("staffId")}
+                    placeholder="Enter staff ID"
+                    disabled={isSubmitting}
+                  />
+                  {errors.staffId && (
+                    <p className="text-xs text-red-600">{errors.staffId.message}</p>
+                  )}
+                </div>
+
+                {/* Phone Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <Input
+                    id="phoneNumber"
+                    {...register("phoneNumber")}
+                    placeholder="+234..."
+                    disabled={isSubmitting}
+                  />
+                  {errors.phoneNumber && (
+                    <p className="text-xs text-red-600">{errors.phoneNumber.message}</p>
+                  )}
+                </div>
+
+                {/* Organization Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="organizationName">Organization Name</Label>
+                  <Input
+                    id="organizationName"
+                    {...register("organizationName")}
+                    placeholder="Enter organization name"
+                    disabled={isSubmitting}
+                  />
+                  {errors.organizationName && (
+                    <p className="text-xs text-red-600">{errors.organizationName.message}</p>
+                  )}
+                </div>
+
+                {/* Account Status */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label>Account Status</Label>
+                    <p className="text-sm text-gray-500">
+                      {isActive ? "User account is active" : "User account is suspended"}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isActive}
+                    onCheckedChange={(checked) => setValue("isActive", checked)}
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                {/* Permissions Card */}
+                <PermissionsSelector
+                  selectedPermissions={selectedPermissions}
+                  onPermissionsChange={setSelectedPermissions}
+                  disabled={isSubmitting}
+                />
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.back()}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 // "use client"

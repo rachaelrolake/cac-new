@@ -21,13 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, Filter, Download, MoreHorizontal, FileText, Flag, Trash2, Eye, X, Calendar, MoreVertical, ChevronDown } from "lucide-react"
+import { Search, Filter, Download, Calendar, MoreVertical, ChevronDown } from "lucide-react"
 
-interface ActivityListProps {
-  activeCategory: string
-  setActiveCategory: (category: string) => void
-}
 
 const mockLogs = [
   { id: 1, sn: 1, activityType: "Swift Logistics Nigeria", details: "Auto-approved based on 94% confidence score", timestamp: "2024-12-15 10:45:23", action: "Approved", actor: "AI System" },
@@ -39,9 +34,10 @@ const mockLogs = [
   { id: 7, sn: 7, activityType: "Annual Return Fillings", details: "Manually approved after review", timestamp: "2024-12-15 09:30:00", action: "Approved", actor: "Review Officer" },
 ]
 
-export function ActivityList({ activeCategory, setActiveCategory }: ActivityListProps) {
+export function ActivityList() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [activeCategory, setActiveCategory] = useState("company-name")
 
 
   const getStatusBadge = (status: string) => {

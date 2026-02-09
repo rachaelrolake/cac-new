@@ -7,8 +7,6 @@ import {
   Download,
   Filter,
   MoreVertical,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Lock,
   Users,

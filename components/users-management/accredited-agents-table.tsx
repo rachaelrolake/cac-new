@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   Search,
@@ -10,20 +10,16 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  Edit2,
   Lock,
-  Trash2,
-  RotateCcw,
   Users,
   CheckCircle2,
   XCircle,
-  Clock,
-  Shield,
-  FilePlus,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -35,392 +31,210 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { StatCard } from "../reusables/stat-card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
-
-interface User {
-  id: number
-  name: string
-  staffId: string
-  email: string
-  phone: string
-  role: string
-  createdAt: string
-  lastLogin: string
-  status: any
-  avatar: string
-}
-
-const mockAccreditedAgents: User[] = [
-  {
-    id: 15,
-    name: "XYZ Laude Company",
-    staffId: "AA-2019-01",
-    email: "xyz@gmail.com",
-    phone: "080-1234-5678",
-    role: "Individual Agent",
-    createdAt: "Nov 15, 2025",
-    lastLogin: "2 hrs ago",
-    status: "Active",
-    avatar: "XL",
-  },
-  {
-    id: 16,
-    name: "Samela Group",
-    staffId: "AA-2019-02",
-    email: "sum@gmail.com",
-    phone: "080-1234-5678",
-    role: "Accredited Agent",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "1 min ago",
-    status: "Active",
-    avatar: "SG",
-  },
-  {
-    id: 17,
-    name: "John James",
-    staffId: "AA-2019-03",
-    email: "john-john@gmail.com",
-    phone: "080-1234-5678",
-    role: "Firm Agent",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "1 hr ago",
-    status: "Active",
-    avatar: "JJ",
-  },
-  {
-    id: 18,
-    name: "Peterson John",
-    staffId: "AA-2019-04",
-    email: "john-john@gmail.com",
-    phone: "080-1234-5678",
-    role: "Individual Agent",
-    createdAt: "Nov 15, 2025",
-    lastLogin: "Nov 10, 2025",
-    status: "Suspended",
-    avatar: "PJ",
-  },
-  {
-    id: 19,
-    name: "Lylem Groups Co.",
-    staffId: "AA-2019-05",
-    email: "john-john@gmail.com",
-    phone: "080-1234-5678",
-    role: "Individual Agent",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "-/-",
-    status: "Pending",
-    avatar: "LG",
-  },
-  {
-    id: 20,
-    name: "Jadenta Latwon",
-    staffId: "AA-2019-06",
-    email: "john-john@gmail.com",
-    phone: "080-1234-5678",
-    role: "Individual Agent",
-    createdAt: "Nov 08, 2025",
-    lastLogin: "Nov 08, 2025",
-    status: "Suspended",
-    avatar: "JL",
-  },
-  {
-    id: 21,
-    name: "Habma Fatah",
-    staffId: "AA-2019-07",
-    email: "john-john@gmail.com",
-    phone: "080-1234-5678",
-    role: "Firm Agent",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "10 mins ago",
-    status: "Active",
-    avatar: "HF",
-  },
-]
-
-const mockRequestAccreditedAgents: User[] = [
-  {
-    id: 15,
-    name: "XYZ Laude Company",
-    staffId: "AA-2019-01",
-    email: "xyz@gmail.com",
-    phone: "080-1234-5678",
-    role: "Individual Agent",
-    createdAt: "Nov 15, 2025",
-    lastLogin: "2 hrs ago",
-    status: "Pending",
-    avatar: "XL",
-  },
-  {
-    id: 16,
-    name: "Samela Group",
-    staffId: "AA-2019-02",
-    email: "sum@gmail.com",
-    phone: "080-1234-5678",
-    role: "Accredited Agent",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "1 min ago",
-    status: "Pending",
-    avatar: "SG",
-  },
-  {
-    id: 17,
-    name: "John James",
-    staffId: "AA-2019-03",
-    email: "john-john@gmail.com",
-    phone: "080-1234-5678",
-    role: "Firm Agent",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "1 hr ago",
-    status: "Pending",
-    avatar: "JJ",
-  },
-  {
-    id: 18,
-    name: "Peterson John",
-    staffId: "AA-2019-04",
-    email: "john-john@gmail.com",
-    phone: "080-1234-5678",
-    role: "Individual Agent",
-    createdAt: "Nov 15, 2025",
-    lastLogin: "Nov 10, 2025",
-    status: "Queried",
-    avatar: "PJ",
-  },
-  {
-    id: 19,
-    name: "Lylem Groups Co.",
-    staffId: "AA-2019-05",
-    email: "john-john@gmail.com",
-    phone: "080-1234-5678",
-    role: "Individual Agent",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "-/-",
-    status: "Pending",
-    avatar: "LG",
-  },
-  {
-    id: 20,
-    name: "Jadenta Latwon",
-    staffId: "AA-2019-06",
-    email: "john-john@gmail.com",
-    phone: "080-1234-5678",
-    role: "Individual Agent",
-    createdAt: "Nov 08, 2025",
-    lastLogin: "Nov 08, 2025",
-    status: "Queried",
-    avatar: "JL",
-  },
-  {
-    id: 21,
-    name: "Habma Fatah",
-    staffId: "AA-2019-07",
-    email: "john-john@gmail.com",
-    phone: "080-1234-5678",
-    role: "Firm Agent",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "10 mins ago",
-    status: "Pending",
-    avatar: "HF",
-  },
-]
-
-
+import { usersAPI, type User } from "@/lib/api/users-management"
+import { toast } from "sonner"
+import { format } from "date-fns"
 
 export function AccreditedAgentComponent() {
   const router = useRouter()
+  const [users, setUsers] = useState<User[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 7
+  const [activeTab, setActiveTab] = useState<"approved" | "requests">("approved")
+  const itemsPerPage = 50
 
-  const stats = {
-    total: 900,
-    active: 860,
-    suspended: 80,
-    pending: 78,
+  useEffect(() => {
+    fetchUsers()
+  }, [currentPage])
+
+  const fetchUsers = async () => {
+    setIsLoading(true)
+    try {
+      const response = await usersAPI.getUsers(currentPage, itemsPerPage)
+      // Filter only Agent role users
+      const agentUsers = response.data.filter(user => user.roles.includes("Agent"))
+      setUsers(agentUsers)
+    } catch (error: any) {
+      toast.error("Failed to load users", {
+        description: error.response?.data?.message || "Please try again later"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  // Filtering & Pagination
-  const filteredUsers = mockAccreditedAgents.filter((user) => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  // Filter users based on active tab
+  const getFilteredUsersByTab = (usersList: User[]) => {
+    if (activeTab === "approved") {
+      return usersList.filter(u => u.isActive)
+    } else if (activeTab === "requests") {
+      return usersList.filter(u => !u.isActive)
+    }
+    return usersList
+  }
+
+  const stats = {
+    total: users.length,
+    approved: users.filter((u) => u.isActive).length,
+    requests: users.filter((u) => !u.isActive).length,
+    pending: 0,
+  }
+
+  // Apply tab filter first, then search
+  const tabFilteredUsers = getFilteredUsersByTab(users)
+
+  const filteredUsers = tabFilteredUsers.filter((user) => {
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase()
+    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = activeFilters.length === 0 || activeFilters.includes(user.status)
+
+    const matchesFilter = activeFilters.length === 0 ||
+      (activeFilters.includes("Active") && user.isActive) ||
+      (activeFilters.includes("Suspended") && !user.isActive)
+
     return matchesSearch && matchesFilter
   })
 
-  // Mapping which table to show based on the tab
+  const paginatedUsers = filteredUsers.slice(0, itemsPerPage)
 
-  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      Active: "bg-emerald-100 text-emerald-700",
-      Suspended: "bg-rose-100 text-rose-700",
-      Queried: "bg-rose-100 text-rose-700",
-      Pending: "bg-orange-100 text-orange-700",
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "MMM dd, yyyy")
+    } catch {
+      return "N/A"
     }
-    return colors[status] || "bg-gray-100 text-gray-700"
   }
 
-  const toggleFilter = (status: string) => {
-    setActiveFilters((prev) => (prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]))
-    setCurrentPage(1)
-  }
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "Accredited Agent":
-        return "bg-purple-100 text-purple-700"
-      case "Admin":
-        return "bg-blue-100 text-blue-700"
-      case "Support":
-        return "bg-purple-100 text-purple-700"
-      case "Insolvency Agent":
-        return "bg-teal-100 text-teal-700"
-      case "Entity Accounts":
-        return "bg-orange-100 text-orange-700"
-      default:
-        return "bg-gray-100 text-gray-700"
-    }
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-700" />
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Users" value={stats.total} icon={<Users className="h-6 w-6" />} />
-        <StatCard title="Active" value={stats.active} icon={<CheckCircle2 className="h-6 w-6" />} color="emerald" />
-        <StatCard title="Suspended" value={stats.suspended} icon={<XCircle className="h-6 w-6" />} color="rose" />
+        <StatCard title="Total Agents" value={stats.total} icon={<Users className="h-6 w-6" />} />
+        <StatCard title="Approved Agents" value={stats.approved} icon={<CheckCircle2 className="h-6 w-6" />} color="emerald" />
+        <StatCard title="Accreditation Requests" value={stats.requests} icon={<XCircle className="h-6 w-6" />} color="rose" />
         <StatCard title="Inactive" value={stats.pending} icon={<Users className="h-6 w-6" />} />
       </div>
 
-      <Card className="bg-white">
-        <Tabs defaultValue="approved-agents" className="w-full">
-          <CardHeader className="border-b space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <CardTitle className="text-lg">Insolvency Agents ({filteredUsers.length})</CardTitle>
-              <div className="flex gap-3 w-full sm:w-auto">
-                <ExportButton />
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+          <TabsTrigger value="approved" className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">Approved Agents ({stats.approved})</TabsTrigger>
+          <TabsTrigger value="requests" className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">Accreditation Requests ({stats.requests})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={activeTab} className="mt-0">
+          <Card className="bg-white">
+            <CardHeader className="border-b space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <CardTitle className="text-lg">
+                  Accredited Agents ({filteredUsers.length})
+                </CardTitle>
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <ExportButton />
+                </div>
               </div>
-            </div>
 
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <TabsList className="grid grid-cols-2">
-                <TabsTrigger
-                  value="approved-agents"
-                  className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                  Approved Agents</TabsTrigger>
-                <TabsTrigger
-                  value="accreditation-requests"
-                  className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                  Accreditation Requests</TabsTrigger>
-              </TabsList>
-              <div className="relative w-full sm:w-1/3">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Input
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                  className="pl-9"
-                />
+              <div className="flex flex-col sm:flex-row justify-between gap-4">
+                <div className="relative w-full sm:w-1/3">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                    className="pl-9"
+                  />
+                </div>
+                <FilterDropdown activeFilters={activeFilters} setActiveFilters={setActiveFilters} />
               </div>
-              <FilterDropdown activeFilters={activeFilters} setActiveFilters={setActiveFilters} />
-            </div>
-          </CardHeader>
+            </CardHeader>
 
+            <CardContent className="p-4">
+              <Table>
+                <TableHeader className="bg-gray-50">
+                  <TableRow>
+                    <TableHead className="w-[50px]">S/N</TableHead>
+                    <TableHead>Agent ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email Address</TableHead>
+                    <TableHead>Phone Number</TableHead>
+                    <TableHead>Created At</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedUsers.map((user, index) => (
+                    <TableRow key={user.id}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{user.staffId || "N/A"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-full bg-purple-700 flex items-center justify-center text-xs text-white font-medium">
+                            {user.firstName?.[0] || user.email[0].toUpperCase()}
+                            {user.lastName?.[0] || ''}
+                          </div>
+                          <span className="font-medium text-gray-900">
+                            {user.firstName && user.lastName
+                              ? `${user.firstName} ${user.lastName}`
+                              : user.email}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-gray-600">{user.email}</TableCell>
+                      <TableCell className="text-gray-600">{user.phoneNumber || "N/A"}</TableCell>
+                      <TableCell className="text-gray-600">{formatDate(user.createdAt)}</TableCell>
+                      <TableCell>
+                        <Badge className={user.isActive ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}>
+                          {user.isActive ? "Active" : "Suspended"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/users-management/${user.id}/details?userType=accredited-agent`)}
+                              className="gap-2"
+                            >
+                              <Eye className="h-4 w-4" /> View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/users-management/${user.id}/password-reset`)}
+                              className="gap-2"
+                            >
+                              <Lock className="h-4 w-4" /> Reset Password
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
-          <CardContent className="p-4"> {/* P-0 because Table handles internal padding */}
-            {/* Dynamically render the specific table */}
-            <TabsContent value="approved-agents">
-              <TheTable mockAccreditedAgents={mockAccreditedAgents} getStatusColor={getStatusColor} router={router} type="accreditation-approved" />
-            </TabsContent>
-
-            <TabsContent value="accreditation-requests">
-              <TheTable mockAccreditedAgents={mockRequestAccreditedAgents} getStatusColor={getStatusColor} router={router} type="accreditation-requests" />
-            </TabsContent>
-
-
-            {paginatedUsers.length === 0 && (
-              <div className="py-20 text-center text-gray-500">No records found.</div>
-            )}
-          </CardContent>
-
-
-          {/* Pagination Logic */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between p-4 border-t">
-              <p className="text-sm text-gray-600">
-                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)}
-              </p>
-              <PaginationControls current={currentPage} total={totalPages} setPage={setCurrentPage} />
-            </div>
-          )}
-        </Tabs>
-
-      </Card>
+              {paginatedUsers.length === 0 && (
+                <div className="py-20 text-center text-gray-500">No records found.</div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
 
-function TheTable({ mockAccreditedAgents, getStatusColor, router, type }: { mockAccreditedAgents: any[], getStatusColor: any, router: any, type: string }) {
-  return (
-    <Table>
-      <TableHeader className="bg-gray-50">
-        <TableRow>
-          <TableHead className="w-[50px]">S/N</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Email Address</TableHead>
-          <TableHead>Agent Type</TableHead>
-          <TableHead>Created At</TableHead>
-          <TableHead>Last Login</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {mockAccreditedAgents.map((user, i) => (
-          <TableRow key={user.id}>
-            <TableCell>{i + 1}</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-emerald-700 flex items-center justify-center text-[10px] text-white overflow-hidden">
-                  <img src="/images/Avatar.png" alt="avatar" />
-                </div>
-                <span className="font-medium text-gray-900">{user.name}</span>
-              </div>
-            </TableCell>
-            <TableCell>{user.email}</TableCell>
-            <TableCell>{user.role}</TableCell>
-            <TableCell>{user.createdAt}</TableCell>
-            <TableCell>{user.lastLogin}</TableCell>
-            <TableCell><Badge className={getStatusColor(user.status)}>{user.status}</Badge></TableCell>
-            <TableCell className="text-right">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => router.push(`/users-management/${user.id}/details?userType=${type}`)} className="gap-2">
-                    <Eye className="h-4 w-4" /> View Details
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push(`/users-management/${user.id}/password-reset`)} className="gap-2">
-                    <Lock className="h-4 w-4" /> Reset Password
-                  </DropdownMenuItem>
-                  {user.status === "Active" ? (
-                    <DropdownMenuItem className="gap-2 text-rose-600"><Shield className="h-4 w-4" /> Suspend</DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem className="gap-2 text-emerald-600"><RotateCcw className="h-4 w-4" /> Activate</DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  )
-}
 function ExportButton() {
   return (
     <DropdownMenu>
@@ -446,7 +260,7 @@ function FilterDropdown({ activeFilters, setActiveFilters }: any) {
         <Button variant="outline" size="sm" className="gap-2"><Filter className="h-3 w-3" /> Filters</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        {["Active", "Suspended", "Pending"].map(status => (
+        {["Active", "Suspended"].map(status => (
           <div key={status} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer" onClick={() => toggle(status)}>
             <input type="checkbox" checked={activeFilters.includes(status)} readOnly />
             <span className="text-sm">{status}</span>
@@ -454,19 +268,5 @@ function FilterDropdown({ activeFilters, setActiveFilters }: any) {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
-
-function PaginationControls({ current, total, setPage }: any) {
-  return (
-    <div className="flex items-center gap-2">
-      <Button variant="outline" size="sm" disabled={current === 1} onClick={() => setPage(current - 1)}><ChevronLeft className="h-4 w-4" /></Button>
-      <div className="flex gap-1">
-        {Array.from({ length: total }, (_, i) => i + 1).map(p => (
-          <Button key={p} size="sm" variant={p === current ? "default" : "outline"} onClick={() => setPage(p)} className={p === current ? "bg-emerald-600" : ""}>{p}</Button>
-        ))}
-      </div>
-      <Button variant="outline" size="sm" disabled={current === total} onClick={() => setPage(current + 1)}><ChevronRight className="h-4 w-4" /></Button>
-    </div>
   )
 }
