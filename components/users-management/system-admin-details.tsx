@@ -1,41 +1,94 @@
 "use client"
-import { useRouter, useParams } from "next/navigation"
-import { Search, CheckCircle2 } from "lucide-react"
+
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { Search, CheckCircle2, Loader2, ArrowLeft } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-
-const permissionsData = [
-  { title: "Dashboard", access: "Full Access" },
-  { title: "User Management", access: "Read only" },
-  { title: "Pre-Incorporation", access: "Read only" },
-  { title: "Post-Incorporation", access: "No Access" },
-  { title: "System Configuration", access: "No Access" },
-  { title: "Transactions", access: "View only" },
-  { title: "Fraud & Compliance", access: "View only" },
-  { title: "Reports", access: "Full Access" },
-  { title: "Activity", access: "Read only" },
-  { title: "Customers Support", access: "Full Access" },
-  { title: "Settings", access: "Full Access" },
-]
-
-const details = [
-  { label: "First Name", value: "Sule" },
-  { label: "Surname", value: "Madu" },
-  { label: "Email", value: "sulemadu@example.com" },
-  { label: "Phone number", value: "09160049129" },
-  { label: "Account Status", value: "Active", icon: true },
-  { label: "Date Created", value: "Jan 15, 2023" },
-]
+import { usersAPI, type User } from "@/lib/api/users-management"
+import { toast } from "sonner"
+import { format } from "date-fns"
 
 export default function SystemAdminDetails() {
   const router = useRouter()
   const params = useParams()
-  const userId = params.id
+  const userId = params.id as string
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetchUserDetails()
+  }, [userId])
+
+  const fetchUserDetails = async () => {
+    setIsLoading(true)
+    try {
+      const userData = await usersAPI.getUserById(userId)
+      setUser(userData)
+    } catch (error: any) {
+      toast.error("Failed to load user details", {
+        description: error.response?.data?.message || "Please try again"
+      })
+      router.back()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-700" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <div className="text-center py-20">User not found</div>
+  }
+
+  const details = [
+    { label: "First Name", value: user.firstName || "N/A" },
+    { label: "Surname", value: user.lastName || "N/A" },
+    { label: "Email", value: user.email },
+    { label: "Phone number", value: user.phoneNumber || "N/A" },
+    { 
+      label: "Account Status", 
+      value: user.isActive ? "Active" : "Suspended", 
+      icon: user.isActive 
+    },
+    { 
+      label: "Date Created", 
+      value: format(new Date(user.createdAt), "MMM dd, yyyy") 
+    },
+    { label: "Staff ID", value: user.staffId || "N/A" },
+    { label: "Organization", value: user.organizationName || "N/A" },
+    { 
+      label: "Last Login", 
+      value: user.lastLoginAt ? format(new Date(user.lastLoginAt), "MMM dd, yyyy HH:mm") : "Never" 
+    },
+    { label: "MFA Enabled", value: user.mfaEnabled ? "Yes" : "No" },
+  ]
+
+  const permissionsData = user.resources || []
 
   return (
     <>
+      {/* Back Button */}
+      {/* <div className="mb-6">
+        <Button
+          variant="outline"
+          onClick={() => router.back()}
+          className="gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div> */}
+
       {/* Header section */}
       <Card className="mb-6">
         <CardHeader>
@@ -63,11 +116,13 @@ export default function SystemAdminDetails() {
               <TabsTrigger
                 value="activity"
                 className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                Activity</TabsTrigger>
+                Activity
+              </TabsTrigger>
               <TabsTrigger
                 value="permissions"
                 className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                Permissions</TabsTrigger>
+                Permissions
+              </TabsTrigger>
             </TabsList>
             <div className="relative my-4 w-full max-w-sm">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -87,29 +142,31 @@ export default function SystemAdminDetails() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Array.from({ length: 7 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="p-5">{i + 1}</TableCell>
-                      <TableCell className="p-5">Logged In</TableCell>
-                      <TableCell className="p-5">10:01 AM</TableCell>
-                      <TableCell className="p-5">10 Nov. 2024</TableCell>
-                    </TableRow>
-                  ))}
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-10 text-gray-500">
+                      Activity log not available yet
+                    </TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </div>
-            {/* Pagination controls would go here */}
           </TabsContent>
 
           <TabsContent value="permissions" className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {permissionsData.map((perm) => (
-                <div key={perm.title} className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <h4 className="text-sm font-semibold">{perm.title}</h4>
-                  <p className="text-xs text-muted-foreground">{perm.access}</p>
-                </div>
-              ))}
-            </div>
+            {permissionsData.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {permissionsData.map((perm: any, idx: number) => (
+                  <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <h4 className="text-sm font-semibold">{perm.title || 'Permission'}</h4>
+                    <p className="text-xs text-muted-foreground">{perm.access || 'No Access'}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-gray-500">
+                No permissions configured
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </Card>

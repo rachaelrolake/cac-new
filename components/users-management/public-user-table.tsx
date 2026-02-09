@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   Search,
@@ -10,16 +10,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  Edit2,
   Lock,
-  Trash2,
-  RotateCcw,
   Users,
   CheckCircle2,
   XCircle,
-  Clock,
-  Shield,
-  FilePlus,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,146 +30,78 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { StatCard } from "../reusables/stat-card"
-
-interface User {
-  id: number
-  name: string
-  staffId: string
-  email: string
-  phone: string
-  role: string
-  createdAt: string
-  lastLogin: string
-  status: "Active" | "Suspended" | "Pending"
-  avatar: string
-}
-
-const mockPublicUsers: User[] = [
-  {
-    id: 8,
-    name: "John Doe",
-    staffId: "PUB-2019-01",
-    email: "john@example.com",
-    phone: "080-1234-5678",
-    role: "Public User",
-    createdAt: "Nov 28, 2025",
-    lastLogin: "1 day ago",
-    status: "Active",
-    avatar: "JD",
-  },
-  {
-    id: 9,
-    name: "Jane Smith",
-    staffId: "PUB-2019-02",
-    email: "jane@example.com",
-    phone: "080-1234-5679",
-    role: "Public User",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "3 days ago",
-    status: "Active",
-    avatar: "JS",
-  },
-  {
-    id: 10,
-    name: "Mike Johnson",
-    staffId: "PUB-2019-03",
-    email: "mike@example.com",
-    phone: "080-1234-5680",
-    role: "Public User",
-    createdAt: "Nov 10, 2025",
-    lastLogin: "5 days ago",
-    status: "Active",
-    avatar: "MJ",
-  },
-  {
-    id: 11,
-    name: "Sarah Williams",
-    staffId: "PUB-2019-04",
-    email: "sarah@example.com",
-    phone: "080-1234-5681",
-    role: "Public User",
-    createdAt: "Nov 05, 2025",
-    lastLogin: "1 week ago",
-    status: "Suspended",
-    avatar: "SW",
-  },
-  {
-    id: 12,
-    name: "David Brown",
-    staffId: "PUB-2019-05",
-    email: "david@example.com",
-    phone: "080-1234-5682",
-    role: "Public User",
-    createdAt: "Oct 28, 2025",
-    lastLogin: "2 weeks ago",
-    status: "Pending",
-    avatar: "DB",
-  },
-]
-
-
+import { usersAPI, type User } from "@/lib/api/users-management"
+import { toast } from "sonner"
+import { format } from "date-fns"
 
 export function PublicUsersComponent() {
   const router = useRouter()
+  const [users, setUsers] = useState<User[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 7
+  const itemsPerPage = 50
 
-  const stats = {
-    total: 9100,
-    active: 8790,
-    suspended: 270,
-    pending: 10,
+  useEffect(() => {
+    fetchUsers()
+  }, [currentPage])
+
+  const fetchUsers = async () => {
+    setIsLoading(true)
+    try {
+      const response = await usersAPI.getUsers(currentPage, itemsPerPage)
+      // Filter only Public role users
+      const publicUsers = response.data.filter(user => user.roles.includes("Public"))
+      setUsers(publicUsers)
+    } catch (error: any) {
+      toast.error("Failed to load users", {
+        description: error.response?.data?.message || "Please try again later"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  // Filtering & Pagination
-  const filteredUsers = mockPublicUsers.filter((user) => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const stats = {
+    total: users.length,
+    active: users.filter((u) => u.isActive).length,
+    suspended: users.filter((u) => !u.isActive).length,
+    pending: 0,
+  }
+
+  const filteredUsers = users.filter((user) => {
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase()
+    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = activeFilters.length === 0 || activeFilters.includes(user.status)
+
+    const matchesFilter = activeFilters.length === 0 ||
+      (activeFilters.includes("Active") && user.isActive) ||
+      (activeFilters.includes("Suspended") && !user.isActive)
+
     return matchesSearch && matchesFilter
   })
 
-  // Mapping which table to show based on the tab
+  const paginatedUsers = filteredUsers.slice(0, itemsPerPage)
 
-  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      Active: "bg-emerald-100 text-emerald-700",
-      Suspended: "bg-rose-100 text-rose-700",
-      Pending: "bg-orange-100 text-orange-700",
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "MMM dd, yyyy")
+    } catch {
+      return "N/A"
     }
-    return colors[status] || "bg-gray-100 text-gray-700"
   }
 
-  const toggleFilter = (status: string) => {
-    setActiveFilters((prev) => (prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]))
-    setCurrentPage(1)
-  }
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "Accredited Agent":
-        return "bg-purple-100 text-purple-700"
-      case "Admin":
-        return "bg-blue-100 text-blue-700"
-      case "Support":
-        return "bg-purple-100 text-purple-700"
-      case "Insolvency Agent":
-        return "bg-teal-100 text-teal-700"
-      case "Entity Accounts":
-        return "bg-orange-100 text-orange-700"
-      default:
-        return "bg-gray-100 text-gray-700"
-    }
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-700" />
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Users" value={stats.total} icon={<Users className="h-6 w-6" />} />
         <StatCard title="Active" value={stats.active} icon={<CheckCircle2 className="h-6 w-6" />} color="emerald" />
@@ -205,9 +132,7 @@ export function PublicUsersComponent() {
           </div>
         </CardHeader>
 
-        <CardContent className="p-4"> {/* P-0 because Table handles internal padding */}
-          {/* Dynamically render the specific table */}
-
+        <CardContent className="p-4">
           <Table>
             <TableHeader className="bg-gray-50">
               <TableRow>
@@ -222,23 +147,32 @@ export function PublicUsersComponent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockPublicUsers.map((user, index) => (
+              {paginatedUsers.map((user, index) => (
                 <TableRow key={user.id}>
                   <TableCell>{index + 1}</TableCell>
-                  <TableCell>{user.staffId}</TableCell>
+                  <TableCell>{user.staffId || "N/A"}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-emerald-700 flex items-center justify-center text-[10px] text-white overflow-hidden">
-                        <img src="/images/Avatar.png" alt="avatar" />
+                      <div className="h-8 w-8 rounded-full bg-emerald-700 flex items-center justify-center text-xs text-white font-medium">
+                        {user.firstName?.[0] || user.email[0].toUpperCase()}
+                        {user.lastName?.[0] || ''}
                       </div>
-                      <span className="font-medium text-gray-900">{user.name}</span>
+                      <span className="font-medium text-gray-900">
+                        {user.firstName && user.lastName
+                          ? `${user.firstName} ${user.lastName}`
+                          : user.email}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-gray-600">{user.email}</TableCell>
-                  <TableCell className="text-gray-600">{user.createdAt}</TableCell>
-                  <TableCell className="text-gray-600">{user.lastLogin}</TableCell>
+                  <TableCell className="text-gray-600">{formatDate(user.createdAt)}</TableCell>
+                  <TableCell className="text-gray-600">
+                    {user.lastLoginAt ? formatDate(user.lastLoginAt) : "Never"}
+                  </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(user.status)}>{user.status}</Badge>
+                    <Badge className={user.isActive ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}>
+                      {user.isActive ? "Active" : "Suspended"}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -246,21 +180,21 @@ export function PublicUsersComponent() {
                         <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => router.push(`/users-management/${user.id}/details?userType=public-user`)} className="gap-2">
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/users-management/${user.id}/details?userType=public-user`)}
+                          className="gap-2"
+                        >
                           <Eye className="h-4 w-4" /> View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push(`/users-management/${user.id}/password-reset`)} className="gap-2">
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/users-management/${user.id}/password-reset`)}
+                          className="gap-2"
+                        >
                           <Lock className="h-4 w-4" /> Reset Password
                         </DropdownMenuItem>
-                        {user.status === "Active" ? (
-                          <DropdownMenuItem className="gap-2 text-rose-600"><Shield className="h-4 w-4" /> Suspend</DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem className="gap-2 text-emerald-600"><RotateCcw className="h-4 w-4" /> Activate</DropdownMenuItem>
-                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
-
                 </TableRow>
               ))}
             </TableBody>
@@ -270,50 +204,8 @@ export function PublicUsersComponent() {
             <div className="py-20 text-center text-gray-500">No records found.</div>
           )}
         </CardContent>
-
-        {/* Pagination Logic */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t">
-            <p className="text-sm text-gray-600">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)}
-            </p>
-            <PaginationControls current={currentPage} total={totalPages} setPage={setCurrentPage} />
-          </div>
-        )}
       </Card>
     </div>
-  )
-}
-
-
-function UserActions({ user, userType }: { user: User, userType: string }) {
-  const router = useRouter()
-  const detailPath = `/dashboard/users/${user.id}/details?type=${userType}`
-  const editPath = `/dashboard/users/${user.id}/edit?type=${userType}`
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => router.push(detailPath)} className="gap-2">
-          <Eye className="h-4 w-4" /> View Details
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push(editPath)} className="gap-2">
-          <Edit2 className="h-4 w-4" /> Edit
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push(`/dashboard/users/${user.id}/password-reset`)} className="gap-2">
-          <Lock className="h-4 w-4" /> Reset Password
-        </DropdownMenuItem>
-        {user.status === "Active" ? (
-          <DropdownMenuItem className="gap-2 text-rose-600"><Shield className="h-4 w-4" /> Suspend</DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem className="gap-2 text-emerald-600"><RotateCcw className="h-4 w-4" /> Activate</DropdownMenuItem>
-        )}
-        <DropdownMenuItem className="gap-2 text-rose-600"><Trash2 className="h-4 w-4" /> De-activate</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }
 
@@ -342,7 +234,7 @@ function FilterDropdown({ activeFilters, setActiveFilters }: any) {
         <Button variant="outline" size="sm" className="gap-2"><Filter className="h-3 w-3" /> Filters</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        {["Active", "Suspended", "Pending"].map(status => (
+        {["Active", "Suspended"].map(status => (
           <div key={status} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer" onClick={() => toggle(status)}>
             <input type="checkbox" checked={activeFilters.includes(status)} readOnly />
             <span className="text-sm">{status}</span>
@@ -350,19 +242,5 @@ function FilterDropdown({ activeFilters, setActiveFilters }: any) {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
-
-function PaginationControls({ current, total, setPage }: any) {
-  return (
-    <div className="flex items-center gap-2">
-      <Button variant="outline" size="sm" disabled={current === 1} onClick={() => setPage(current - 1)}><ChevronLeft className="h-4 w-4" /></Button>
-      <div className="flex gap-1">
-        {Array.from({ length: total }, (_, i) => i + 1).map(p => (
-          <Button key={p} size="sm" variant={p === current ? "default" : "outline"} onClick={() => setPage(p)} className={p === current ? "bg-emerald-600" : ""}>{p}</Button>
-        ))}
-      </div>
-      <Button variant="outline" size="sm" disabled={current === total} onClick={() => setPage(current + 1)}><ChevronRight className="h-4 w-4" /></Button>
-    </div>
   )
 }

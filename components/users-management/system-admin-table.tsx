@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   Search,
@@ -17,9 +17,9 @@ import {
   Users,
   CheckCircle2,
   XCircle,
-  Clock,
   Shield,
   FilePlus,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,141 +35,120 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { StatCard } from "../reusables/stat-card"
-
-interface User {
-  id: number
-  name: string
-  staffId: string
-  email: string
-  phone: string
-  role: string
-  createdAt: string
-  lastLogin: string
-  status: "Active" | "Suspended" | "Pending"
-  avatar: string
-}
-
-const mockSystemAdmins: User[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    staffId: "CAC-2019-01",
-    email: "john@cac.gov.ng",
-    phone: "080-1234-5678",
-    role: "Super Admin",
-    createdAt: "Nov 28, 2025",
-    lastLogin: "2 hrs ago",
-    status: "Active",
-    avatar: "JD",
-  },
-  {
-    id: 2,
-    name: "Martha Last",
-    staffId: "CAC-2019-01",
-    email: "martha@cac.gov.ng",
-    phone: "080-1234-5678",
-    role: "Admin",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "1 min ago",
-    status: "Active",
-    avatar: "ML",
-  },
-  {
-    id: 3,
-    name: "John Bolton",
-    staffId: "CAC-2019-01",
-    email: "bolton@cac.gov.ng",
-    phone: "080-1234-5678",
-    role: "Support",
-    createdAt: "Nov 14, 2025",
-    lastLogin: "1 hr ago",
-    status: "Active",
-    avatar: "JB",
-  },
-  {
-    id: 4,
-    name: "James Juan",
-    staffId: "CAC-2019-01",
-    email: "james@cac.gov.ng",
-    phone: "080-1234-5678",
-    role: "Support",
-    createdAt: "Nov 15, 2025",
-    lastLogin: "Nov 10, 2025",
-    status: "Suspended",
-    avatar: "JJ",
-  },
-  {
-    id: 5,
-    name: "Ari Benson",
-    staffId: "CAC-2019-01",
-    email: "ari@cac.gov.ng",
-    phone: "080-1234-5678",
-    role: "Support",
-    createdAt: "Nov 20, 2025",
-    lastLogin: "-/-",
-    status: "Pending",
-    avatar: "AB",
-  }
-]
-
-
+import { usersAPI, type User } from "@/lib/api/users-management"
+import { toast } from "sonner"
+import { format } from "date-fns"
 
 export function SystemAdminComponent() {
   const router = useRouter()
+  const [users, setUsers] = useState<User[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 7
+  const [totalPages, setTotalPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const itemsPerPage = 50
 
-  const stats = {
-    total: mockSystemAdmins.length,
-    active: mockSystemAdmins.filter((u) => u.status === "Active").length,
-    suspended: mockSystemAdmins.filter((u) => u.status === "Suspended").length,
-    pending: mockSystemAdmins.filter((u) => u.status === "Pending").length,
+  // Fetch users from API
+  useEffect(() => {
+    fetchUsers()
+  }, [currentPage])
+
+  const fetchUsers = async () => {
+    setIsLoading(true)
+    try {
+      const response = await usersAPI.getUsers(currentPage, itemsPerPage)
+      // Filter only Admin role users
+      const adminUsers = response.data.filter(user => user.roles.includes("Admin"))
+      setUsers(adminUsers)
+      setTotal(adminUsers.length)
+      setTotalPages(Math.ceil(adminUsers.length / itemsPerPage))
+    } catch (error: any) {
+      toast.error("Failed to load users", {
+        description: error.response?.data?.message || "Please try again later"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  // Filtering & Pagination
-  const filteredUsers = mockSystemAdmins.filter((user) => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const handleDelete = async (userId: string, userName: string) => {
+    if (!confirm(`Are you sure you want to deactivate ${userName}?`)) return
+
+    try {
+      await usersAPI.deleteUser(userId)
+      toast.success("User deactivated successfully")
+      fetchUsers() // Refresh list
+    } catch (error: any) {
+      toast.error("Failed to deactivate user", {
+        description: error.response?.data?.message || "Please try again"
+      })
+    }
+  }
+
+  const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
+    try {
+      await usersAPI.updateUser(userId, { isActive: !currentStatus })
+      toast.success(`User ${!currentStatus ? 'activated' : 'suspended'} successfully`)
+      fetchUsers() // Refresh list
+    } catch (error: any) {
+      toast.error("Failed to update user status", {
+        description: error.response?.data?.message || "Please try again"
+      })
+    }
+  }
+
+  // Calculate stats from users list
+  const stats = {
+    total: users.length,
+    active: users.filter((u) => u.isActive).length,
+    suspended: users.filter((u) => !u.isActive).length,
+    pending: 0, // Not available in current data structure
+  }
+
+  // Filtering
+  const filteredUsers = users.filter((user) => {
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase()
+    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = activeFilters.length === 0 || activeFilters.includes(user.status)
+    
+    const matchesFilter = activeFilters.length === 0 || 
+      (activeFilters.includes("Active") && user.isActive) ||
+      (activeFilters.includes("Suspended") && !user.isActive)
+    
     return matchesSearch && matchesFilter
   })
 
-  // Mapping which table to show based on the tab
-
   const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      Active: "bg-emerald-100 text-emerald-700",
-      Suspended: "bg-rose-100 text-rose-700",
-      Pending: "bg-orange-100 text-orange-700",
-    }
-    return colors[status] || "bg-gray-100 text-gray-700"
+  const getStatusBadge = (isActive: boolean) => {
+    return isActive ? (
+      <Badge className="bg-emerald-100 text-emerald-700">Active</Badge>
+    ) : (
+      <Badge className="bg-rose-100 text-rose-700">Suspended</Badge>
+    )
   }
 
-  const toggleFilter = (status: string) => {
-    setActiveFilters((prev) => (prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]))
-    setCurrentPage(1)
+  const getRoleBadge = (roles: string[]) => {
+    const role = roles[0] || "Unknown"
+    return <Badge className="bg-blue-100 text-blue-700">{role}</Badge>
   }
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "Accredited Agent":
-        return "bg-purple-100 text-purple-700"
-      case "Admin":
-        return "bg-blue-100 text-blue-700"
-      case "Support":
-        return "bg-purple-100 text-purple-700"
-      case "Insolvency Agent":
-        return "bg-teal-100 text-teal-700"
-      case "Entity Accounts":
-        return "bg-orange-100 text-orange-700"
-      default:
-        return "bg-gray-100 text-gray-700"
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "MMM dd, yyyy")
+    } catch {
+      return "N/A"
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-700" />
+      </div>
+    )
   }
 
   return (
@@ -211,9 +190,7 @@ export function SystemAdminComponent() {
           </div>
         </CardHeader>
 
-        <CardContent className="p-4"> {/* P-0 because Table handles internal padding */}
-          {/* Dynamically render the specific table */}
-
+        <CardContent className="p-4">
           <Table>
             <TableHeader className="bg-gray-50">
               <TableRow>
@@ -228,47 +205,71 @@ export function SystemAdminComponent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockSystemAdmins.map((user, index) => (
+              {paginatedUsers.map((user, index) => (
                 <TableRow key={user.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{user.staffId}</TableCell>
+                  <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                  <TableCell>{user.staffId || "N/A"}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-emerald-700 flex items-center justify-center text-[10px] text-white overflow-hidden">
-                        <img src="/images/Avatar.png" alt="avatar" />
+                      <div className="h-8 w-8 rounded-full bg-emerald-700 flex items-center justify-center text-xs text-white font-medium">
+                        {user.firstName?.[0] || user.email[0].toUpperCase()}
+                        {user.lastName?.[0] || ''}
                       </div>
-                      <span className="font-medium text-gray-900">{user.name}</span>
+                      <span className="font-medium text-gray-900">
+                        {user.firstName && user.lastName 
+                          ? `${user.firstName} ${user.lastName}` 
+                          : user.email}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-gray-600">{user.email}</TableCell>
-                  <TableCell>
-                    <Badge className={getRoleColor(user.role)}>{user.role}</Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-600">{user.createdAt}</TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(user.status)}>{user.status}</Badge>
-                  </TableCell>
+                  <TableCell>{getRoleBadge(user.roles)}</TableCell>
+                  <TableCell className="text-gray-600">{formatDate(user.createdAt)}</TableCell>
+                  <TableCell>{getStatusBadge(user.isActive)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => router.push(`/users-management/${user.id}/details?userType=system-admin`)} className="gap-2">
+                        <DropdownMenuItem 
+                          onClick={() => router.push(`/users-management/${user.id}/details?userType=system-admin`)} 
+                          className="gap-2"
+                        >
                           <Eye className="h-4 w-4" /> View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push(`/users-management/${user.id}/edit?userType=system-admin`)} className="gap-2">
+                        <DropdownMenuItem 
+                          onClick={() => router.push(`/users-management/${user.id}/edit?userType=system-admin`)} 
+                          className="gap-2"
+                        >
                           <Edit2 className="h-4 w-4" /> Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push(`/users-management/${user.id}/password-reset`)} className="gap-2">
+                        <DropdownMenuItem 
+                          onClick={() => router.push(`/users-management/${user.id}/password-reset`)} 
+                          className="gap-2"
+                        >
                           <Lock className="h-4 w-4" /> Reset Password
                         </DropdownMenuItem>
-                        {user.status === "Active" ? (
-                          <DropdownMenuItem className="gap-2 text-rose-600"><Shield className="h-4 w-4" /> Suspend</DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem className="gap-2 text-emerald-600"><RotateCcw className="h-4 w-4" /> Activate</DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem className="gap-2 text-rose-600"><Trash2 className="h-4 w-4" /> De-activate</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleToggleStatus(user.id, user.isActive)} 
+                          className={`gap-2 ${user.isActive ? 'text-rose-600' : 'text-emerald-600'}`}
+                        >
+                          {user.isActive ? (
+                            <>
+                              <Shield className="h-4 w-4" /> Suspend
+                            </>
+                          ) : (
+                            <>
+                              <RotateCcw className="h-4 w-4" /> Activate
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDelete(user.id, user.firstName || user.email)} 
+                          className="gap-2 text-rose-600"
+                        >
+                          <Trash2 className="h-4 w-4" /> De-activate
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -282,49 +283,17 @@ export function SystemAdminComponent() {
           )}
         </CardContent>
 
-        {/* Pagination Logic */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between p-4 border-t">
             <p className="text-sm text-gray-600">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)}
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of {filteredUsers.length}
             </p>
             <PaginationControls current={currentPage} total={totalPages} setPage={setCurrentPage} />
           </div>
         )}
       </Card>
     </div>
-  )
-}
-
-
-function UserActions({ user, userType }: { user: User, userType: string }) {
-  const router = useRouter()
-  const detailPath = `/dashboard/users/${user.id}/details?type=${userType}`
-  const editPath = `/dashboard/users/${user.id}/edit?type=${userType}`
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => router.push(detailPath)} className="gap-2">
-          <Eye className="h-4 w-4" /> View Details
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push(editPath)} className="gap-2">
-          <Edit2 className="h-4 w-4" /> Edit
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push(`/dashboard/users/${user.id}/password-reset`)} className="gap-2">
-          <Lock className="h-4 w-4" /> Reset Password
-        </DropdownMenuItem>
-        {user.status === "Active" ? (
-          <DropdownMenuItem className="gap-2 text-rose-600"><Shield className="h-4 w-4" /> Suspend</DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem className="gap-2 text-emerald-600"><RotateCcw className="h-4 w-4" /> Activate</DropdownMenuItem>
-        )}
-        <DropdownMenuItem className="gap-2 text-rose-600"><Trash2 className="h-4 w-4" /> De-activate</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }
 
@@ -353,7 +322,7 @@ function FilterDropdown({ activeFilters, setActiveFilters }: any) {
         <Button variant="outline" size="sm" className="gap-2"><Filter className="h-3 w-3" /> Filters</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        {["Active", "Suspended", "Pending"].map(status => (
+        {["Active", "Suspended"].map(status => (
           <div key={status} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer" onClick={() => toggle(status)}>
             <input type="checkbox" checked={activeFilters.includes(status)} readOnly />
             <span className="text-sm">{status}</span>
@@ -367,13 +336,37 @@ function FilterDropdown({ activeFilters, setActiveFilters }: any) {
 function PaginationControls({ current, total, setPage }: any) {
   return (
     <div className="flex items-center gap-2">
-      <Button variant="outline" size="sm" disabled={current === 1} onClick={() => setPage(current - 1)}><ChevronLeft className="h-4 w-4" /></Button>
+      <Button variant="outline" size="sm" disabled={current === 1} onClick={() => setPage(current - 1)}>
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
       <div className="flex gap-1">
-        {Array.from({ length: total }, (_, i) => i + 1).map(p => (
-          <Button key={p} size="sm" variant={p === current ? "default" : "outline"} onClick={() => setPage(p)} className={p === current ? "bg-emerald-600" : ""}>{p}</Button>
-        ))}
+        {Array.from({ length: Math.min(5, total) }, (_, i) => {
+          let pageNum
+          if (total <= 5) {
+            pageNum = i + 1
+          } else if (current <= 3) {
+            pageNum = i + 1
+          } else if (current >= total - 2) {
+            pageNum = total - 4 + i
+          } else {
+            pageNum = current - 2 + i
+          }
+          return (
+            <Button 
+              key={pageNum} 
+              size="sm" 
+              variant={pageNum === current ? "default" : "outline"} 
+              onClick={() => setPage(pageNum)} 
+              className={pageNum === current ? "bg-emerald-600" : ""}
+            >
+              {pageNum}
+            </Button>
+          )
+        })}
       </div>
-      <Button variant="outline" size="sm" disabled={current === total} onClick={() => setPage(current + 1)}><ChevronRight className="h-4 w-4" /></Button>
+      <Button variant="outline" size="sm" disabled={current === total} onClick={() => setPage(current + 1)}>
+        <ChevronRight className="h-4 w-4" />
+      </Button>
     </div>
   )
 }
