@@ -1,4 +1,5 @@
 "use client"
+import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,24 +7,82 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, CheckCircle2, ChevronRight, Download, Filter } from "lucide-react";
-import { useState } from "react";
+import { Search, CheckCircle2, ChevronRight, Download, Filter, Loader2, ArrowLeft } from "lucide-react";
 import { UserActionDialog } from "../reusables/action-dialog";
-
-interface ActionDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  description: string;
-  confirmText: string;
-  onConfirm: () => void;
-  variant?: "default" | "destructive";
-}
+import { insolvencyAgentsAPI, type InsolvencyAgent } from "@/lib/api/users-management";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 export default function ApprovedInsolvencyDetails() {
   const router = useRouter()
   const params = useParams()
+  const agentId = params.id as string
+  const [agent, setAgent] = useState<InsolvencyAgent | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeDialog, setActiveDialog] = useState<"suspend" | "deactivate" | null>(null)
+
+  useEffect(() => {
+    fetchAgentDetails()
+  }, [agentId])
+
+  const fetchAgentDetails = async () => {
+    setIsLoading(true)
+    try {
+      const agentData = await insolvencyAgentsAPI.getInsolvencyAgentById(agentId)
+      setAgent(agentData)
+    } catch (error: any) {
+      toast.error("Failed to load agent details", {
+        description: error.response?.data?.message || "Please try again"
+      })
+      router.back()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleToggleStatus = async () => {
+    setIsSubmitting(true)
+    try {
+      // TODO: Add suspend/activate endpoint when available
+      toast.success("Status updated successfully")
+      setActiveDialog(null)
+      fetchAgentDetails()
+    } catch (error: any) {
+      toast.error("Failed to update status", {
+        description: error.response?.data?.message || "Please try again"
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeactivate = async () => {
+    setIsSubmitting(true)
+    try {
+      // TODO: Add deactivate endpoint when available
+      toast.success("Agent deactivated successfully")
+      setActiveDialog(null)
+      router.push('/users-management')
+    } catch (error: any) {
+      toast.error("Failed to deactivate agent", {
+        description: error.response?.data?.message || "Please try again"
+      })
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-700" />
+      </div>
+    )
+  }
+
+  if (!agent) {
+    return <div className="text-center py-20">Agent not found</div>
+  }
 
   return (
     <>
@@ -31,21 +90,24 @@ export default function ApprovedInsolvencyDetails() {
       <UserActionDialog
         isOpen={activeDialog === "suspend"}
         onClose={() => setActiveDialog(null)}
-        title="Suspend user?"
-        description="Are you sure you want to suspend this user?"
-        confirmText="Suspend User"
-        onConfirm={() => { console.log("Suspended"); setActiveDialog(null); }}
+        title={agent.user.isActive ? "Suspend user?" : "Activate user?"}
+        description={agent.user.isActive ? "Are you sure you want to suspend this user?" : "Are you sure you want to activate this user?"}
+        confirmText={agent.user.isActive ? "Suspend User" : "Activate User"}
+        onConfirm={handleToggleStatus}
+        isLoading={isSubmitting}
       />
 
-      {/* deactivate Dialog */}
+      {/* Deactivate Dialog */}
       <UserActionDialog
         isOpen={activeDialog === "deactivate"}
         onClose={() => setActiveDialog(null)}
         title="Deactivate user account?"
         description="Are you sure you want to deactivate user account? Note that this will not delete the user details from the database."
         confirmText="Deactivate Account"
-        onConfirm={() => { console.log("deactivated"); setActiveDialog(null); }}
+        onConfirm={handleDeactivate}
+        isLoading={isSubmitting}
       />
+
       {/* Tabs System */}
       <Card>
         <Tabs defaultValue="user-details" className="w-full space-y-6">
@@ -81,13 +143,15 @@ export default function ApprovedInsolvencyDetails() {
                     variant="outlineprimary"
                     size="lg"
                     onClick={() => setActiveDialog("suspend")}
+                    disabled={isSubmitting}
                   >
-                    Suspend User
+                    {agent.user.isActive ? "Suspend User" : "Activate User"}
                   </Button>
                   <Button
                     variant="destructive"
                     size="lg"
                     onClick={() => setActiveDialog("deactivate")}
+                    disabled={isSubmitting}
                   >
                     Deactivate Account
                   </Button>
@@ -96,44 +160,56 @@ export default function ApprovedInsolvencyDetails() {
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
-                    { label: "Agent ID", value: "ACC-2023-1245" },
-                    { label: "Account Status", value: "Active", status: true },
-                    { label: "Name", value: "Oluwaseun Ajayi" },
-                    { label: "RC Number", value: "RC-1234567" },
-                    { label: "Email", value: "seun.ajayi@ajayicorp.com" },
-                    { label: "Phone", value: "+234 812 345 6789" },
-                    { label: "Accreditation Date", value: "Jan 15, 2023" },
-                    { label: "Last Login", value: "2026-01-13 09:30" },
-                    { label: "2FA Status", value: "Enabled", status: true },
-                    { label: "Total Filings", value: "543" },
-                    { label: "Complaints", value: "2" },
+                    { label: "Agent ID", value: agent.agentId },
+                    { label: "Account Status", value: agent.user.accountStatus, status: agent.user.isActive },
+                    { label: "Name", value: agent.agentName || `${agent.user.firstName || ''} ${agent.user.lastName || ''}`.trim() || "N/A" },
+                    { label: "Agent Type", value: agent.agentType },
+                    { label: "Email", value: agent.user.email },
+                    { label: "Phone", value: agent.user.phoneNumber || "N/A" },
+                    { label: "Accreditation Date", value: agent.verifiedAt ? format(new Date(agent.verifiedAt), "MMM dd, yyyy") : "N/A" },
+                    { label: "Last Login", value: agent.user.lastLoginAt ? format(new Date(agent.user.lastLoginAt), "MMM dd, yyyy HH:mm") : "Never" },
+                    { label: "Professional Body", value: agent.professionalBody || "N/A" },
+                    { label: "License Number", value: agent.insolvencyLicenseNumber || "N/A" },
+                    { label: "Certification Date", value: agent.insolvencyCertificationDate ? format(new Date(agent.insolvencyCertificationDate), "MMM dd, yyyy") : "N/A" },
+                    { label: "Years of Experience", value: agent.yearsOfExperience?.toString() || "N/A" },
                   ].map((item, i) => (
                     <div key={i} className="p-6 bg-gray-100/50 rounded-lg">
                       <span className="text-xs text-gray-500 uppercase font-bold tracking-tight">{item.label}</span>
                       <div className="text-sm font-medium mt-1 flex items-center gap-2">
-                        {item.status && <div className="w-2 h-2 rounded-full bg-emerald-500" />}
+                        {item.status !== undefined && <div className={`w-2 h-2 rounded-full ${item.status ? 'bg-emerald-500' : 'bg-rose-500'}`} />}
                         {item.value}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <hr className="my-5" />
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {[
-                    { label: "Succes Rate", value: "98.5%" },
-                    { label: "Average Processing Time", value: "2.3 days" },
-                    { label: "Customer Satisfaction", value: "4.7/5.0" },
-                  ].map((item, i) => (
-                    <div key={i} className="p-6 bg-gray-100/50 rounded-lg">
-                      <span className="text-xs text-gray-500 uppercase font-bold tracking-tight">{item.label}</span>
-                      <div className="text-sm font-medium mt-1 flex items-center gap-2">
-                        {item.value}
+                {agent.specialization && agent.specialization.length > 0 && (
+                  <>
+                    <hr className="my-5" />
+                    <div className="p-6 bg-gray-100/50 rounded-lg">
+                      <span className="text-xs text-gray-500 uppercase font-bold tracking-tight">Specialization</span>
+                      <div className="text-sm font-medium mt-2 flex flex-wrap gap-2">
+                        {agent.specialization.map((spec, i) => (
+                          <Badge key={i} variant="secondary" className="bg-emerald-50 text-emerald-700">
+                            {spec}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </>
+                )}
+
+                {agent.officeAddress && (
+                  <>
+                    <hr className="my-5" />
+                    <div className="p-6 bg-gray-100/50 rounded-lg">
+                      <span className="text-xs text-gray-500 uppercase font-bold tracking-tight">Office Address</span>
+                      <div className="text-sm font-medium mt-1">
+                        {agent.officeAddress}
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </div>
           </TabsContent>
@@ -161,16 +237,11 @@ export default function ApprovedInsolvencyDetails() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <TableRow key={n}>
-                      <TableCell className="p-4">{n}</TableCell>
-                      <TableCell className="text-gray-500">Logged In</TableCell>
-                      <TableCell className="font-medium text-gray-900">User Login - Web Portal</TableCell>
-                      <TableCell className="text-gray-500">192.168.1.{n * 10}</TableCell>
-                      <TableCell>14:32:01</TableCell>
-                      <TableCell className="text-right">Jan 24, 2026</TableCell>
-                    </TableRow>
-                  ))}
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-10 text-gray-500">
+                      Activity log not available yet
+                    </TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </div>
@@ -195,32 +266,9 @@ export default function ApprovedInsolvencyDetails() {
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell className="p-4">Annual Return 2025</TableCell>
-                    <TableCell className="p-4">Global Tech Solutions</TableCell>
-                    <TableCell className="p-4">Company</TableCell>
-                    <TableCell className="p-4">Adeola Williams</TableCell>
-                    <TableCell className="text-right p-4">12/04/2025</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="p-4">Annual Return 2025</TableCell>
-                    <TableCell className="p-4">QoreBox Tech Solutions</TableCell>
-                    <TableCell className="p-4">Company</TableCell>
-                    <TableCell className="p-4">Adeola Williams</TableCell>
-                    <TableCell className="text-right p-4">12/04/2025</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="p-4">Annual Return 2025</TableCell>
-                    <TableCell className="p-4">Google Solutions</TableCell>
-                    <TableCell className="p-4">Business Name</TableCell>
-                    <TableCell className="p-4">Adeola Williams</TableCell>
-                    <TableCell className="text-right p-4">12/04/2025</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="p-4">Annual Return 2025</TableCell>
-                    <TableCell className="p-4">Sunti LTD</TableCell>
-                    <TableCell className="p-4">Limited Liability Partnership</TableCell>
-                    <TableCell className="p-4">Adeola Williams</TableCell>
-                    <TableCell className="text-right p-4">12/04/2025</TableCell>
+                    <TableCell colSpan={5} className="text-center py-10 text-gray-500">
+                      Filing history not available yet
+                    </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -232,5 +280,3 @@ export default function ApprovedInsolvencyDetails() {
     </>
   )
 }
-
-

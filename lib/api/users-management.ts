@@ -165,6 +165,158 @@ export interface DeclineAgentPayload {
   reason: string;
 }
 
+// Insolvency Agents
+
+export interface InsolvencyAgent {
+  id: string;
+  agentId: string;
+  agentType: string;
+  agentName: string;
+  insolvencyLicenseNumber: string | null;
+  insolvencyCertificationDate: string | null;
+  professionalBody: string | null;
+  yearsOfExperience: number;
+  specialization: string[] | null;
+  officeAddress: string | null;
+  status: string;
+  isVerified: boolean;
+  verifiedAt: string | null;
+  isRejected: boolean;
+  rejectedAt: string | null;
+  rejectionReason: string | null;
+  user: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    phoneNumber: string | null;
+    isActive: boolean;
+    accountStatus: string;
+    lastLoginAt: string | null;
+    createdAt: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InsolvencyAgentsListResponse {
+  data: InsolvencyAgent[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface InsolvencyAgentsStats {
+  total: number;
+  active: number;
+  inactive: number;
+  suspended: number;
+  pending: number;
+}
+
+// Entity Accounts
+
+export interface EntityAccount {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  otherName: string | null;
+  organizationName: string | null;
+  phoneNumber: string | null;
+  dob: string | null;
+  gender: string | null;
+  nationality: string | null;
+  identityType: string | null;
+  identityNumber: string | null;
+  occupation: string | null;
+  staffId: string | null;
+  isActive: boolean;
+  accountStatus: string;
+  lastLoginAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EntityAccountsListResponse {
+  data: EntityAccount[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface EntityAccountsStats {
+  total: number;
+  active: number;
+  inactive: number;
+  suspended: number;
+  pending: number;
+}
+
+class EntityAccountsAPI {
+  async getEntityAccounts(
+    page: number = 1, 
+    limit: number = 20,
+    status?: string
+  ): Promise<EntityAccountsListResponse> {
+    const response = await apiClient.get('/admin/entity-accounts', {
+      params: { page, limit, ...(status && { status }) }
+    });
+    return response.data;
+  }
+
+  async getEntityAccountById(id: string): Promise<EntityAccount> {
+    const response = await apiClient.get(`/admin/entity-accounts/${id}`);
+    return response.data;
+  }
+
+  async getEntityAccountsStats(): Promise<EntityAccountsStats> {
+    const response = await apiClient.get('/admin/entity-accounts/stats');
+    return response.data;
+  }
+
+  async approveEntity(id: string): Promise<void> {
+    await apiClient.post(`/admin/entity-accounts/${id}/approve`);
+  }
+
+  async declineEntity(id: string, payload: DeclineAgentPayload): Promise<void> {
+    await apiClient.post(`/admin/entity-accounts/${id}/decline`, payload);
+  }
+}
+
+class InsolvencyAgentsAPI {
+  async getInsolvencyAgents(
+    page: number = 1,
+    limit: number = 20,
+    status?: string
+  ): Promise<InsolvencyAgentsListResponse> {
+    const response = await apiClient.get('/admin/insolvency-agents', {
+      params: { page, limit, ...(status && { status }) }
+    });
+    return response.data;
+  }
+
+  async getInsolvencyAgentById(id: string): Promise<InsolvencyAgent> {
+    const response = await apiClient.get(`/admin/insolvency-agents/${id}`);
+    return response.data;
+  }
+
+  async getInsolvencyAgentsStats(): Promise<InsolvencyAgentsStats> {
+    const response = await apiClient.get('/admin/insolvency-agents/stats');
+    return response.data;
+  }
+
+  async approveAgent(id: string): Promise<void> {
+    await apiClient.post(`/admin/insolvency-agents/${id}/approve`);
+  }
+
+  async declineAgent(id: string, payload: DeclineAgentPayload): Promise<void> {
+    await apiClient.post(`/admin/insolvency-agents/${id}/decline`, payload);
+  }
+}
+
 class AccreditedAgentsAPI {
   async getAccreditedAgents(
     page: number = 1,
@@ -277,3 +429,5 @@ class UsersAPI {
 export const usersAPI = new UsersAPI();
 export const publicUsersAPI = new PublicUsersAPI();
 export const accreditedAgentsAPI = new AccreditedAgentsAPI();
+export const insolvencyAgentsAPI = new InsolvencyAgentsAPI();
+export const entityAccountsAPI = new EntityAccountsAPI();

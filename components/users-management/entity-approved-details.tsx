@@ -1,4 +1,5 @@
 "use client"
+import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,29 +7,87 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, CheckCircle2, ChevronRight, Download, Filter, InfoIcon } from "lucide-react";
-import { useState } from "react";
+import { Search, CheckCircle2, ChevronRight, Download, Filter, InfoIcon, Loader2, ArrowLeft } from "lucide-react";
 import { UserActionDialog } from "../reusables/action-dialog";
 import { getStatusColor } from "../reusables/status-color";
-
-interface ActionDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  description: string;
-  confirmText: string;
-  onConfirm: () => void;
-  variant?: "default" | "destructive";
-}
+import { entityAccountsAPI, type EntityAccount } from "@/lib/api/users-management";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 export default function ApprovedEntityDetails() {
   const router = useRouter()
   const params = useParams()
+  const entityId = params.id as string
+  const [entity, setEntity] = useState<EntityAccount | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeDialog, setActiveDialog] = useState<"suspend" | "dissolve" | null>(null)
+
+  useEffect(() => {
+    fetchEntityDetails()
+  }, [entityId])
+
+  const fetchEntityDetails = async () => {
+    setIsLoading(true)
+    try {
+      const entityData = await entityAccountsAPI.getEntityAccountById(entityId)
+      setEntity(entityData)
+    } catch (error: any) {
+      toast.error("Failed to load entity details", {
+        description: error.response?.data?.message || "Please try again"
+      })
+      router.back()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleToggleStatus = async () => {
+    setIsSubmitting(true)
+    try {
+      // TODO: Add suspend/activate endpoint when available
+      toast.success("Status updated successfully")
+      setActiveDialog(null)
+      fetchEntityDetails()
+    } catch (error: any) {
+      toast.error("Failed to update status", {
+        description: error.response?.data?.message || "Please try again"
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDissolve = async () => {
+    setIsSubmitting(true)
+    try {
+      // TODO: Add dissolve endpoint when available
+      toast.success("Entity account dissolved successfully")
+      setActiveDialog(null)
+      router.push('/users-management')
+    } catch (error: any) {
+      toast.error("Failed to dissolve entity", {
+        description: error.response?.data?.message || "Please try again"
+      })
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-700" />
+      </div>
+    )
+  }
+
+  if (!entity) {
+    return <div className="text-center py-20">Entity not found</div>
+  }
 
   return (
     <>
-      <div className="flex justify-end">
+      <div className="flex justify-end mb-4">
         <div className="flex items-center gap-2">
           <Button variant="default" size="lg">View Detailed Entity Record</Button>
           <InfoIcon />
@@ -38,21 +97,24 @@ export default function ApprovedEntityDetails() {
       <UserActionDialog
         isOpen={activeDialog === "suspend"}
         onClose={() => setActiveDialog(null)}
-        title="Suspend user?"
-        description="Are you sure you want to suspend this user?"
-        confirmText="Suspend User"
-        onConfirm={() => { console.log("Suspended"); setActiveDialog(null); }}
+        title={entity.isActive ? "Suspend user?" : "Activate user?"}
+        description={entity.isActive ? "Are you sure you want to suspend this user?" : "Are you sure you want to activate this user?"}
+        confirmText={entity.isActive ? "Suspend User" : "Activate User"}
+        onConfirm={handleToggleStatus}
+        isLoading={isSubmitting}
       />
 
-      {/* dissolve Dialog */}
+      {/* Dissolve Dialog */}
       <UserActionDialog
         isOpen={activeDialog === "dissolve"}
         onClose={() => setActiveDialog(null)}
         title="Dissolve user account?"
         description="Are you sure you want to dissolve user account? Note that this will not delete the user details from the database."
         confirmText="Dissolve Account"
-        onConfirm={() => { console.log("deactivated"); setActiveDialog(null); }}
+        onConfirm={handleDissolve}
+        isLoading={isSubmitting}
       />
+
       {/* Tabs System */}
       <Card>
         <Tabs defaultValue="user-details" className="w-full space-y-6">
@@ -95,13 +157,15 @@ export default function ApprovedEntityDetails() {
                     variant="outlineprimary"
                     size="lg"
                     onClick={() => setActiveDialog("suspend")}
+                    disabled={isSubmitting}
                   >
-                    Suspend User
+                    {entity.isActive ? "Suspend User" : "Activate User"}
                   </Button>
                   <Button
                     variant="destructive"
                     size="lg"
                     onClick={() => setActiveDialog("dissolve")}
+                    disabled={isSubmitting}
                   >
                     Dissolve Entity Account
                   </Button>
@@ -110,18 +174,18 @@ export default function ApprovedEntityDetails() {
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
-                    { label: "Company Name", value: "TECHVISION LIMITED" },
-                    { label: "RC Number", value: "RC1234567" },
-                    { label: "Company Type", value: "Private Company Limited by Shares" },
-                    { label: "Status", value: "Active", status: true },
-                    { label: "Registration Date", value: "Jan 15, 2023" },
-                    { label: "Secretary", value: "Michael Johnson" },
-                    { label: "Registered Address", value: "12 Allen Avenue, Ikeja, Lagos State" },
+                    { label: "Organization Name", value: entity.organizationName || "N/A" },
+                    { label: "Entity ID", value: entity.staffId || "N/A" },
+                    { label: "Account Status", value: entity.accountStatus, status: entity.isActive },
+                    { label: "Email", value: entity.email },
+                    { label: "Phone Number", value: entity.phoneNumber || "N/A" },
+                    { label: "Created At", value: format(new Date(entity.createdAt), "MMM dd, yyyy") },
+                    { label: "Last Login", value: entity.lastLoginAt ? format(new Date(entity.lastLoginAt), "MMM dd, yyyy HH:mm") : "Never" },
                   ].map((item, i) => (
                     <div key={i} className="p-6 bg-gray-100/50 rounded-lg">
                       <span className="text-xs text-gray-500 uppercase font-bold tracking-tight">{item.label}</span>
                       <div className="text-sm font-medium mt-1 flex items-center gap-2">
-                        {item.status && <CheckCircle2 className="w-4 h-4 text-green-600" />}
+                        {item.status !== undefined && item.status && <CheckCircle2 className="w-4 h-4 text-green-600" />}
                         {item.value}
                       </div>
                     </div>
@@ -132,10 +196,14 @@ export default function ApprovedEntityDetails() {
                 <h1 className="font-bold mb-3">Authorized Officer</h1>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
-                    { label: "Full Name", value: "Basheer Madu" },
-                    { label: "Designation", value: "Company Secretary" },
-                    { label: "Email", value: "basheermadu@example.com" },
-                    { label: "Registered Address", value: "15 Marina Street, Lagos Island, Lagos State" }
+                    { label: "Full Name", value: `${entity.firstName || ''} ${entity.lastName || ''}`.trim() || "N/A" },
+                    { label: "Email", value: entity.email },
+                    { label: "Phone Number", value: entity.phoneNumber || "N/A" },
+                    { label: "Identity Type", value: entity.identityType || "N/A" },
+                    { label: "Identity Number", value: entity.identityNumber || "N/A" },
+                    { label: "Nationality", value: entity.nationality || "N/A" },
+                    { label: "Gender", value: entity.gender || "N/A" },
+                    { label: "Date of Birth", value: entity.dob ? format(new Date(entity.dob), "MMM dd, yyyy") : "N/A" },
                   ].map((item, i) => (
                     <div key={i} className="p-6 bg-gray-100/50 rounded-lg">
                       <span className="text-xs text-gray-500 uppercase font-bold tracking-tight">{item.label}</span>
@@ -173,18 +241,11 @@ export default function ApprovedEntityDetails() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <TableRow key={n}>
-                      <TableCell className="p-4">{n}</TableCell>
-                      <TableCell className="text-gray-500">Filing</TableCell>
-                      <TableCell className="text-gray-500">Filed Annual Returns for 2024</TableCell>
-                      <TableCell className="text-gray-500">Musa Ibrahim (Admin)</TableCell>
-                      <TableCell className="text-gray-500">Sept 17, 2025</TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor('Active')}>Completed</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                      Activity log not available yet
+                    </TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </div>
@@ -208,35 +269,8 @@ export default function ApprovedEntityDetails() {
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell className="p-4">Annual Return 2025</TableCell>
-                    <TableCell className="p-4">Adeola Williams</TableCell>
-                    <TableCell className="p-4">12/04/2025</TableCell>
-                    <TableCell className="p-4 text-right">
-                      <Badge className={getStatusColor('Active')}>Filed</Badge>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="p-4">Annual Return 2025</TableCell>
-                    <TableCell className="p-4">Adeola Williams</TableCell>
-                    <TableCell className="p-4">12/04/2025</TableCell>
-                    <TableCell className="p-4 text-right">
-                      <Badge className={getStatusColor('Pending')}>Not Filed</Badge>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="p-4">Annual Return 2025</TableCell>
-                    <TableCell className="p-4">Google Solutions</TableCell>
-                    <TableCell className="p-4">12/04/2025</TableCell>
-                    <TableCell className="p-4 text-right">
-                      <Badge className={getStatusColor('Pending')}>Queried</Badge>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="p-4">Annual Return 2025</TableCell>
-                    <TableCell className="p-4">Sunti LTD</TableCell>
-                    <TableCell className="p-4">12/04/2025</TableCell>
-                    <TableCell className="p-4 text-right">
-                      <Badge className={getStatusColor('Active')}>Filed</Badge>
+                    <TableCell colSpan={4} className="text-center py-10 text-gray-500">
+                      Filing history not available yet
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -259,45 +293,11 @@ export default function ApprovedEntityDetails() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {[
-                  { name: "Adeola Williams", email: "adeola@firm.com", role: "Senior Admin", filings: 142, status: "Active" },
-                  { name: "John Doe", email: "john@firm.com", role: "Editor", filings: 89, status: "Active" },
-                  { name: "Sarah Smith", email: "sarah@firm.com", role: "Viewer", filings: 12, status: "Inactive" },
-                ].map((admin, i) => (
-                  <TableRow key={i} className="hover:bg-slate-50/50">
-                    <TableCell className="text-sm font-medium text-gray-900">{i + 1}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
-                          {admin.name.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{admin.name}</div>
-                          <div className="text-xs text-gray-500">{admin.email}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-gray-600">{admin.role}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm font-medium text-gray-900">{admin.filings}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm font-medium text-gray-900">{admin.filings}</span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className={getStatusColor(admin.status)}>
-                        {admin.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      2025-11-10 09:00
-                    </TableCell>
-                  </TableRow>
-                ))}
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-10 text-gray-500">
+                    Other admins data not available yet
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </TabsContent>
@@ -306,5 +306,3 @@ export default function ApprovedEntityDetails() {
     </>
   )
 }
-
-
