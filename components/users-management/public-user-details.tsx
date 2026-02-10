@@ -1,27 +1,107 @@
 "use client"
-import { useState } from "react"
-import { useParams } from "next/navigation"
-import { Search, X, Zap, CheckCircle2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { Search, X, Zap, CheckCircle2, Loader2, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { UserActionDialog } from "../reusables/action-dialog"
+import { publicUsersAPI, type PublicUser } from "@/lib/api/users-management"
+import { toast } from "sonner"
+import { format } from "date-fns"
 
-
-const details = [
-  { label: "First Name", value: "Sule" },
-  { label: "Surname", value: "Madu" },
-  { label: "Email", value: "sulemadu@example.com" },
-  { label: "Phone number", value: "09160049129" },
-  { label: "Account Status", value: "Active", icon: true },
-  { label: "Date Created", value: "Jan 15, 2023" },
-]
 
 export default function PublicUsersDetails() {
   const params = useParams()
+  const router = useRouter()
+  const userId = params.id as string
+  const [user, setUser] = useState<PublicUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeDialog, setActiveDialog] = useState<"suspend" | "deactivate" | null>(null)
+
+  useEffect(() => {
+    fetchUserDetails()
+  }, [userId])
+
+  const fetchUserDetails = async () => {
+    setIsLoading(true)
+    try {
+      const userData = await publicUsersAPI.getPublicUserById(userId)
+      setUser(userData)
+    } catch (error: any) {
+      toast.error("Failed to load user details", {
+        description: error.response?.data?.message || "Please try again"
+      })
+      router.back()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleToggleStatus = async () => {
+    if (!user) return
+
+    setIsSubmitting(true)
+    try {
+      await publicUsersAPI.toggleUserStatus(userId, user.isActive)
+      toast.success(`User ${user.isActive ? 'suspended' : 'activated'} successfully`)
+      setActiveDialog(null)
+      // Refresh user data
+      fetchUserDetails()
+    } catch (error: any) {
+      toast.error(`Failed to ${user.isActive ? 'suspend' : 'activate'} user`, {
+        description: error.response?.data?.message || "Please try again"
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeactivate = async () => {
+    setIsSubmitting(true)
+    try {
+      await publicUsersAPI.deactivateUser(userId)
+      toast.success("User account deactivated successfully")
+      setActiveDialog(null)
+      router.push('/users-management')
+    } catch (error: any) {
+      toast.error("Failed to deactivate user", {
+        description: error.response?.data?.message || "Please try again"
+      })
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-700" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <div className="text-center py-20">User not found</div>
+  }
+
+  const details = [
+    { label: "First Name", value: user.firstName || "N/A" },
+    { label: "Surname", value: user.lastName || "N/A" },
+    { label: "Email", value: user.email },
+    { label: "Phone number", value: user.phoneNumber || "N/A" },
+    {
+      label: "Account Status",
+      value: user.isActive ? "Active" : "Suspended",
+      icon: user.isActive
+    },
+    {
+      label: "Date Created",
+      value: format(new Date(user.createdAt), "MMM dd, yyyy")
+    },
+  ]
 
   return (
     <>
@@ -30,17 +110,19 @@ export default function PublicUsersDetails() {
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
           <CardTitle className="text-xl font-bold">User Details</CardTitle>
           <div className="flex gap-3">
-            <Button
+            {/* <Button
               variant="outlineprimary"
               size="lg"
               onClick={() => setActiveDialog("suspend")}
+              disabled={isSubmitting}
             >
-              Suspend User
-            </Button>
+              {user.isActive ? "Suspend User" : "Activate User"}
+            </Button> */}
             <Button
               variant="destructive"
               size="lg"
               onClick={() => setActiveDialog("deactivate")}
+              disabled={isSubmitting}
             >
               Deactivate Account
             </Button>
@@ -60,24 +142,26 @@ export default function PublicUsersDetails() {
       </Card>
 
 
-      {/* Suspend Dialog */}
+      {/* Suspend/Activate Dialog */}
       <UserActionDialog
         isOpen={activeDialog === "suspend"}
         onClose={() => setActiveDialog(null)}
-        title="Suspend user?"
-        description="Are you sure you want to suspend this user?"
-        confirmText="Suspend User"
-        onConfirm={() => { console.log("Suspended"); setActiveDialog(null); }}
+        title={user.isActive ? "Suspend user?" : "Activate user?"}
+        description={user.isActive ? "Are you sure you want to suspend this user?" : "Are you sure you want to activate this user?"}
+        confirmText={user.isActive ? "Suspend User" : "Activate User"}
+        onConfirm={handleToggleStatus}
+        isLoading={isSubmitting}
       />
 
-      {/* deactivate Dialog */}
+      {/* Deactivate Dialog */}
       <UserActionDialog
         isOpen={activeDialog === "deactivate"}
         onClose={() => setActiveDialog(null)}
         title="Deactivate user account?"
         description="Are you sure you want to deactivate user account? Note that this will not delete the user details from the database."
         confirmText="Deactivate Account"
-        onConfirm={() => { console.log("deactivated"); setActiveDialog(null); }}
+        onConfirm={handleDeactivate}
+        isLoading={isSubmitting}
       />
 
       {/* Bottom Section */}
@@ -103,14 +187,11 @@ export default function PublicUsersDetails() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Array.from({ length: 7 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="p-5">{i + 1}</TableCell>
-                    <TableCell className="p-5">Logged In</TableCell>
-                    <TableCell className="p-5">10:01 AM</TableCell>
-                    <TableCell className="p-5">10 Nov. 2024</TableCell>
-                  </TableRow>
-                ))}
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-10 text-gray-500">
+                    Activity log not available yet
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </div>

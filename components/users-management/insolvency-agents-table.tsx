@@ -205,7 +205,7 @@ export function InsolvencyAgentComponent() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => router.push(`/users-management/${user.id}/details?userType=insolvency-agent`)}
+                              onClick={() => router.push(`/users-management/${user.id}/details?userType=${user.isActive ? 'insolvency-approved' : 'insolvency-requests'}`)}
                               className="gap-2"
                             >
                               <Eye className="h-4 w-4" /> View Details

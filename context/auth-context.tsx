@@ -46,7 +46,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Update state
       setUser(response.user);
-      console.log('uuuu')
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (error) {

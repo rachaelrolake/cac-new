@@ -72,6 +72,158 @@ export interface UserPermissionsResponse {
   permissions: UserPermission[];
 }
 
+// Public User
+
+export interface PublicUser {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  otherName: string | null;
+  phoneNumber: string | null;
+  dob: string | null;
+  gender: string | null;
+  nationality: string | null;
+  identityType: string | null;
+  identityNumber: string | null;
+  occupation: string | null;
+  isActive: boolean;
+  accountStatus: string;
+  lastLoginAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublicUsersListResponse {
+  data: PublicUser[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PublicUsersStats {
+  total: number;
+  active: number;
+  inactive: number;
+  suspended: number;
+}
+
+// Accredited Agents
+
+export interface AccreditedAgent {
+  id: string;
+  agentId: string;
+  agentType: string;
+  agentName: string;
+  licenseNumber: string | null;
+  professionalBody: string | null;
+  yearsOfExperience: number;
+  specialization: string[] | null;
+  firmName: string | null;
+  firmRegistrationNumber: string | null;
+  firmAddress: string | null;
+  officeAddress: string | null;
+  status: string;
+  isVerified: boolean;
+  verifiedAt: string | null;
+  isRejected: boolean;
+  rejectedAt: string | null;
+  rejectionReason: string | null;
+  user: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    phoneNumber: string | null;
+    isActive: boolean;
+    accountStatus: string;
+    lastLoginAt: string | null;
+    createdAt: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AccreditedAgentsListResponse {
+  data: AccreditedAgent[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface AccreditedAgentsStats {
+  total: number;
+  active: number;
+  inactive: number;
+  suspended: number;
+  pending: number;
+}
+
+export interface DeclineAgentPayload {
+  reason: string;
+}
+
+class AccreditedAgentsAPI {
+  async getAccreditedAgents(
+    page: number = 1,
+    limit: number = 20,
+    status?: string
+  ): Promise<AccreditedAgentsListResponse> {
+    const response = await apiClient.get('/admin/accredited-agents', {
+      params: { page, limit, ...(status && { status }) }
+    });
+    return response.data;
+  }
+
+  async getAccreditedAgentById(id: string): Promise<AccreditedAgent> {
+    const response = await apiClient.get(`/admin/accredited-agents/${id}`);
+    return response.data;
+  }
+
+  async getAccreditedAgentsStats(): Promise<AccreditedAgentsStats> {
+    const response = await apiClient.get('/admin/accredited-agents/stats');
+    return response.data;
+  }
+
+  async approveAgent(id: string): Promise<void> {
+    await apiClient.post(`/admin/accredited-agents/${id}/approve`);
+  }
+
+  async declineAgent(id: string, payload: DeclineAgentPayload): Promise<void> {
+    await apiClient.post(`/admin/accredited-agents/${id}/decline`, payload);
+  }
+}
+
+class PublicUsersAPI {
+  async getPublicUsers(page: number = 1, limit: number = 20): Promise<PublicUsersListResponse> {
+    const response = await apiClient.get('/admin/public-users', {
+      params: { page, limit }
+    });
+    return response.data;
+  }
+
+  async getPublicUserById(id: string): Promise<PublicUser> {
+    const response = await apiClient.get(`/admin/public-users/${id}`);
+    return response.data;
+  }
+
+  async getPublicUsersStats(): Promise<PublicUsersStats> {
+    const response = await apiClient.get('/admin/public-users/stats');
+    return response.data;
+  }
+
+  async deactivateUser(id: string): Promise<void> {
+    await apiClient.delete(`/admin/users/${id}`);
+  }
+
+  async toggleUserStatus(id: string, isActive: boolean): Promise<void> {
+    // Using the same endpoint - backend should handle suspend/activate based on current status
+    await apiClient.delete(`/admin/users/${id}`);
+  }
+}
+
 class UsersAPI {
   async getUsers(page: number = 1, limit: number = 50): Promise<UsersListResponse> {
     const response = await apiClient.get('/admin/users', {
@@ -123,3 +275,5 @@ class UsersAPI {
 }
 
 export const usersAPI = new UsersAPI();
+export const publicUsersAPI = new PublicUsersAPI();
+export const accreditedAgentsAPI = new AccreditedAgentsAPI();

@@ -7,6 +7,8 @@ import {
   Download,
   Filter,
   MoreVertical,
+  ChevronLeft,
+  ChevronRight,
   Eye,
   Lock,
   Users,
@@ -28,30 +30,30 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { StatCard } from "../reusables/stat-card"
-import { usersAPI, type User } from "@/lib/api/users-management"
+import { publicUsersAPI, type PublicUser } from "@/lib/api/users-management"
 import { toast } from "sonner"
 import { format } from "date-fns"
 
 export function PublicUsersComponent() {
   const router = useRouter()
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<PublicUser[]>([])
+  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, suspended: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 50
+  const itemsPerPage = 20
 
   useEffect(() => {
     fetchUsers()
+    fetchStats()
   }, [currentPage])
 
   const fetchUsers = async () => {
     setIsLoading(true)
     try {
-      const response = await usersAPI.getUsers(currentPage, itemsPerPage)
-      // Filter only Public role users
-      const publicUsers = response.data.filter(user => user.roles.includes("Public"))
-      setUsers(publicUsers)
+      const response = await publicUsersAPI.getPublicUsers(currentPage, itemsPerPage)
+      setUsers(response.data)
     } catch (error: any) {
       toast.error("Failed to load users", {
         description: error.response?.data?.message || "Please try again later"
@@ -61,11 +63,13 @@ export function PublicUsersComponent() {
     }
   }
 
-  const stats = {
-    total: users.length,
-    active: users.filter((u) => u.isActive).length,
-    suspended: users.filter((u) => !u.isActive).length,
-    pending: 0,
+  const fetchStats = async () => {
+    try {
+      const statsData = await publicUsersAPI.getPublicUsersStats()
+      setStats(statsData)
+    } catch (error: any) {
+      console.error("Failed to load stats:", error)
+    }
   }
 
   const filteredUsers = users.filter((user) => {
@@ -80,7 +84,7 @@ export function PublicUsersComponent() {
     return matchesSearch && matchesFilter
   })
 
-  const paginatedUsers = filteredUsers.slice(0, itemsPerPage)
+  const paginatedUsers = filteredUsers
 
   const formatDate = (dateString: string) => {
     try {
@@ -104,7 +108,7 @@ export function PublicUsersComponent() {
         <StatCard title="Total Users" value={stats.total} icon={<Users className="h-6 w-6" />} />
         <StatCard title="Active" value={stats.active} icon={<CheckCircle2 className="h-6 w-6" />} color="emerald" />
         <StatCard title="Suspended" value={stats.suspended} icon={<XCircle className="h-6 w-6" />} color="rose" />
-        <StatCard title="Inactive" value={stats.pending} icon={<Users className="h-6 w-6" />} />
+        <StatCard title="Inactive" value={stats.inactive} icon={<Users className="h-6 w-6" />} />
       </div>
 
       <Card className="bg-white">
@@ -135,9 +139,9 @@ export function PublicUsersComponent() {
             <TableHeader className="bg-gray-50">
               <TableRow>
                 <TableHead className="w-[50px]">S/N</TableHead>
-                <TableHead>User ID</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email Address</TableHead>
+                <TableHead>Phone Number</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Last Login</TableHead>
                 <TableHead>Status</TableHead>
@@ -147,8 +151,7 @@ export function PublicUsersComponent() {
             <TableBody>
               {paginatedUsers.map((user, index) => (
                 <TableRow key={user.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{user.staffId || "N/A"}</TableCell>
+                  <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-full bg-emerald-700 flex items-center justify-center text-xs text-white font-medium">
@@ -163,13 +166,14 @@ export function PublicUsersComponent() {
                     </div>
                   </TableCell>
                   <TableCell className="text-gray-600">{user.email}</TableCell>
+                  <TableCell className="text-gray-600">{user.phoneNumber || "N/A"}</TableCell>
                   <TableCell className="text-gray-600">{formatDate(user.createdAt)}</TableCell>
                   <TableCell className="text-gray-600">
                     {user.lastLoginAt ? formatDate(user.lastLoginAt) : "Never"}
                   </TableCell>
                   <TableCell>
                     <Badge className={user.isActive ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}>
-                      {user.isActive ? "Active" : "Suspended"}
+                      {user.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
