@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { MetricCard } from "../reusables/metric-card"
-import { Download, Eye, ListFilter, MoreVertical, Loader2, ChevronLeft, ChevronRight, Search } from "lucide-react"
+import { Download, Eye, ListFilter, MoreVertical, Loader2, ChevronLeft, ChevronRight, Search, CheckCircle2, X, MessageCircle, CheckCircle } from "lucide-react"
 import { consentApplicationsAPI, type ConsentApplication, type ConsentApplicationsStats } from "@/lib/api/pre-incorporation"
 import { toast } from "sonner"
 
@@ -330,14 +330,14 @@ export function NameRequiringConsent() {
                             </DropdownMenuItem>
                             {isPending(app.status) && (
                               <>
-                                <DropdownMenuItem className="gap-2" onClick={() => openDialog("approve", app)}>
-                                  ✅ Approve
+                                <DropdownMenuItem className="gap-2 text-green-800" onClick={() => openDialog("approve", app)}>
+                                  <CheckCircle className="text-green-800" /> Approve
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2" onClick={() => openDialog("reject", app)}>
-                                  ❌ Reject
+                                <DropdownMenuItem className="gap-2 text-red-800" onClick={() => openDialog("reject", app)}>
+                                  <X className="text-red-800" /> Reject
                                 </DropdownMenuItem>
                                 <DropdownMenuItem className="gap-2" onClick={() => openDialog("query", app)}>
-                                  💬 Query Application
+                                  <MessageCircle /> Query Application
                                 </DropdownMenuItem>
                               </>
                             )}

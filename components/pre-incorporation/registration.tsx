@@ -323,7 +323,7 @@ export function RegistrationPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/pre-incorporation/registration/${getEntityTypeSlug(reg)}/${reg.id}`} className="gap-2 flex items-center">
+                              <Link href={`/pre-incorporation/registration/${reg.id}?type=${getEntityTypeSlug(reg)}`} className="gap-2 flex items-center">
                                 <Eye className="w-4 h-4" /> View Application Details
                               </Link>
                             </DropdownMenuItem>
