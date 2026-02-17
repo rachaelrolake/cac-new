@@ -13,8 +13,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, User, Building2, Upload, Loader2, ArrowLeft } from "lucide-react";
-import { insolvencyAgentsAPI, type InsolvencyAgent } from "@/lib/api/users-management";
+import { FileText, User, Building2, Upload, Loader2, ArrowLeft, Download } from "lucide-react";
+import { insolvencyAgentsAPI, usersAPI, type InsolvencyAgent } from "@/lib/api/users-management";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -23,6 +23,7 @@ export default function RequestsInsolvencyDetails() {
   const params = useParams()
   const agentId = params.id as string
   const [agent, setAgent] = useState<InsolvencyAgent | null>(null)
+  const [userWithDocs, setUserWithDocs] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [actionDialog, setActionDialog] = useState<"approve" | "query" | "reject" | null>(null)
@@ -32,6 +33,12 @@ export default function RequestsInsolvencyDetails() {
   useEffect(() => {
     fetchAgentDetails()
   }, [agentId])
+
+  useEffect(() => {
+    if (agent?.user?.id) {
+      fetchUserDocuments()
+    }
+  }, [agent?.user?.id])
 
   const fetchAgentDetails = async () => {
     setIsLoading(true)
@@ -45,6 +52,16 @@ export default function RequestsInsolvencyDetails() {
       router.back()
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchUserDocuments = async () => {
+    try {
+      if (!agent?.user?.id) return
+      const userData = await usersAPI.getUserById(agent?.user?.id)
+      setUserWithDocs(userData)
+    } catch (error: any) {
+      console.error("Failed to load documents:", error)
     }
   }
 
@@ -240,9 +257,34 @@ export default function RequestsInsolvencyDetails() {
 
       {/* Uploads Section - Placeholder */}
       <DetailCard title="Uploads" icon={<Upload className="w-5 h-5 text-green-600" />}>
-        <div className="text-center py-10 text-gray-500">
-          Upload preview not available yet
-        </div>
+        <>
+          {userWithDocs?.documents && userWithDocs.documents.length > 0 ? (
+            <>
+              <h2 className="font-bold mb-3">Uploaded Documents</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {userWithDocs.documents.map((doc: any) => (
+                  <div key={doc.id} className="flex items-center gap-3 p-4 border rounded-lg bg-white hover:border-green-500 transition-colors">
+                    <div className="bg-gray-100 p-2 rounded">
+                      <FileText className="w-5 h-5 text-gray-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-medium">{doc.fileName}</p>
+                      <p className="text-[10px] text-gray-400">{(parseInt(doc.fileSize) / 1024).toFixed(2)} KB</p>
+                      <p className="text-[10px] text-gray-500">{doc.documentType}</p>
+                    </div>
+                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700">
+                      <Download className="w-4 h-4" />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center text-gray-500">
+              Upload preview not available yet
+            </div>
+          )}
+        </>
       </DetailCard>
     </>
   )

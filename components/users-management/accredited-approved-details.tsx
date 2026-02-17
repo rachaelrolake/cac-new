@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, CheckCircle2, ChevronRight, Download, Filter, Loader2, ArrowLeft } from "lucide-react";
 import { UserActionDialog } from "../reusables/action-dialog";
-import { accreditedAgentsAPI, type AccreditedAgent } from "@/lib/api/users-management";
+import { accreditedAgentsAPI, usersAPI, type AccreditedAgent } from "@/lib/api/users-management";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -18,6 +18,10 @@ export default function ApprovedAccreditedDetails() {
   const params = useParams()
   const agentId = params.id as string
   const [agent, setAgent] = useState<AccreditedAgent | null>(null)
+  const [filingHistory, setFilingHistory] = useState<any[]>([])
+  const [activityLogs, setActivityLogs] = useState<any[]>([])
+  const [otherAdmins, setOtherAdmins] = useState<any[]>([])
+  const [adminsPage, setAdminsPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeDialog, setActiveDialog] = useState<"suspend" | "deactivate" | null>(null)
@@ -25,6 +29,15 @@ export default function ApprovedAccreditedDetails() {
   useEffect(() => {
     fetchAgentDetails()
   }, [agentId])
+
+
+  useEffect(() => {
+    if (agent?.user?.id) {
+      fetchFilingHistory()
+      fetchActivityLogs()
+      fetchOtherAdmins()
+    }
+  }, [agent?.user?.id])
 
   const fetchAgentDetails = async () => {
     setIsLoading(true)
@@ -38,6 +51,36 @@ export default function ApprovedAccreditedDetails() {
       router.back()
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchFilingHistory = async () => {
+    try {
+      if (!agent?.user?.id) return
+      const history = await usersAPI.getFilingHistory(agent.user.id, 1, 10)
+      setFilingHistory(history.data)
+    } catch (error: any) {
+      console.error("Failed to load filing history:", error)
+    }
+  }
+
+  const fetchActivityLogs = async () => {
+    try {
+      if (!agent?.user?.id) return
+      const logs = await usersAPI.getActivityLogs(agent.user.id, 1, 20)
+      setActivityLogs(logs.data)
+    } catch (error: any) {
+      console.error("Failed to load activity logs:", error)
+    }
+  }
+
+  const fetchOtherAdmins = async () => {
+    try {
+      if (!agent?.user?.id) return
+      const admins = await usersAPI.getOtherAdmins(agent.user.id, adminsPage, 10)
+      setOtherAdmins(admins.data)
+    } catch (error) {
+      console.error("Failed to load other admins:", error)
     }
   }
 
@@ -207,65 +250,82 @@ export default function ApprovedAccreditedDetails() {
             </div>
           </TabsContent>
 
-          {/* --- Tab 2: Activity Log --- */}
+          {/* Activity Log Tab */}
           <TabsContent value="activity-log" className="space-y-4 p-4">
             <div className="flex justify-between items-center">
               <div className="relative w-72">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input placeholder="Search logs..." className="pl-10" />
               </div>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Download className="w-4 h-4" /> Export CSV
-              </Button>
             </div>
-            <div className="overflow-hidden">
-              <Table>
-                <TableHeader className="bg-gray-50">
-                  <TableRow>
-                    <TableHead className="w-16">S/N</TableHead>
-                    <TableHead>Activity Description</TableHead>
-                    <TableHead>IP Address</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead className="text-right">Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <Table>
+              <TableHeader className="bg-gray-50">
+                <TableRow>
+                  <TableHead className="w-16">S/N</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead>Entity Type</TableHead>
+                  <TableHead>IP Address</TableHead>
+                  <TableHead>Timestamp</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activityLogs.length > 0 ? (
+                  activityLogs.map((log, index) => (
+                    <TableRow key={log.id}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{log.action}</TableCell>
+                      <TableCell>{log.entityType}</TableCell>
+                      <TableCell>{log.ipAddress}</TableCell>
+                      <TableCell>{format(new Date(log.timestamp), "MMM dd, yyyy HH:mm")}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-10 text-gray-500">
-                      Activity log not available yet
+                      No activity logs available
                     </TableCell>
                   </TableRow>
-                </TableBody>
-              </Table>
-            </div>
+                )}
+              </TableBody>
+            </Table>
           </TabsContent>
 
-          {/* --- Tab 3: Filing History --- */}
+          {/* Filing History Tab */}
           <TabsContent value="filing-history" className="p-4">
-            <div className="border-gray-200 shadow-none overflow-hidden">
-              <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-                <span className="font-semibold text-sm">Recent Filings</span>
-                <Button variant="ghost" size="sm" className="text-emerald-700">View All</Button>
-              </div>
-              <Table>
-                <TableHeader className="bg-gray-50">
-                  <TableRow>
-                    <TableHead>Filing Type</TableHead>
-                    <TableHead>Entity Name</TableHead>
-                    <TableHead>Entity Type</TableHead>
-                    <TableHead>Filed By</TableHead>
-                    <TableHead className="text-right">Filing Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <Table>
+              <TableHeader className="bg-gray-50">
+                <TableRow>
+                  <TableHead>Filing Type</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Registration Number</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created At</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filingHistory.length > 0 ? (
+                  filingHistory.map((filing) => (
+                    <TableRow key={filing.id}>
+                      <TableCell>{filing.type}</TableCell>
+                      <TableCell>{filing.name}</TableCell>
+                      <TableCell>{filing.registrationNumber || "N/A"}</TableCell>
+                      <TableCell>
+                        <Badge className={filing.status === "APPROVED" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}>
+                          {filing.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{format(new Date(filing.createdAt), "MMM dd, yyyy")}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-10 text-gray-500">
-                      Filing history not available yet
+                      No filing history available
                     </TableCell>
                   </TableRow>
-                </TableBody>
-              </Table>
-            </div>
+                )}
+              </TableBody>
+            </Table>
           </TabsContent>
 
           {/* --- Tab 4: Other Admins --- */}
@@ -276,18 +336,42 @@ export default function ApprovedAccreditedDetails() {
                   <TableHead className="font-semibold text-gray-700">S/N</TableHead>
                   <TableHead className="font-semibold text-gray-700">Officer</TableHead>
                   <TableHead className="font-semibold text-gray-700">Role</TableHead>
-                  <TableHead className="font-semibold text-gray-700">Companies</TableHead>
-                  <TableHead className="font-semibold text-gray-700">Total Filings</TableHead>
                   <TableHead className="font-semibold text-gray-700">Status</TableHead>
                   <TableHead className="font-semibold text-gray-700">Last Login</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-gray-500">
-                    Other admins data not available yet
-                  </TableCell>
-                </TableRow>
+                {otherAdmins.length > 0 ? (
+                  otherAdmins.map((admin, i) => (
+                    <TableRow key={admin.id}>
+                      <TableCell>{i + 1}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+                            {admin.firstName?.[0]}{admin.lastName?.[0]}
+                          </div>
+                          <div>
+                            <div className="font-medium">{admin.firstName} {admin.lastName}</div>
+                            <div className="text-xs text-gray-500">{admin.email}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{admin.roles}</TableCell>
+                      <TableCell>
+                        <Badge className={admin.isActive ? "bg-emerald-50 text-emerald-700" : "bg-gray-50 text-gray-600"}>
+                          {admin.accountStatus}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{admin.lastLoginAt ? format(new Date(admin.lastLoginAt), "MMM dd, yyyy HH:mm") : "Never"}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-10 text-gray-500">
+                      No other admins available
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TabsContent>

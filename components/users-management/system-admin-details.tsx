@@ -21,8 +21,21 @@ export default function SystemAdminDetails() {
   const [userPermissions, setUserPermissions] = useState<UserPermission[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  const [activityLogs, setActivityLogs] = useState<any[]>([])
+  const [activityPage, setActivityPage] = useState(1)
+
+  const fetchActivityLogs = async () => {
+    try {
+      const logs = await usersAPI.getActivityLogs(userId, activityPage, 20)
+      setActivityLogs(logs.data)
+    } catch (error) {
+      console.error("Failed to load activity logs:", error)
+    }
+  }
+
   useEffect(() => {
     fetchUserDetails()
+    fetchActivityLogs()
   }, [userId])
 
   const fetchUserDetails = async () => {
@@ -141,16 +154,29 @@ export default function SystemAdminDetails() {
                   <TableRow className="bg-slate-50">
                     <TableHead className="w-16">S/N</TableHead>
                     <TableHead>Activity</TableHead>
+                    <TableHead>Entity Type</TableHead>
+                    <TableHead>IP Address</TableHead>
                     <TableHead>Timestamps</TableHead>
-                    <TableHead>Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-10 text-gray-500">
-                      Activity log not available yet
-                    </TableCell>
-                  </TableRow>
+                  {activityLogs.length > 0 ? (
+                    activityLogs.map((log, index) => (
+                      <TableRow key={log.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{log.action}</TableCell>
+                        <TableCell>{log.entityType}</TableCell>
+                        <TableCell>{log.ipAddress}</TableCell>
+                        <TableCell>{format(new Date(log.timestamp), "MMM dd, yyyy HH:mm")}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-10 text-gray-500">
+                        No activity logs available
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>

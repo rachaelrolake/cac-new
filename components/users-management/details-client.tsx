@@ -9,14 +9,15 @@ import ApprovedInsolvencyDetails from "@/components/users-management/insolvency-
 import RequestsInsolvencyDetails from "@/components/users-management/insolvency-requests-details"
 import PublicUsersDetails from "@/components/users-management/public-user-details"
 import SystemAdminDetails from "@/components/users-management/system-admin-details"
+import { usersAPI } from "@/lib/api/users-management"
 import { ArrowLeft } from "lucide-react"
 import { useRouter, useParams, useSearchParams } from "next/navigation"
+import { useState } from "react"
 
 export default function UserDetailsClientsPage() {
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams();
-  const userId = params.id
 
   const userType = searchParams.get('userType');
 

@@ -14,6 +14,76 @@ export interface User {
   mfaEnabled?: boolean;
   lastLoginAt?: string | null;
   resources?: any[];
+  documents?: UserDocument[];
+}
+
+export interface UserDocument {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  documentType: string;
+  mimeType: string;
+  fileSize: string;
+  storageType: string;
+  entityType: string;
+  entityId: string | null;
+  createdAt: string;
+}
+
+export interface FilingHistoryItem {
+  id: string;
+  type: string;
+  name: string;
+  status: string;
+  registrationNumber: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FilingHistoryResponse {
+  data: FilingHistoryItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface ActivityLogItem {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  ipAddress: string;
+  userAgent: string;
+  timestamp: string;
+}
+
+export interface ActivityLogsResponse {
+  data: ActivityLogItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface OtherAdmin {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  roles: string;
+  isActive: boolean;
+  accountStatus: string;
+  organizationName: string | null;
+  lastLoginAt: string | null;
+}
+
+export interface OtherAdminsResponse {
+  data: OtherAdmin[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export interface UsersListResponse {
@@ -288,7 +358,7 @@ class EntityAccountsAPI {
 
 class InsolvencyAgentsAPI {
   async getInsolvencyAgents(
-    page: number = 1,
+    page: number = 1, 
     limit: number = 20,
     status?: string
   ): Promise<InsolvencyAgentsListResponse> {
@@ -319,7 +389,7 @@ class InsolvencyAgentsAPI {
 
 class AccreditedAgentsAPI {
   async getAccreditedAgents(
-    page: number = 1,
+    page: number = 1, 
     limit: number = 20,
     status?: string
   ): Promise<AccreditedAgentsListResponse> {
@@ -421,6 +491,27 @@ class UsersAPI {
   async updateUserPermissions(userId: string, resourceIds: string[]): Promise<UserPermissionsResponse> {
     const response = await apiClient.put(`/admin/users/${userId}/permissions`, {
       resourceIds
+    });
+    return response.data;
+  }
+
+  async getFilingHistory(userId: string, page: number = 1, limit: number = 10): Promise<FilingHistoryResponse> {
+    const response = await apiClient.get(`/admin/users/${userId}/filing-history`, {
+      params: { page, limit }
+    });
+    return response.data;
+  }
+
+  async getActivityLogs(userId: string, page: number = 1, limit: number = 20): Promise<ActivityLogsResponse> {
+    const response = await apiClient.get(`/admin/users/${userId}/activity-logs`, {
+      params: { page, limit }
+    });
+    return response.data;
+  }
+
+  async getOtherAdmins(userId: string, page: number = 1, limit: number = 10): Promise<OtherAdminsResponse> {
+    const response = await apiClient.get(`/admin/users/${userId}/other-admins`, {
+      params: { page, limit }
     });
     return response.data;
   }

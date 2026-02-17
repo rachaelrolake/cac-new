@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, CheckCircle2, ChevronRight, Download, Filter, Loader2, ArrowLeft } from "lucide-react";
 import { UserActionDialog } from "../reusables/action-dialog";
-import { insolvencyAgentsAPI, type InsolvencyAgent } from "@/lib/api/users-management";
+import { insolvencyAgentsAPI, usersAPI, type InsolvencyAgent } from "@/lib/api/users-management";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -18,6 +18,8 @@ export default function ApprovedInsolvencyDetails() {
   const params = useParams()
   const agentId = params.id as string
   const [agent, setAgent] = useState<InsolvencyAgent | null>(null)
+  const [filingHistory, setFilingHistory] = useState<any[]>([])
+  const [activityLogs, setActivityLogs] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeDialog, setActiveDialog] = useState<"suspend" | "deactivate" | null>(null)
@@ -25,6 +27,13 @@ export default function ApprovedInsolvencyDetails() {
   useEffect(() => {
     fetchAgentDetails()
   }, [agentId])
+
+  useEffect(() => {
+    if (agent?.user?.id) {
+      fetchFilingHistory()
+      fetchActivityLogs()
+    }
+  }, [agent?.user?.id])
 
   const fetchAgentDetails = async () => {
     setIsLoading(true)
@@ -38,6 +47,26 @@ export default function ApprovedInsolvencyDetails() {
       router.back()
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchFilingHistory = async () => {
+    try {
+      if (!agent?.user?.id) return
+      const history = await usersAPI.getFilingHistory(agent.user.id, 1, 10)
+      setFilingHistory(history.data)
+    } catch (error: any) {
+      console.error("Failed to load filing history:", error)
+    }
+  }
+
+  const fetchActivityLogs = async () => {
+    try {
+      if (!agent?.user?.id) return
+      const logs = await usersAPI.getActivityLogs(agent.user.id, 1, 20)
+      setActivityLogs(logs.data)
+    } catch (error: any) {
+      console.error("Failed to load activity logs:", error)
     }
   }
 
@@ -221,27 +250,39 @@ export default function ApprovedInsolvencyDetails() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input placeholder="Search logs..." className="pl-10" />
               </div>
-              <Button variant="outline" size="sm" className="gap-2">
+              {/* <Button variant="outline" size="sm" className="gap-2">
                 <Download className="w-4 h-4" /> Export CSV
-              </Button>
+              </Button> */}
             </div>
             <div className="overflow-hidden">
               <Table>
                 <TableHeader className="bg-gray-50">
                   <TableRow>
                     <TableHead className="w-16">S/N</TableHead>
-                    <TableHead>Activity Description</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Entity Type</TableHead>
                     <TableHead>IP Address</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead className="text-right">Date</TableHead>
+                    <TableHead>Timestamp</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-10 text-gray-500">
-                      Activity log not available yet
-                    </TableCell>
-                  </TableRow>
+                  {activityLogs.length > 0 ? (
+                    activityLogs.map((log, index) => (
+                      <TableRow key={log.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{log.action}</TableCell>
+                        <TableCell>{log.entityType}</TableCell>
+                        <TableCell>{log.ipAddress}</TableCell>
+                        <TableCell>{format(new Date(log.timestamp), "MMM dd, yyyy HH:mm")}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-10 text-gray-500">
+                        No activity logs available
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -252,24 +293,40 @@ export default function ApprovedInsolvencyDetails() {
             <div className="border-gray-200 shadow-none overflow-hidden">
               <div className="p-4 border-b border-gray-100 flex justify-between items-center">
                 <span className="font-semibold text-sm">Recent Filings</span>
-                <Button variant="ghost" size="sm" className="text-emerald-700">View All</Button>
+                {/* <Button variant="ghost" size="sm" className="text-emerald-700">View All</Button> */}
               </div>
               <Table>
                 <TableHeader className="bg-gray-50">
                   <TableRow>
                     <TableHead>Filing Type</TableHead>
-                    <TableHead>Entity Name</TableHead>
-                    <TableHead>Entity Type</TableHead>
-                    <TableHead>Filed By</TableHead>
-                    <TableHead className="text-right">Filing Date</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Registration Number</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created At</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-10 text-gray-500">
-                      Filing history not available yet
-                    </TableCell>
-                  </TableRow>
+                  {filingHistory.length > 0 ? (
+                    filingHistory.map((filing) => (
+                      <TableRow key={filing.id}>
+                        <TableCell>{filing.type}</TableCell>
+                        <TableCell>{filing.name}</TableCell>
+                        <TableCell>{filing.registrationNumber || "N/A"}</TableCell>
+                        <TableCell>
+                          <Badge className={filing.status === "APPROVED" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}>
+                            {filing.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{format(new Date(filing.createdAt), "MMM dd, yyyy")}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-10 text-gray-500">
+                        No filing history available
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
