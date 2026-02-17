@@ -25,6 +25,52 @@ export interface Reservation {
     updatedAt: string;
 }
 
+export interface ReservationDetail {
+    id: string
+    createdAt: string
+    updatedAt: string
+    businessName: string
+    proposedName2: string | null
+    proposedName3: string | null
+    email: string
+    businessCommencementDate: string | null
+    avCode: string
+    issueDate: string | null
+    expiryDate: string | null
+    status: string
+    ownedBy: {
+        id: string
+        firstName: string
+        lastName: string
+        email: string
+        phoneNumber: string | null
+        roles: string[]
+        isActive: boolean
+        accountStatus: string
+        lastLoginAt: string | null
+        createdAt: string
+        organizationName: string | null
+    }
+    businessType: {
+        id: string
+        name: string
+        requiresConsent: boolean
+        businessClassification: {
+            id: string
+            name: string
+            code: string | null
+            requiresConsent: boolean
+        }
+    }
+    applicationType: {
+        id: string
+        name: string
+        code: string
+        currency: string
+        price: string
+    }
+}
+
 export interface ReservationsListResponse {
     data: Reservation[];
     total: number;
@@ -99,6 +145,47 @@ export interface RegistrationsStats {
 
 export interface RejectQueryPayload {
     reason: string;
+}
+
+// ─── Name Availability ────────────────────────────────────────────
+
+export interface NameAvailabilityConflict {
+  existingName: string;
+  conflictType: string;
+  similarityScore: number;
+  explanation: string;
+}
+
+export interface NameAvailabilityDistinctivenessCheck {
+  isDistinctive: boolean;
+  hasUniqueKeyword: boolean;
+  genericWordsFound: string[];
+  geographicalWordsFound: string[];
+}
+
+export interface NameAvailabilityValidation {
+  isValid: boolean;
+  overallSimilarityScore: number;
+  conflicts: NameAvailabilityConflict[];
+  restrictedWordViolations: string[];
+  distinctivenessCheck: NameAvailabilityDistinctivenessCheck;
+  requiresConsent: string[];
+  flaggedIssues: string[];
+}
+
+export interface NameAvailabilityResult {
+  available: boolean;
+  message: string;
+  validation?: NameAvailabilityValidation;
+}
+
+class NameAvailabilityAPI {
+  async checkName(name: string, businessActivity: string): Promise<NameAvailabilityResult> {
+    const response = await apiClient.get('/reservations/check-name', {
+      params: { name, businessActivity },
+    });
+    return response.data;
+  }
 }
 
 // ─── API Classes ──────────────────────────────────────────────────
@@ -229,5 +316,6 @@ class RegistrationsAPI {
 // ─── Exports ──────────────────────────────────────────────────────
 
 export const reservationsAPI = new ReservationsAPI();
+export const nameAvailabilityAPI = new NameAvailabilityAPI();
 export const consentApplicationsAPI = new ConsentApplicationsAPI();
 export const registrationsAPI = new RegistrationsAPI();
