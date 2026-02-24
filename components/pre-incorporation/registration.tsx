@@ -14,6 +14,7 @@ import { MetricCard } from "../reusables/metric-card"
 import { Download, Eye, ListFilter, MoreVertical, Loader2, ChevronLeft, ChevronRight, Search, CheckCircle, X, MessageCircle } from "lucide-react"
 import { registrationsAPI, type Registration, type RegistrationsStats } from "@/lib/api/pre-incorporation"
 import { toast } from "sonner"
+import { format } from "date-fns"
 
 export function RegistrationPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([])
@@ -250,9 +251,9 @@ export function RegistrationPage() {
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="min-w-[360px]"
               />
-              <Button variant="outline" size="sm" onClick={handleSearch} className="gap-1">
+              {/* <Button variant="outline" size="sm" onClick={handleSearch} className="gap-1">
                 <Search className="h-4 w-4" />
-              </Button>
+              </Button> */}
             </div>
 
             <DropdownMenu>
@@ -288,7 +289,9 @@ export function RegistrationPage() {
                   <TableHead className="text-sm text-gray-500">Entity Classification</TableHead>
                   <TableHead className="text-sm text-gray-500">Entity Type</TableHead>
                   <TableHead className="text-sm text-gray-500">Applicant</TableHead>
+                  <TableHead className="text-sm text-gray-500">Submission Date</TableHead>
                   <TableHead className="text-sm text-gray-500">Status</TableHead>
+                  <TableHead className="text-sm text-gray-500">Approval Date</TableHead>
                   <TableHead className="text-sm text-gray-500">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -311,9 +314,11 @@ export function RegistrationPage() {
                           <small className="text-gray-900/50">{reg.applicant.role || "—"}</small>
                         </div>
                       </TableCell>
+                      <TableCell className="text-sm">{format(new Date(reg.createdAt), "dd MMM yyyy")}</TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(reg.status)}>{reg.status}</Badge>
                       </TableCell>
+                      <TableCell className="text-sm">{format(new Date(reg.createdAt), "dd MMM yyyy")}</TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

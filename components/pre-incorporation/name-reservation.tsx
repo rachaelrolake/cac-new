@@ -246,9 +246,9 @@ export function NameReservation() {
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="min-w-[360px]"
               />
-              <Button variant="outline" size="sm" onClick={handleSearch} className="gap-1">
+              {/* <Button variant="outline" size="sm" onClick={handleSearch} className="gap-1">
                 <Search className="h-4 w-4" />
-              </Button>
+              </Button> */}
             </div>
 
             <DropdownMenu>
@@ -284,7 +284,9 @@ export function NameReservation() {
                   <TableHead className="text-sm text-gray-500">Business Type</TableHead>
                   <TableHead className="text-sm text-gray-500">Classification</TableHead>
                   <TableHead className="text-sm text-gray-500">Applicant</TableHead>
+                  <TableHead className="text-sm text-gray-500">Submission Date</TableHead>
                   <TableHead className="text-sm text-gray-500">Status</TableHead>
+                  <TableHead className="text-sm text-gray-500">Approval Date</TableHead>
                   <TableHead className="text-sm text-gray-500">Days Remaining</TableHead>
                   <TableHead className="text-sm text-gray-500">Actions</TableHead>
                 </TableRow>
@@ -308,9 +310,11 @@ export function NameReservation() {
                           <small className="text-gray-900/50">{item.applicant.role || "—"}</small>
                         </div>
                       </TableCell>
+                      <TableCell className="text-sm">{format(new Date(item.createdAt), "dd MMM yyyy")}</TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(item.status)}>{item.status}</Badge>
                       </TableCell>
+                      <TableCell className="text-sm">{format(new Date(item.updatedAt), "dd MMM yyyy")}</TableCell>
                       <TableCell className="text-sm">{getDaysRemaining(item.expiryDate)}</TableCell>
                       <TableCell>
                         <DropdownMenu>
