@@ -1,101 +1,40 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  Users,
-  UserCheck,
-  Building,
-  FileText,
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  X,
-} from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { FileText, X, } from "lucide-react"
 import { ExecutiveSummary } from "./executive-summary"
-import { MetricCard } from "./metric-card"
 import { DashboardOverview } from "./dashboard-overview"
-
-const chartData = [
-  { month: "Jan", flagged: 600, users: 400, pending: 150 },
-  { month: "Feb", flagged: 620, users: 420, pending: 170 },
-  { month: "Mar", flagged: 630, users: 430, pending: 180 },
-  { month: "Apr", flagged: 640, users: 420, pending: 185 },
-  { month: "May", flagged: 650, users: 430, pending: 190 },
-  { month: "Jun", flagged: 670, users: 450, pending: 180 },
-  { month: "Jul", flagged: 680, users: 460, pending: 200 },
-  { month: "Aug", flagged: 700, users: 470, pending: 210 },
-  { month: "Sep", flagged: 720, users: 490, pending: 220 },
-  { month: "Oct", flagged: 740, users: 500, pending: 230 },
-  { month: "Nov", flagged: 760, users: 510, pending: 235 },
-  { month: "Dec", flagged: 780, users: 520, pending: 240 },
-]
-
-const applications = [
-  {
-    id: "BN-18392",
-    type: "Business Name",
-    priority: "High",
-    status: "Under Review",
-    submittedBy: "Grace Okoro",
-    timeAgo: "4hours ago",
-    sla: "2days Remaining",
-  },
-  {
-    id: "AV-18392",
-    type: "Name Reservation",
-    priority: "Normal",
-    status: "Pending",
-    submittedBy: "Ibrahim Ismail",
-    timeAgo: "1hours ago",
-    sla: "60days Remaining",
-  },
-  {
-    id: "RC-18392",
-    type: "Insolvency Filling",
-    priority: "High",
-    status: "Queried",
-    submittedBy: "Akpan John",
-    timeAgo: "4hours ago",
-    sla: "8days Remaining",
-  },
-  {
-    id: "RC-18392",
-    type: "Annual Return",
-    priority: "Normal",
-    status: "Pending",
-    submittedBy: "ABC Company LTD",
-    timeAgo: "4hours ago",
-    sla: "2days Remaining",
-  },
-]
-
-const alerts = [
-  {
-    type: "warning",
-    message: "High Volume Of Name Reservation Applications Detected",
-    time: "20 minutes ago",
-  },
-  {
-    type: "info",
-    message: "Scheduled Maintenance On Friday 10:00 PM - 12:00 AM",
-    time: "5 hours ago",
-  },
-  {
-    type: "error",
-    message: "5 Cases Exceeded SLA Timeline",
-    time: "5 hours ago",
-  },
-]
 
 export function DashboardContent() {
   const [activeTab2, setActiveTab2] = useState<"overview" | "executive">("overview")
-  const [showWelcomeModal, setShowWelcomeModal] = useState(true)
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
+  const [dontShowAgain, setDontShowAgain] = useState(false)
+
+  useEffect(() => {
+    try {
+      const hidden = localStorage.getItem("hideWelcomeModal") === "true"
+      setDontShowAgain(hidden)
+      if (!hidden) setShowWelcomeModal(true)
+    } catch (e) {
+      // ignore localStorage errors
+      setShowWelcomeModal(true)
+    }
+  }, [])
+
+  const closeModal = () => {
+    try {
+      if (dontShowAgain) {
+        localStorage.setItem("hideWelcomeModal", "true")
+      } else {
+        localStorage.removeItem("hideWelcomeModal")
+      }
+    } catch (e) {
+      // ignore localStorage errors
+    }
+    setShowWelcomeModal(false)
+  }
 
   return (
     <div className="space-y-6">
@@ -104,7 +43,7 @@ export function DashboardContent() {
           <Card className="w-full max-w-md">
             <CardHeader className="relative">
               <button
-                onClick={() => setShowWelcomeModal(false)}
+                onClick={closeModal}
                 className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
               >
                 <X className="h-5 w-5" />
@@ -165,11 +104,16 @@ export function DashboardContent() {
               </div>
 
               <label className="flex items-center gap-2">
-                <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-gray-300"
+                  checked={dontShowAgain}
+                  onChange={(e) => setDontShowAgain(e.target.checked)}
+                />
                 <span className="text-sm text-gray-600">Don't show this again</span>
               </label>
 
-              <Button onClick={() => setShowWelcomeModal(false)} className="w-full bg-emerald-700 hover:bg-emerald-800">
+              <Button onClick={closeModal} className="w-full bg-emerald-700 hover:bg-emerald-800">
                 Go to Dashboard
               </Button>
             </CardContent>

@@ -1,10 +1,12 @@
 "use client"
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, File } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMemo, useState, useEffect } from "react";
 
 const configOptions = {
   "categories": [
@@ -33,30 +35,40 @@ const configOptions = {
       "items": [
         { "title": "Service Fees & Penalties", "description": "View and manage the service fees and penalties applied to the system.", "href": "/system-config/sys-config?pageType=fees" },
         { "title": "Restricted / Banned Words", "description": "View and manage the list of restricted and banned words.", "href": "/system-config/sys-config?pageType=banned-words" },
-        // { "title": "Notice Configuration", "description": "Create and send notification to users across the platform.", "href": "/system-config/sys-config?pageType=notifications" }
-        { "title": "Notice Configuration", "description": "Create and send notification to users across the platform.", "href": "#" }
+        { "title": "Notice Configuration", "description": "Create and send notification to users across the platform.", "href": "/system-config/sys-config?pageType=notices" }
 
       ]
     },
-    {
-      "id": "ai-configuration",
-      "label": "AI Configuration",
-      "items": [
-        { "title": "Pre-Incorporation", "description": "View and manage AI configuration for pre-incorporation activities.", "href": "/system-config/ai-config/pre-incorporation" },
-        { "title": "Post Incorporation", "description": "View and manage AI configuration for post-incorporation activities.", "href": "/system-config/ai-config/post-incorporation" },
-        { "title": "Insolvency", "description": "View and manage AI configuration for insolvency filings.", "href": "/system-config/ai-config/insolvency" }
-      ]
-    }
+    // {
+    //   "id": "ai-configuration",
+    //   "label": "AI Configuration",
+    //   "items": [
+    //     { "title": "Pre-Incorporation", "description": "View and manage AI configuration for pre-incorporation activities.", "href": "/system-config/ai-config/pre-incorporation" },
+    //     { "title": "Post Incorporation", "description": "View and manage AI configuration for post-incorporation activities.", "href": "/system-config/ai-config/post-incorporation" },
+    //     { "title": "Insolvency", "description": "View and manage AI configuration for insolvency filings.", "href": "/system-config/ai-config/insolvency" }
+    //   ]
+    // }
   ]
 }
 
 export function SystemConfigurationPage() {
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get("tab")
+  
+  // Use tab from URL or default to first tab
+  const [activeTab, setActiveTab] = useState(tabParam || "new-reservation")
 
+  // Update active tab when URL changes
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
 
   return (
     <div className="mx-auto min-h-screen">
-      <Tabs defaultValue="new-reservation" className="w-full">
-        <TabsList className="grid grid-cols-4 w-fit bg-gray-200 mb-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-3 w-fit bg-gray-200 mb-6">
           {configOptions.categories.map((cat) => (
             <TabsTrigger
               key={cat.id}
@@ -73,10 +85,6 @@ export function SystemConfigurationPage() {
             <Card className="border-none shadow-sm">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold">{category.label}</CardTitle>
-                <div className="relative w-full max-w-md mt-4">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search" className="pl-10 bg-white" />
-                </div>
               </CardHeader>
 
               <CardContent>
@@ -101,7 +109,7 @@ export function SystemConfigurationPage() {
                           size="lg"
                           className="w-full text-white"
                         >
-                          <Link href={item.href}>View Details</Link>
+                          <Link href={`${item.href}&tab=${category.id}`}>View Details</Link>
                         </Button>
                       </CardContent>
                     </Card>
