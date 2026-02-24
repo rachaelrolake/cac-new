@@ -299,7 +299,7 @@ export function NameRequiringConsent() {
                       <TableCell className="font-medium">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                       <TableCell>{app.arCode}</TableCell>
                       <TableCell>
-                        <Link href={`/pre-incorporation/name-requiring-consent/${getEntityType(app)}/${app.id}`} className="hover:underline text-gray-900 font-medium">
+                        <Link href={`/pre-incorporation/name-requiring-consent/${app.id}?type=${getEntityType(app)}&tab=name-requiring-consent`} className="hover:underline text-gray-900 font-medium">
                           {app.entityName}
                         </Link>
                       </TableCell>
@@ -324,7 +324,7 @@ export function NameRequiringConsent() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/pre-incorporation/name-requiring-consent/${app.id}?type=${getEntityType(app)}`} className="gap-2 flex items-center">
+                              <Link href={`/pre-incorporation/name-requiring-consent/${app.id}?type=${getEntityType(app)}&tab=name-requiring-consent`} className="gap-2 flex items-center">
                                 <Eye className="w-4 h-4" /> View Application Details
                               </Link>
                             </DropdownMenuItem>

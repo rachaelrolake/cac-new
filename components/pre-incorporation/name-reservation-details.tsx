@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, User, Calendar, Briefcase, CreditCard, Loader2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from "next/link"
 import { useState, useEffect, use } from "react"
 import { reservationsAPI, type ReservationDetail } from "@/lib/api/pre-incorporation"
@@ -47,6 +47,7 @@ const getDaysInfo = (expiryDate: string | null, issueDate: string | null) => {
 
 export default function NameReservationViewDetails({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const searchParams = useSearchParams();
   const unwrappedParams = use(params)
 
   const [data, setData] = useState<ReservationDetail | null>(null)
@@ -54,6 +55,14 @@ export default function NameReservationViewDetails({ params }: { params: Promise
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeDialog, setActiveDialog] = useState<"approve" | "reject" | "query" | null>(null)
   const [dialogReason, setDialogReason] = useState("")
+
+  const tab = searchParams.get("tab") // Get the tab param
+
+  const handleBack = () => {
+    // Preserve the tab param when going back
+    const backUrl = tab ? `/pre-incorporation?tab=${tab}` : '/pre-incorporation'
+    router.push(backUrl)
+  }
 
   useEffect(() => {
     if (unwrappedParams.id) fetchData()
@@ -208,12 +217,11 @@ export default function NameReservationViewDetails({ params }: { params: Promise
 
       {/* Main content */}
       <div className="min-h-screen bg-gray-50 p-8 font-sans text-gray-800 pt-24">
-        <Link href="/pre-incorporation">
-          <Button variant="outline" size="lg" className="mb-3">
-            <ArrowLeft size={18} />
-            <span className="font-medium">Back</span>
-          </Button>
-        </Link>
+
+        <Button variant="outline" size="lg" className="mb-6" onClick={handleBack}>
+          <ArrowLeft size={18} />
+          <span className="font-medium">Back</span>
+        </Button>
 
         <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-8">

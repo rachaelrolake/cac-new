@@ -299,7 +299,7 @@ export function RegistrationPage() {
                       <TableCell className="font-medium">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                       <TableCell>{reg.arCode}</TableCell>
                       <TableCell>
-                        <Link href={`/pre-incorporation/registration/${getEntityTypeSlug(reg)}/${reg.id}`} className="hover:underline text-gray-900 font-medium">
+                        <Link href={`/pre-incorporation/registration/${reg.id}?type=${getEntityTypeSlug(reg)}&tab=registration`} className="hover:underline text-gray-900 font-medium">
                           {reg.entityName}
                         </Link>
                       </TableCell>
@@ -323,7 +323,7 @@ export function RegistrationPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/pre-incorporation/registration/${reg.id}?type=${getEntityTypeSlug(reg)}`} className="gap-2 flex items-center">
+                              <Link href={`/pre-incorporation/registration/${reg.id}?type=${getEntityTypeSlug(reg)}&tab=registration`} className="gap-2 flex items-center">
                                 <Eye className="w-4 h-4" /> View Application Details
                               </Link>
                             </DropdownMenuItem>

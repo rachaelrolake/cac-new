@@ -714,6 +714,14 @@ export default function RegistrationViewDetails({ params }: { params: Promise<{ 
     if (id) fetchData()
   }, [id, type])
 
+  const tab = searchParams.get("tab") // Get the tab param
+
+  const handleBack = () => {
+    // Preserve the tab param when going back
+    const backUrl = tab ? `/pre-incorporation?tab=${tab}` : '/pre-incorporation'
+    router.push(backUrl)
+  }
+
   const fetchData = async () => {
     setIsLoading(true)
     try {
@@ -801,12 +809,11 @@ export default function RegistrationViewDetails({ params }: { params: Promise<{ 
         onConfirm={handleReject} isSubmitting={isSubmitting} />
 
       <div className="min-h-screen bg-gray-50 p-8 font-sans text-gray-800 pt-24">
-        <Link href="/pre-incorporation">
-          <Button variant="outline" size="lg" className="mb-3">
-            <ArrowLeft size={18} />
-            <span className="font-medium">Back</span>
-          </Button>
-        </Link>
+
+        <Button variant="outline" size="lg" className="mb-3" onClick={handleBack}>
+          <ArrowLeft size={18} />
+          <span className="font-medium">Back</span>
+        </Button>
 
         <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-4">
           {/* Header */}

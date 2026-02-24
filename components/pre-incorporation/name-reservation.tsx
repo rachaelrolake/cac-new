@@ -296,7 +296,7 @@ export function NameReservation() {
                       <TableCell className="font-medium">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                       <TableCell>{item.avCode}</TableCell>
                       <TableCell>
-                        <Link href={`/pre-incorporation/name-reservation/${item.id}`} className="hover:underline text-gray-900 font-medium">
+                        <Link href={`/pre-incorporation/name-reservation/${item.id}?tab=name-reservation`} className="hover:underline text-gray-900 font-medium">
                           {item.businessName}
                         </Link>
                       </TableCell>
@@ -319,7 +319,7 @@ export function NameReservation() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/pre-incorporation/name-reservation/${item.id}`} className="gap-2 flex items-center">
+                              <Link href={`/pre-incorporation/name-reservation/${item.id}?tab=name-reservation`} className="gap-2 flex items-center">
                                 <Eye className="w-4 h-4" /> View Details
                               </Link>
                             </DropdownMenuItem>
