@@ -214,13 +214,13 @@ export function EntityAccountComponent() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => router.push(`/users-management/${entity.id}/details?userType=${entity.accountStatus === "active" ? 'entity-approved' : 'entity-requests'}`)}
+                              onClick={() => router.push(`/users-management/${entity.id}/details?userType=${entity.accountStatus === "active" ? 'entity-approved' : 'entity-requests'}&tab=entity-accounts`)}
                               className="gap-2"
                             >
                               <Eye className="h-4 w-4" /> View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => router.push(`/users-management/${entity.id}/password-reset`)}
+                              onClick={() => router.push(`/users-management/${entity.id}/password-reset?tab=entity-accounts`)}
                               className="gap-2"
                             >
                               <Lock className="h-4 w-4" /> Reset Password

@@ -214,13 +214,13 @@ export function InsolvencyAgentComponent() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => router.push(`/users-management/${agent.id}/details?userType=${agent.status === "approved" ? 'insolvency-approved' : 'insolvency-requests'}`)}
+                              onClick={() => router.push(`/users-management/${agent.id}/details?userType=${agent.status === "approved" ? 'insolvency-approved' : 'insolvency-requests'}&tab=insolvency-agents`)}
                               className="gap-2"
                             >
                               <Eye className="h-4 w-4" /> View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => router.push(`/users-management/${agent.user.id}/password-reset`)}
+                              onClick={() => router.push(`/users-management/${agent.user.id}/password-reset?tab=insolvency-agents`)}
                               className="gap-2"
                             >
                               <Lock className="h-4 w-4" /> Reset Password

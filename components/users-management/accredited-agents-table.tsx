@@ -230,13 +230,13 @@ export function AccreditedAgentComponent() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => router.push(`/users-management/${agent.id}/details?userType=${agent.status === "approved" ? 'accreditation-approved' : 'accreditation-requests'}`)}
+                              onClick={() => router.push(`/users-management/${agent.id}/details?userType=${agent.status === "approved" ? 'accreditation-approved' : 'accreditation-requests'}&tab=accredited-agents`)}
                               className="gap-2"
                             >
                               <Eye className="h-4 w-4" /> View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => router.push(`/users-management/${agent.user.id}/password-reset`)}
+                              onClick={() => router.push(`/users-management/${agent.user.id}/password-reset?tab=accredited-agents`)}
                               className="gap-2"
                             >
                               <Lock className="h-4 w-4" /> Reset Password

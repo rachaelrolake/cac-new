@@ -183,13 +183,13 @@ export function PublicUsersComponent() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => router.push(`/users-management/${user.id}/details?userType=public-user`)}
+                          onClick={() => router.push(`/users-management/${user.id}/details?userType=public-user&tab=public-users`)}
                           className="gap-2"
                         >
                           <Eye className="h-4 w-4" /> View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => router.push(`/users-management/${user.id}/password-reset`)}
+                          onClick={() => router.push(`/users-management/${user.id}/password-reset?tab=public-users`)}
                           className="gap-2"
                         >
                           <Lock className="h-4 w-4" /> Reset Password

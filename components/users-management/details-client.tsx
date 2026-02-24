@@ -18,8 +18,14 @@ export default function UserDetailsClientsPage() {
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams();
-
+  const tab = searchParams.get("tab") // Get the tab param
   const userType = searchParams.get('userType');
+
+  const handleBack = () => {
+    // Preserve the tab param when going back
+    const backUrl = tab ? `/users-management?tab=${tab}` : '/users-management'
+    router.push(backUrl)
+  }
 
   return (
     <div>
@@ -31,7 +37,7 @@ export default function UserDetailsClientsPage() {
         <div className="flex items-center mb-5">
           <Button
             variant="outline"
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="gap-2 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 h-10 px-4 rounded-lg shadow-sm"
           >
             <ArrowLeft className="h-4 w-4" />

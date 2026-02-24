@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { SystemAdminComponent } from "./system-admin-table"
 import { PublicUsersComponent } from "./public-user-table"
 import { AccreditedAgentComponent } from "./accredited-agents-table"
@@ -22,16 +22,25 @@ interface User {
 }
 
 const TAB_CONFIG: Record<string, { label: string; type: string; addButton: string }> = {
-  "System Admins": { label: "System Admins", type: "system-admin", addButton: "Add New User" },
-  "Public Users": { label: "Public Users", type: "public-user", addButton: "Add New User" },
-  "Accredited Agents": { label: "Accredited Agents", type: "accredited-agent", addButton: "Add New Agent" },
-  "Insolvency Agents": { label: "Insolvency Agents", type: "insolvency-agent", addButton: "Add New User" },
-  "Entity Accounts": { label: "Entity Accounts", type: "entity-account", addButton: "Add New Entity" },
+  "system-admins": { label: "System Admins", type: "system-admin", addButton: "Add New User" },
+  "public-users": { label: "Public Users", type: "public-user", addButton: "Add New User" },
+  "accredited-agents": { label: "Accredited Agents", type: "accredited-agent", addButton: "Add New Agent" },
+  "insolvency-agents": { label: "Insolvency Agents", type: "insolvency-agent", addButton: "Add New User" },
+  "entity-accounts": { label: "Entity Accounts", type: "entity-account", addButton: "Add New Entity" },
 }
 
 export function UsersManagement() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState("System Admins")
+  const searchParams = useSearchParams()
+
+  const tabParam = searchParams.get("tab")
+  const [activeTab, setActiveTab] = useState(tabParam || "system-admins")
+
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
 
   return (
     <div className="space-y-6">
@@ -44,28 +53,28 @@ export function UsersManagement() {
             className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${activeTab === tab ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
           >
-            {tab}
+            {TAB_CONFIG[tab].label}
           </button>
         ))}
       </div>
 
-      {activeTab === "System Admins" && (
+      {activeTab === "system-admins" && (
         <SystemAdminComponent />
       )}
 
-      {activeTab === "Public Users" && (
+      {activeTab === "public-users" && (
         <PublicUsersComponent />
       )}
 
-      {activeTab === "Accredited Agents" && (
+      {activeTab === "accredited-agents" && (
         <AccreditedAgentComponent />
       )}
 
-      {activeTab === "Insolvency Agents" && (
+      {activeTab === "insolvency-agents" && (
         <InsolvencyAgentComponent />
       )}
 
-      {activeTab === "Entity Accounts" && (
+      {activeTab === "entity-accounts" && (
         <EntityAccountComponent />
       )}
 
