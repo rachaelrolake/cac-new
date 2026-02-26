@@ -289,24 +289,45 @@ export interface InsolvencyAgentsStats {
 
 export interface EntityAccount {
   id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  otherName: string | null;
-  organizationName: string | null;
-  phoneNumber: string | null;
-  dob: string | null;
-  gender: string | null;
-  nationality: string | null;
-  identityType: string | null;
-  identityNumber: string | null;
-  occupation: string | null;
-  staffId: string | null;
-  isActive: boolean;
-  accountStatus: string;
-  lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string;
+  companyName: string;
+  registrationType: string;
+  registrationStatus: string;
+  currentStep: number;
+  rcNumber: string | null;
+  registrationDate: string | null;
+  approvalMode: string | null;
+  companyType: string;
+  principalBusinessActivity: string;
+  email: string;
+  phoneNumber: string;
+  articleOfAssociation: string;
+  articleFileUrl: string | null;
+  directors: any[] | null;
+  secretaries: any[] | null;
+  totalNumberIssuedShares: number | null;
+  nominalValueOfEachShare: string | null;
+  totalNumberOfOrdinaryShares: number | null;
+  applicationData: any | null;
+  submissionMethod: string | null;
+  totalAggregateUnpaidOrdinaryShares: string | null;
+  totalNumberOfPreferenceShares: number | null;
+  totalAggregateUnpaidPreferenceShares: string | null;
+  shareholders: any[] | null;
+  pscs: any[] | null;
+  mainObjects: string | null;
+  ancillaryObjects: string | null;
+  acceptGeneralObjectClause: boolean;
+  liabilityType: string | null;
+  shareCapital: string | null;
+  shareCapitalInWords: string | null;
+  numberOfShares: number | null;
+  valuePerShare: string | null;
+  objectsOfMemorandum: string | null;
+  trackingCode: string | null;
+  supportingDocuments: any | null;
+  isManualSubmission: boolean;
 }
 
 export interface EntityAccountsListResponse {
@@ -318,11 +339,19 @@ export interface EntityAccountsListResponse {
 }
 
 export interface EntityAccountsStats {
-  total: number;
-  active: number;
-  inactive: number;
-  suspended: number;
+  totalApplications: number;
+  approved: number;
   pending: number;
+  rejected: number;
+  underReview: number;
+}
+
+export interface DeclineEntityPayload {
+  reason: string;
+}
+
+export interface QueryEntityPayload {
+  note: string;
 }
 
 class EntityAccountsAPI {
@@ -331,28 +360,32 @@ class EntityAccountsAPI {
     limit: number = 20,
     status?: string
   ): Promise<EntityAccountsListResponse> {
-    const response = await apiClient.get('/admin/entity-accounts', {
+    const response = await apiClient.get('/admin/entities', {
       params: { page, limit, ...(status && { status }) }
     });
     return response.data;
   }
 
   async getEntityAccountById(id: string): Promise<EntityAccount> {
-    const response = await apiClient.get(`/admin/entity-accounts/${id}`);
+    const response = await apiClient.get(`/admin/entities/${id}`);
     return response.data;
   }
 
   async getEntityAccountsStats(): Promise<EntityAccountsStats> {
-    const response = await apiClient.get('/admin/entity-accounts/stats');
+    const response = await apiClient.get('/admin/entities/stats');
     return response.data;
   }
 
   async approveEntity(id: string): Promise<void> {
-    await apiClient.post(`/admin/entity-accounts/${id}/approve`);
+    await apiClient.patch(`/admin/entities/${id}/approve`);
   }
 
-  async declineEntity(id: string, payload: DeclineAgentPayload): Promise<void> {
-    await apiClient.post(`/admin/entity-accounts/${id}/decline`, payload);
+  async declineEntity(id: string, payload: DeclineEntityPayload): Promise<void> {
+    await apiClient.patch(`/admin/entities/${id}/decline`, payload);
+  }
+
+  async queryEntity(id: string, payload: QueryEntityPayload): Promise<void> {
+    await apiClient.patch(`/admin/entities/${id}/query`, payload);
   }
 }
 

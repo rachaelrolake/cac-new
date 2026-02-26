@@ -13,8 +13,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, User, Building2, Upload, Loader2, ArrowLeft, Download } from "lucide-react";
-import { entityAccountsAPI, usersAPI, type EntityAccount } from "@/lib/api/users-management";
+import { FileText, User, Building2, Upload, Loader2, Download } from "lucide-react";
+import { entityAccountsAPI, type EntityAccount } from "@/lib/api/users-management";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -23,7 +23,6 @@ export default function RequestsEntityDetails() {
   const params = useParams()
   const entityId = params.id as string
   const [entity, setEntity] = useState<EntityAccount | null>(null)
-  const [userWithDocs, setUserWithDocs] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [actionDialog, setActionDialog] = useState<"approve" | "query" | "reject" | null>(null)
@@ -32,7 +31,6 @@ export default function RequestsEntityDetails() {
 
   useEffect(() => {
     fetchEntityDetails()
-    fetchUserDocuments()
   }, [entityId])
 
   const fetchEntityDetails = async () => {
@@ -47,15 +45,6 @@ export default function RequestsEntityDetails() {
       router.back()
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const fetchUserDocuments = async () => {
-    try {
-      const userData = await usersAPI.getUserById(entityId)
-      setUserWithDocs(userData)
-    } catch (error: any) {
-      console.error("Failed to load documents:", error)
     }
   }
 
@@ -104,7 +93,7 @@ export default function RequestsEntityDetails() {
 
     setIsSubmitting(true)
     try {
-      // TODO: Add query endpoint when available
+      await entityAccountsAPI.queryEntity(entityId, { note: queryMessage })
       toast.success("Query message sent successfully")
       setActionDialog(null)
       setQueryMessage("")
@@ -136,7 +125,7 @@ export default function RequestsEntityDetails() {
         <div className="flex gap-3">
           <ActionDialog
             type="reject"
-            entityName={entity.organizationName || entity.email}
+            entityName={entity.companyName}
             isOpen={actionDialog === "reject"}
             onOpenChange={(open) => setActionDialog(open ? "reject" : null)}
             onConfirm={handleReject}
@@ -146,7 +135,7 @@ export default function RequestsEntityDetails() {
           />
           <ActionDialog
             type="query"
-            entityName={entity.organizationName || entity.email}
+            entityName={entity.companyName}
             isOpen={actionDialog === "query"}
             onOpenChange={(open) => setActionDialog(open ? "query" : null)}
             onConfirm={handleQuery}
@@ -156,78 +145,137 @@ export default function RequestsEntityDetails() {
           />
           <ActionDialog
             type="approve"
-            entityName={entity.organizationName || entity.email}
+            entityName={entity.companyName}
             isOpen={actionDialog === "approve"}
             onOpenChange={(open) => setActionDialog(open ? "approve" : null)}
             onConfirm={handleApprove}
             isLoading={isSubmitting}
           />
-          <Button variant="outline" className="border-green-700 text-green-700">
-            View Query Messages
-          </Button>
         </div>
       </div>
 
-      {/* Entity Details Section */}
-      <DetailCard title="Entity Details" icon={<User className="w-5 h-5 text-green-600" />}>
+      {/* Company Information */}
+      <DetailCard title="Company Information" icon={<Building2 className="w-5 h-5 text-green-600" />}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <DataField label="Entity ID" value={entity.staffId || "N/A"} />
-          <DataField label="Organization Name" value={entity.organizationName || "N/A"} />
+          <DataField label="Company Name" value={entity.companyName} />
+          <DataField label="RC Number" value={entity.rcNumber || "Not Assigned"} />
+          <DataField label="Registration Type" value={entity.registrationType} />
+          <DataField label="Company Type" value={entity.companyType} />
+          <DataField label="Registration Status" value={entity.registrationStatus} />
+          <DataField label="Principal Business Activity" value={entity.principalBusinessActivity} />
           <DataField label="Email" value={entity.email} />
-          <DataField label="Phone Number" value={entity.phoneNumber || "N/A"} />
-          <DataField label="Account Status" value={entity.accountStatus} />
+          <DataField label="Phone Number" value={entity.phoneNumber} />
+          <DataField label="Current Step" value={`Step ${entity.currentStep}`} />
           <DataField label="Created At" value={format(new Date(entity.createdAt), "MMM dd, yyyy HH:mm")} />
         </div>
       </DetailCard>
 
-      {/* Authorized Officer Information */}
-      <DetailCard title="Authorized Officer Information" icon={<User className="w-5 h-5 text-green-600" />}>
+      {/* Articles of Association */}
+      <DetailCard title="Articles of Association" icon={<FileText className="w-5 h-5 text-green-600" />}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <DataField label="Email" value={entity.email} />
-          <DataField label="First Name" value={entity.firstName || "N/A"} />
-          <DataField label="Surname" value={entity.lastName || "N/A"} />
-          <DataField label="Other Name" value={entity.otherName || "N/A"} />
-          <DataField label="Phone Number" value={entity.phoneNumber || "N/A"} />
-          <DataField label="Occupation" value={entity.occupation || "N/A"} />
-          <DataField label="Identity Type" value={entity.identityType || "N/A"} />
-          <DataField label="Identity Number" value={entity.identityNumber || "N/A"} />
-          <DataField label="Date of Birth" value={entity.dob ? format(new Date(entity.dob), "MMM dd, yyyy") : "N/A"} />
-          <DataField label="Gender" value={entity.gender || "N/A"} />
-          <DataField label="Nationality" value={entity.nationality || "N/A"} />
+          <DataField label="Article Type" value={entity.articleOfAssociation} />
+          {entity.articleFileUrl && (
+            <div className="col-span-3">
+              <a href={entity.articleFileUrl} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Download Article File
+              </a>
+            </div>
+          )}
         </div>
       </DetailCard>
 
-      {/* Uploads Section - Placeholder */}
-      <DetailCard title="Uploads" icon={<Upload className="w-5 h-5 text-green-600" />}>
-        <>
-          {userWithDocs?.documents && userWithDocs.documents.length > 0 ? (
-            <>
-              <h2 className="font-bold mb-3">Uploaded Documents</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {userWithDocs.documents.map((doc: any) => (
-                  <div key={doc.id} className="flex items-center gap-3 p-4 border rounded-lg bg-white hover:border-green-500 transition-colors">
-                    <div className="bg-gray-100 p-2 rounded">
-                      <FileText className="w-5 h-5 text-gray-500" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium">{doc.fileName}</p>
-                      <p className="text-[10px] text-gray-400">{(parseInt(doc.fileSize) / 1024).toFixed(2)} KB</p>
-                      <p className="text-[10px] text-gray-500">{doc.documentType}</p>
-                    </div>
-                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700">
-                      <Download className="w-4 h-4" />
-                    </a>
-                  </div>
-                ))}
+      {/* Share Capital Information */}
+      {entity.totalNumberIssuedShares && (
+        <DetailCard title="Share Capital" icon={<FileText className="w-5 h-5 text-green-600" />}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <DataField label="Total Issued Shares" value={entity.totalNumberIssuedShares?.toString() || "N/A"} />
+            <DataField label="Nominal Value per Share" value={entity.nominalValueOfEachShare || "N/A"} />
+            <DataField label="Ordinary Shares" value={entity.totalNumberOfOrdinaryShares?.toString() || "N/A"} />
+            <DataField label="Preference Shares" value={entity.totalNumberOfPreferenceShares?.toString() || "N/A"} />
+            <DataField label="Liability Type" value={entity.liabilityType || "N/A"} />
+          </div>
+        </DetailCard>
+      )}
+
+      {/* Directors */}
+      {entity.directors && entity.directors.length > 0 && (
+        <DetailCard title="Directors" icon={<User className="w-5 h-5 text-green-600" />}>
+          <div className="space-y-4">
+            {entity.directors.map((director: any, idx: number) => (
+              <div key={idx} className="border-b pb-4 last:border-0">
+                <h3 className="font-semibold mb-3">Director {idx + 1}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <DataField label="Full Name" value={director.fullName || "N/A"} />
+                  <DataField label="Email" value={director.emailAddress || "N/A"} />
+                  <DataField label="Phone" value={director.phoneNumber || "N/A"} />
+                  <DataField label="Occupation" value={director.occupation || "N/A"} />
+                  <DataField label="Nationality" value={director.nationality || "N/A"} />
+                </div>
               </div>
-            </>
-          ) : (
-            <div className="text-center text-gray-500">
-              Upload preview not available yet
-            </div>
-          )}
-        </>
-      </DetailCard>
+            ))}
+          </div>
+        </DetailCard>
+      )}
+
+      {/* Secretaries */}
+      {entity.secretaries && entity.secretaries.length > 0 && (
+        <DetailCard title="Secretaries" icon={<User className="w-5 h-5 text-green-600" />}>
+          <div className="space-y-4">
+            {entity.secretaries.map((secretary: any, idx: number) => (
+              <div key={idx} className="border-b pb-4 last:border-0">
+                <h3 className="font-semibold mb-3">Secretary {idx + 1}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <DataField label="Full Name" value={secretary.fullName || "N/A"} />
+                  <DataField label="Email" value={secretary.emailAddress || "N/A"} />
+                  <DataField label="Phone" value={secretary.phoneNumber || "N/A"} />
+                  <DataField label="Type" value={secretary.type || "N/A"} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </DetailCard>
+      )}
+
+      {/* Shareholders */}
+      {entity.shareholders && entity.shareholders.length > 0 && (
+        <DetailCard title="Shareholders" icon={<User className="w-5 h-5 text-green-600" />}>
+          <div className="space-y-4">
+            {entity.shareholders.map((shareholder: any, idx: number) => (
+              <div key={idx} className="border-b pb-4 last:border-0">
+                <h3 className="font-semibold mb-3">Shareholder {idx + 1}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <DataField label="Type" value={shareholder.type || "N/A"} />
+                  <DataField label="Nationality" value={shareholder.nationality || "N/A"} />
+                  {shareholder.personalDetails && (
+                    <>
+                      <DataField label="Name" value={`${shareholder.personalDetails.firstName || ''} ${shareholder.personalDetails.surname || ''}`.trim() || "N/A"} />
+                      <DataField label="Email" value={shareholder.personalDetails.email || "N/A"} />
+                    </>
+                  )}
+                  {shareholder.shareAllocation && (
+                    <>
+                      <DataField label="Shares" value={shareholder.shareAllocation.numberOfShare || "N/A"} />
+                      <DataField label="Share Class" value={shareholder.shareAllocation.classOfShare || "N/A"} />
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </DetailCard>
+      )}
+
+      {/* Objects */}
+      {(entity.mainObjects || entity.ancillaryObjects) && (
+        <DetailCard title="Objects of Memorandum" icon={<FileText className="w-5 h-5 text-green-600" />}>
+          <div className="space-y-4">
+            {entity.mainObjects && <DataField label="Main Objects" value={entity.mainObjects} />}
+            {entity.ancillaryObjects && <DataField label="Ancillary Objects" value={entity.ancillaryObjects} />}
+            <DataField label="General Object Clause" value={entity.acceptGeneralObjectClause ? "Accepted" : "Not Accepted"} />
+          </div>
+        </DetailCard>
+      )}
     </>
   )
 }
@@ -238,14 +286,14 @@ function DataField({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wider">{label}</p>
-      <p className="text-sm font-medium text-gray-800 italic">{value}</p>
+      <p className="text-sm font-medium text-gray-800">{value}</p>
     </div>
   );
 }
 
 function DetailCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <Card className="border-gray-200">
+    <Card className="border-gray-200 mb-6">
       <CardHeader className="flex flex-row items-center gap-2 border-b bg-gray-50/30 py-4">
         {icon}
         <CardTitle className="text-base font-bold text-gray-700">{title}</CardTitle>
@@ -280,8 +328,8 @@ function ActionDialog({
 }) {
   const config = {
     approve: { label: "Approve", btnClass: "bg-green-700 hover:bg-green-800", title: "Approve Entity Account", confirm: "Approve" },
-    query: { label: "Query", btnClass: "bg-orange-600 hover:bg-orange-700", title: "Query Entity Request", confirm: "Confirm" },
-    reject: { label: "Reject", btnClass: "bg-red-600 hover:bg-red-700", title: "Reject Application", confirm: "Confirm" },
+    query: { label: "Query", btnClass: "bg-orange-600 hover:bg-orange-700", title: "Query Entity Request", confirm: "Send Query" },
+    reject: { label: "Reject", btnClass: "bg-red-600 hover:bg-red-700", title: "Reject Application", confirm: "Reject" },
   };
 
   const current = config[type];
@@ -299,7 +347,7 @@ function ActionDialog({
         <div className="py-4">
           {type === "query" ? (
             <div className="space-y-4">
-              <p className="text-sm text-gray-500">Enter your query message for "{entityName}"?</p>
+              <p className="text-sm text-gray-500">Enter your query message for "{entityName}"</p>
               <Textarea
                 placeholder="Enter your query message..."
                 className="min-h-[120px]"

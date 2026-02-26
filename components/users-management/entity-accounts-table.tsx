@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  Lock,
   Users,
   CheckCircle2,
   XCircle,
@@ -38,7 +37,7 @@ import { format } from "date-fns"
 export function EntityAccountComponent() {
   const router = useRouter()
   const [entities, setEntities] = useState<EntityAccount[]>([])
-  const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, suspended: 0, pending: 0 })
+  const [stats, setStats] = useState({ totalApplications: 0, approved: 0, pending: 0, rejected: 0, underReview: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState<string[]>([])
@@ -55,7 +54,8 @@ export function EntityAccountComponent() {
   const fetchEntities = async () => {
     setIsLoading(true)
     try {
-      const statusFilter = activeTab === "accounts" ? "active" : "pending"
+      // Map UI tabs to API status values
+      const statusFilter = activeTab === "accounts" ? "APPROVED" : "PENDING_REVIEW"
 
       const response = await entityAccountsAPI.getEntityAccounts(
         currentPage,
@@ -82,22 +82,19 @@ export function EntityAccountComponent() {
     }
   }
 
-  // Filter entities - API already filters by status
   const tabFilteredEntities = entities
 
   const filteredEntities = tabFilteredEntities.filter((entity) => {
-    const fullName = `${entity.firstName || ''} ${entity.lastName || ''}`.toLowerCase()
-    const orgName = (entity.organizationName || '').toLowerCase()
-    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) ||
+    const companyName = (entity.companyName || '').toLowerCase()
+    const matchesSearch = companyName.includes(searchQuery.toLowerCase()) ||
       entity.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      orgName.includes(searchQuery.toLowerCase())
+      (entity.rcNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
 
     const matchesFilter = activeFilters.length === 0 ||
-      (activeFilters.includes("Active") && entity.isActive) ||
-      (activeFilters.includes("Approved") && entity.accountStatus === "active") ||
-      (activeFilters.includes("Suspended") && !entity.isActive) ||
-      (activeFilters.includes("Pending") && entity.accountStatus === "pending") ||
-      (activeFilters.includes("Declined") && entity.accountStatus === "declined")
+      (activeFilters.includes("Approved") && entity.registrationStatus === "APPROVED") ||
+      (activeFilters.includes("Pending") && entity.registrationStatus === "PENDING_REVIEW") ||
+      (activeFilters.includes("Rejected") && entity.registrationStatus === "REJECTED") ||
+      (activeFilters.includes("Draft") && entity.registrationStatus === "DRAFT")
 
     return matchesSearch && matchesFilter
   })
@@ -112,6 +109,16 @@ export function EntityAccountComponent() {
     }
   }
 
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, { label: string; className: string }> = {
+      "APPROVED": { label: "Approved", className: "bg-emerald-100 text-emerald-700" },
+      "PENDING_REVIEW": { label: "Pending Review", className: "bg-amber-100 text-amber-700" },
+      "REJECTED": { label: "Rejected", className: "bg-rose-100 text-rose-700" },
+      "DRAFT": { label: "Draft", className: "bg-gray-100 text-gray-700" }
+    }
+    return statusMap[status] || { label: status, className: "bg-gray-100 text-gray-700" }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -124,17 +131,17 @@ export function EntityAccountComponent() {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Entities" value={stats.total} icon={<Users className="h-6 w-6" />} />
-        <StatCard title="Entity Accounts" value={stats.active + stats.inactive} icon={<CheckCircle2 className="h-6 w-6" />} color="emerald" />
-        <StatCard title="Applications" value={stats.pending} icon={<XCircle className="h-6 w-6" />} color="rose" />
-        <StatCard title="Suspended" value={stats.suspended} icon={<Users className="h-6 w-6" />} />
+        <StatCard title="Total Applications" value={stats.totalApplications} icon={<Users className="h-6 w-6" />} />
+        <StatCard title="Approved" value={stats.approved} icon={<CheckCircle2 className="h-6 w-6" />} color="emerald" />
+        <StatCard title="Pending" value={stats.pending} icon={<XCircle className="h-6 w-6" />} color="amber" />
+        <StatCard title="Rejected" value={stats.rejected} icon={<Users className="h-6 w-6" />} color="rose" />
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value as any); setCurrentPage(1); }} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
           <TabsTrigger value="accounts" className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            Entity Accounts ({stats.active + stats.inactive})
+            Entity Accounts ({stats.approved})
           </TabsTrigger>
           <TabsTrigger value="applications" className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">
             Applications ({stats.pending})
@@ -155,7 +162,7 @@ export function EntityAccountComponent() {
                 <div className="relative w-full sm:w-1/3">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
-                    placeholder="Search by name, email or organization..."
+                    placeholder="Search by company name, email or RC number..."
                     value={searchQuery}
                     onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                     className="pl-9"
@@ -170,9 +177,10 @@ export function EntityAccountComponent() {
                 <TableHeader className="bg-gray-50">
                   <TableRow>
                     <TableHead className="w-[50px]">S/N</TableHead>
-                    <TableHead>Entity ID</TableHead>
-                    <TableHead>Organization Name</TableHead>
-                    <TableHead>Contact Person</TableHead>
+                    <TableHead>RC Number</TableHead>
+                    <TableHead>Company Name</TableHead>
+                    <TableHead>Registration Type</TableHead>
+                    <TableHead>Company Type</TableHead>
                     <TableHead>Email Address</TableHead>
                     <TableHead>Created At</TableHead>
                     <TableHead>Status</TableHead>
@@ -180,56 +188,42 @@ export function EntityAccountComponent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedEntities.map((entity, index) => (
-                    <TableRow key={entity.id}>
-                      <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
-                      <TableCell>{entity.staffId || "N/A"}</TableCell>
-                      <TableCell className="font-medium text-gray-900">
-                        {entity.organizationName || "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-orange-700 flex items-center justify-center text-xs text-white font-medium">
-                            {entity.firstName?.[0] || entity.email[0].toUpperCase()}
-                            {entity.lastName?.[0] || ''}
-                          </div>
-                          <span className="font-medium text-gray-900">
-                            {entity.firstName && entity.lastName
-                              ? `${entity.firstName} ${entity.lastName}`
-                              : entity.email}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-gray-600">{entity.email}</TableCell>
-                      <TableCell className="text-gray-600">{formatDate(entity.createdAt)}</TableCell>
-                      <TableCell>
-                        <Badge className={entity.accountStatus === "active" ? "bg-emerald-100 text-emerald-700" : entity.accountStatus === "pending" ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700"}>
-                          {entity.accountStatus === "active" ? "Active" : entity.accountStatus === "pending" ? "Pending" : "Declined"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => router.push(`/users-management/${entity.id}/details?userType=${entity.accountStatus === "active" ? 'entity-approved' : 'entity-requests'}&tab=entity-accounts`)}
-                              className="gap-2"
-                            >
-                              <Eye className="h-4 w-4" /> View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => router.push(`/users-management/${entity.id}/password-reset?tab=entity-accounts`)}
-                              className="gap-2"
-                            >
-                              <Lock className="h-4 w-4" /> Reset Password
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {paginatedEntities.map((entity, index) => {
+                    const statusBadge = getStatusBadge(entity.registrationStatus)
+                    return (
+                      <TableRow key={entity.id}>
+                        <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                        <TableCell className="font-medium">{entity.rcNumber || "N/A"}</TableCell>
+                        <TableCell className="font-medium text-gray-900">
+                          {entity.companyName}
+                        </TableCell>
+                        <TableCell className="text-gray-600">{entity.registrationType}</TableCell>
+                        <TableCell className="text-gray-600">{entity.companyType}</TableCell>
+                        <TableCell className="text-gray-600">{entity.email}</TableCell>
+                        <TableCell className="text-gray-600">{formatDate(entity.createdAt)}</TableCell>
+                        <TableCell>
+                          <Badge className={statusBadge.className}>
+                            {statusBadge.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => router.push(`/users-management/${entity.id}/details?userType=${entity.registrationStatus === "APPROVED" ? 'entity-approved' : 'entity-requests'}&tab=entity-accounts`)}
+                                className="gap-2"
+                              >
+                                <Eye className="h-4 w-4" /> View Details
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
 
@@ -293,10 +287,9 @@ function FilterDropdown({ activeFilters, setActiveFilters, activeTab }: any) {
     setActiveFilters((prev: string[]) => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
   }
 
-  // Determine filter options based on active tab
   const filterOptions = activeTab === "accounts"
-    ? ["Active", "Approved", "Suspended", "Inactive"]
-    : ["Pending", "Declined"];
+    ? ["Approved", "Draft"]
+    : ["Pending", "Rejected"];
 
   return (
     <DropdownMenu>
