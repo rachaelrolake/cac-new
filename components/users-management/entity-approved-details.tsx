@@ -28,7 +28,7 @@ export default function ApprovedEntityDetails() {
       toast.error("Failed to load entity details", {
         description: error.response?.data?.message || "Please try again"
       })
-      router.back()
+      // router.back()
     } finally {
       setIsLoading(false)
     }

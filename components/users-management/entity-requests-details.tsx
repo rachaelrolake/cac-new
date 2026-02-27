@@ -42,7 +42,7 @@ export default function RequestsEntityDetails() {
       toast.error("Failed to load entity details", {
         description: error.response?.data?.message || "Please try again"
       })
-      router.back()
+      // router.back()
     } finally {
       setIsLoading(false)
     }

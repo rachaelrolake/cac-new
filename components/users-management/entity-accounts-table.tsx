@@ -44,23 +44,21 @@ export function EntityAccountComponent() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [activeTab, setActiveTab] = useState<"accounts" | "applications">("accounts")
-  const itemsPerPage = 20
+  const itemsPerPage = 30
 
   useEffect(() => {
     fetchEntities()
     fetchStats()
-  }, [currentPage, activeTab])
+  }, [currentPage]) // Removed activeTab - we filter client-side now
 
   const fetchEntities = async () => {
     setIsLoading(true)
     try {
-      // Map UI tabs to API status values
-      const statusFilter = activeTab === "accounts" ? "APPROVED" : "PENDING_REVIEW"
-
+      // Fetch all entities without status filter, let client-side handle filtering
       const response = await entityAccountsAPI.getEntityAccounts(
         currentPage,
-        itemsPerPage,
-        statusFilter
+        itemsPerPage
+        // No status filter - we'll filter client-side
       )
       setEntities(response.data)
       setTotalPages(response.totalPages)
@@ -82,7 +80,10 @@ export function EntityAccountComponent() {
     }
   }
 
-  const tabFilteredEntities = entities
+  // Filter by tab: Accounts = APPROVED only, Applications = everything else
+  const tabFilteredEntities = activeTab === "accounts" 
+    ? entities.filter(e => e.registrationStatus === "APPROVED")
+    : entities.filter(e => e.registrationStatus !== "APPROVED")
 
   const filteredEntities = tabFilteredEntities.filter((entity) => {
     const companyName = (entity.companyName || '').toLowerCase()
@@ -92,9 +93,11 @@ export function EntityAccountComponent() {
 
     const matchesFilter = activeFilters.length === 0 ||
       (activeFilters.includes("Approved") && entity.registrationStatus === "APPROVED") ||
-      (activeFilters.includes("Pending") && entity.registrationStatus === "PENDING_REVIEW") ||
-      (activeFilters.includes("Rejected") && entity.registrationStatus === "REJECTED") ||
-      (activeFilters.includes("Draft") && entity.registrationStatus === "DRAFT")
+      (activeFilters.includes("Pending Review") && entity.registrationStatus === "PENDING_REVIEW") ||
+      (activeFilters.includes("Pending Physical Submission") && entity.registrationStatus === "PENDING_PHYSICAL_SUBMISSION") ||
+      (activeFilters.includes("Pending Verification") && entity.registrationStatus === "PENDING_VERIFICATION") ||
+      (activeFilters.includes("Draft") && entity.registrationStatus === "DRAFT") ||
+      (activeFilters.includes("Rejected") && entity.registrationStatus === "REJECTED")
 
     return matchesSearch && matchesFilter
   })
@@ -113,6 +116,8 @@ export function EntityAccountComponent() {
     const statusMap: Record<string, { label: string; className: string }> = {
       "APPROVED": { label: "Approved", className: "bg-emerald-100 text-emerald-700" },
       "PENDING_REVIEW": { label: "Pending Review", className: "bg-amber-100 text-amber-700" },
+      "PENDING_PHYSICAL_SUBMISSION": { label: "Pending Physical", className: "bg-blue-100 text-blue-700" },
+      "PENDING_VERIFICATION": { label: "Pending Verification", className: "bg-purple-100 text-purple-700" },
       "REJECTED": { label: "Rejected", className: "bg-rose-100 text-rose-700" },
       "DRAFT": { label: "Draft", className: "bg-gray-100 text-gray-700" }
     }
@@ -144,7 +149,7 @@ export function EntityAccountComponent() {
             Entity Accounts ({stats.approved})
           </TabsTrigger>
           <TabsTrigger value="applications" className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            Applications ({stats.pending})
+            Applications ({stats.pending + stats.rejected + stats.underReview})
           </TabsTrigger>
         </TabsList>
 
@@ -288,15 +293,15 @@ function FilterDropdown({ activeFilters, setActiveFilters, activeTab }: any) {
   }
 
   const filterOptions = activeTab === "accounts"
-    ? ["Approved", "Draft"]
-    : ["Pending", "Rejected"];
+    ? ["Approved"]
+    : ["Pending Review", "Pending Physical Submission", "Pending Verification", "Draft", "Rejected"];
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2"><Filter className="h-3 w-3" /> Filters</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent align="end" className="w-56">
         {filterOptions.map(status => (
           <div key={status} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer" onClick={() => toggle(status)}>
             <input type="checkbox" checked={activeFilters.includes(status)} readOnly />
