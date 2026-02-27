@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import { useRouter } from 'next/navigation';
 import { authStorage, type User } from '@/lib/auth-storage';
 import { authAPI, type LoginCredentials } from '@/lib/api/auth';
+import { TokenExpiryMonitor } from '@/components/auth/token-expiry-monitor';
 
 interface AuthContextType {
   user: User | null;
@@ -25,9 +26,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const loadUser = () => {
       const storedUser = authStorage.getUser();
       const token = authStorage.getToken();
-
+      
+      // Check if token is expired
       if (storedUser && token) {
-        setUser(storedUser);
+        if (authStorage.isTokenExpired()) {
+          // Token expired - clear auth and don't set user
+          console.log('[AuthContext] Token expired on load - clearing auth');
+          authStorage.clearAuth();
+          setUser(null);
+        } else {
+          setUser(storedUser);
+        }
       }
       setIsLoading(false);
     };
@@ -38,14 +47,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (credentials: LoginCredentials) => {
     try {
       const response = await authAPI.login(credentials);
-
+      
       // Store tokens and user data
       authStorage.setToken(response.accessToken);
       authStorage.setRefreshToken(response.refreshToken);
       authStorage.setUser(response.user);
-
+      
+      // Store token expiry for automatic logout
+      authStorage.setTokenExpiry(response.expiresIn);
+      
       // Update state
       setUser(response.user);
+      
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (error) {
@@ -58,15 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     // Clear storage
     authStorage.clearAuth();
-
+    
     // Clear state
     setUser(null);
-
+    
     // Call logout API (optional, for server-side cleanup)
     authAPI.logout().catch(() => {
       // Ignore errors on logout
     });
-
+    
     // Redirect to login
     router.push('/auth/login');
   };
@@ -79,7 +92,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      <TokenExpiryMonitor />
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

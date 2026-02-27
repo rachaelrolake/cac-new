@@ -15,6 +15,19 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = authStorage.getToken();
+
+    // Check if token is expired before making request
+    if (token && authStorage.isTokenExpired()) {
+      console.log('[API Client] Token expired - clearing auth and redirecting');
+      authStorage.clearAuth();
+
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/login';
+      }
+
+      return Promise.reject(new Error('Token expired'));
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -32,7 +45,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token expired or invalid
       authStorage.clearAuth();
-      
+
       // Redirect to login if we're in the browser
       if (typeof window !== 'undefined') {
         window.location.href = '/auth/login';
