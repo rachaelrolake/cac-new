@@ -37,7 +37,12 @@ import { format } from "date-fns"
 export function EntityAccountComponent() {
   const router = useRouter()
   const [entities, setEntities] = useState<EntityAccount[]>([])
-  const [stats, setStats] = useState({ totalApplications: 0, approved: 0, pending: 0, rejected: 0, underReview: 0 })
+  const [stats, setStats] = useState({ 
+    totalApplications: 0, 
+    byEntityType: { companies: 0, llps: 0, lps: 0 },
+    byStatus: { approved: 0, pending: 0, rejected: 0, underReview: 0 }
+  })
+  const [entityTypeFilter, setEntityTypeFilter] = useState<string>("ALL")
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState<string[]>([])
@@ -49,7 +54,7 @@ export function EntityAccountComponent() {
   useEffect(() => {
     fetchEntities()
     fetchStats()
-  }, [currentPage]) // Removed activeTab - we filter client-side now
+  }, [currentPage, entityTypeFilter]) // Refetch when page or entity type filter changes
 
   const fetchEntities = async () => {
     setIsLoading(true)
@@ -57,8 +62,9 @@ export function EntityAccountComponent() {
       // Fetch all entities without status filter, let client-side handle filtering
       const response = await entityAccountsAPI.getEntityAccounts(
         currentPage,
-        itemsPerPage
-        // No status filter - we'll filter client-side
+        itemsPerPage,
+        undefined, // No status filter
+        entityTypeFilter !== "ALL" ? entityTypeFilter : undefined // Entity type filter
       )
       setEntities(response.data)
       setTotalPages(response.totalPages)
@@ -137,19 +143,19 @@ export function EntityAccountComponent() {
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Applications" value={stats.totalApplications} icon={<Users className="h-6 w-6" />} />
-        <StatCard title="Approved" value={stats.approved} icon={<CheckCircle2 className="h-6 w-6" />} color="emerald" />
-        <StatCard title="Pending" value={stats.pending} icon={<XCircle className="h-6 w-6" />} color="amber" />
-        <StatCard title="Rejected" value={stats.rejected} icon={<Users className="h-6 w-6" />} color="rose" />
+        <StatCard title="Approved" value={stats.byStatus.approved} icon={<CheckCircle2 className="h-6 w-6" />} color="emerald" />
+        <StatCard title="Pending" value={stats.byStatus.pending} icon={<XCircle className="h-6 w-6" />} color="amber" />
+        <StatCard title="Rejected" value={stats.byStatus.rejected} icon={<Users className="h-6 w-6" />} color="rose" />
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value as any); setCurrentPage(1); }} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
           <TabsTrigger value="accounts" className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            Entity Accounts ({stats.approved})
+            Entity Accounts ({stats.byStatus.approved})
           </TabsTrigger>
           <TabsTrigger value="applications" className="data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-            Applications ({stats.pending + stats.rejected + stats.underReview})
+            Applications ({stats.byStatus.pending + stats.byStatus.rejected + stats.byStatus.underReview})
           </TabsTrigger>
         </TabsList>
 
@@ -164,13 +170,20 @@ export function EntityAccountComponent() {
               </div>
 
               <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <div className="relative w-full sm:w-1/3">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    placeholder="Search by company name, email or RC number..."
-                    value={searchQuery}
-                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                    className="pl-9"
+                <div className="flex gap-3 w-full sm:w-2/3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Input
+                      placeholder="Search by company name, email or RC number..."
+                      value={searchQuery}
+                      onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                      className="pl-9"
+                    />
+                  </div>
+                  <EntityTypeFilter 
+                    entityTypeFilter={entityTypeFilter} 
+                    setEntityTypeFilter={setEntityTypeFilter}
+                    setCurrentPage={setCurrentPage}
                   />
                 </div>
                 <FilterDropdown activeFilters={activeFilters} setActiveFilters={setActiveFilters} activeTab={activeTab} />
@@ -218,7 +231,7 @@ export function EntityAccountComponent() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
-                                onClick={() => router.push(`/users-management/${entity.id}/details?userType=${entity.registrationStatus === "APPROVED" ? 'entity-approved' : 'entity-requests'}&tab=entity-accounts`)}
+                                onClick={() => router.push(`/users-management/${entity.id}/details?userType=${entity.registrationStatus === "APPROVED" ? 'entity-approved' : 'entity-requests'}&tab=entity-accounts&entityType=${entity.entityType}`)}
                                 className="gap-2"
                               >
                                 <Eye className="h-4 w-4" /> View Details
@@ -285,6 +298,45 @@ function ExportButton() {
       </DropdownMenuContent>
     </DropdownMenu>
   )
+}
+
+function EntityTypeFilter({ entityTypeFilter, setEntityTypeFilter, setCurrentPage }: any) {
+  const handleChange = (value: string) => {
+    setEntityTypeFilter(value);
+    setCurrentPage(1);
+  };
+
+  const getLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      "ALL": "All Types",
+      "COMPANY": "Companies",
+      "LLP": "LLPs",
+      "LP": "LPs"
+    };
+    return labels[type] || "All Types";
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2 min-w-[140px] justify-between">
+          {getLabel(entityTypeFilter)}
+          <ChevronRight className="h-3 w-3 rotate-90" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40">
+        {["ALL", "COMPANY", "LLP", "LP"].map(type => (
+          <DropdownMenuItem 
+            key={type} 
+            onClick={() => handleChange(type)}
+            className={entityTypeFilter === type ? "bg-emerald-50 text-emerald-700" : ""}
+          >
+            {getLabel(type)}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
 
 function FilterDropdown({ activeFilters, setActiveFilters, activeTab }: any) {

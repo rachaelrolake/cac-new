@@ -20,6 +20,7 @@ export default function UserDetailsClientsPage() {
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") // Get the tab param
   const userType = searchParams.get('userType');
+  const entitiyType = searchParams.get('entityType');
 
   const handleBack = () => {
     // Preserve the tab param when going back
@@ -71,11 +72,11 @@ export default function UserDetailsClientsPage() {
         )}
 
         {userType === 'entity-approved' && (
-          <ApprovedEntityDetails />
+          <ApprovedEntityDetails entityType={entitiyType} />
         )}
 
         {userType === 'entity-requests' && (
-          <RequestsEntityDetails />
+          <RequestsEntityDetails entityType={entitiyType} />
         )}
       </div>
     </div>

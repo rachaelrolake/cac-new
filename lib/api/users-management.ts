@@ -328,6 +328,9 @@ export interface EntityAccount {
   trackingCode: string | null;
   supportingDocuments: any | null;
   isManualSubmission: boolean;
+  registeredOfficeAddress: any | null;
+  headOfficeAddress: any | null;
+  entityType: string
 }
 
 export interface EntityAccountsListResponse {
@@ -340,10 +343,17 @@ export interface EntityAccountsListResponse {
 
 export interface EntityAccountsStats {
   totalApplications: number;
-  approved: number;
-  pending: number;
-  rejected: number;
-  underReview: number;
+  byEntityType: {
+    companies: number;
+    llps: number;
+    lps: number;
+  };
+  byStatus: {
+    approved: number;
+    pending: number;
+    rejected: number;
+    underReview: number;
+  };
 }
 
 export interface DeclineEntityPayload {
@@ -358,16 +368,24 @@ class EntityAccountsAPI {
   async getEntityAccounts(
     page: number = 1, 
     limit: number = 20,
-    status?: string
+    status?: string,
+    type?: string
   ): Promise<EntityAccountsListResponse> {
     const response = await apiClient.get('/admin/entities', {
-      params: { page, limit, ...(status && { status }) }
+      params: { 
+        page, 
+        limit, 
+        ...(status && { status }),
+        ...(type && { type })
+      }
     });
     return response.data;
   }
 
-  async getEntityAccountById(id: string): Promise<EntityAccount> {
-    const response = await apiClient.get(`/admin/entities/${id}`);
+  async getEntityAccountById(id: string, type: string): Promise<EntityAccount> {
+    const response = await apiClient.get(`/admin/entities/${id}`, {
+      params: { type }
+    });
     return response.data;
   }
 
