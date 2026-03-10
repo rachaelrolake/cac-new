@@ -27,8 +27,11 @@ const createUserSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   staffId: z.string().optional(),
-  phoneNumber: z.string().optional(),
+  phoneNumber: z.string().min(1, "Phone number is required"),
   organizationName: z.string().optional(),
+  designation: z.string().min(1, "Designation is required"),
+  office: z.string().min(1, "Office is required"),
+  department: z.string().min(1, "Department is required")
 })
 
 type CreateUserFormData = z.infer<typeof createUserSchema>
@@ -99,19 +102,141 @@ export default function AddUserPage() {
               </CardHeader>
 
               <CardContent className="pt-6 space-y-6">
-                {/* Email */}
+                {/* First Name and Last Name */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name *</Label>
+                    <Input
+                      id="firstName"
+                      {...register("firstName")}
+                      placeholder="Enter first name"
+                      disabled={isSubmitting}
+                    />
+                    {errors.firstName && (
+                      <p className="text-xs text-red-600">{errors.firstName.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Input
+                      id="lastName"
+                      {...register("lastName")}
+                      placeholder="Enter last name"
+                      disabled={isSubmitting}
+                    />
+                    {errors.lastName && (
+                      <p className="text-xs text-red-600">{errors.lastName.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Email and Phone Number */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      {...register("email")}
+                      placeholder="user@example.com"
+                      disabled={isSubmitting}
+                    />
+                    {errors.email && (
+                      <p className="text-xs text-red-600">{errors.email.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber">Phone Number *</Label>
+                    <Input
+                      id="phoneNumber"
+                      {...register("phoneNumber")}
+                      placeholder="+234..."
+                      disabled={isSubmitting}
+                    />
+                    {errors.phoneNumber && (
+                      <p className="text-xs text-red-600">{errors.phoneNumber.message}</p>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Staff ID and Phone Number */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="staffId">Staff ID (Optional)</Label>
+                    <Input
+                      id="staffId"
+                      {...register("staffId")}
+                      placeholder="CAC-2024-001"
+                      disabled={isSubmitting}
+                    />
+                    {errors.staffId && (
+                      <p className="text-xs text-red-600">{errors.staffId.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="designation">Designation *</Label>
+                    <Input
+                      id="designation"
+                      {...register("designation")}
+                      placeholder="Enter designation"
+                      disabled={isSubmitting}
+                    />
+                    {errors.designation && (
+                      <p className="text-xs text-red-600">{errors.designation.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Organization Name
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address *</Label>
+                  <Label htmlFor="organizationName">Organization Name (Optional)</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    {...register("email")}
-                    placeholder="user@example.com"
+                    id="organizationName"
+                    {...register("organizationName")}
+                    placeholder="Enter organization name"
                     disabled={isSubmitting}
                   />
-                  {errors.email && (
-                    <p className="text-xs text-red-600">{errors.email.message}</p>
+                  {errors.organizationName && (
+                    <p className="text-xs text-red-600">{errors.organizationName.message}</p>
                   )}
+                </div> */}
+
+                {/* Office and Department */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="office">Office *</Label>
+                    <select
+                      id="office"
+                      {...register("office")}
+                      disabled={isSubmitting}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">Select office</option>
+                      <option value="Head Office">Head Office</option>
+                      <option value="Branch A">Branch A</option>
+                      <option value="Branch B">Branch B</option>
+                    </select>
+                    {errors.office && (
+                      <p className="text-xs text-red-600">{errors.office.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="department">Department *</Label>
+                    <Input
+                      id="department"
+                      {...register("department")}
+                      placeholder="Enter department"
+                      disabled={isSubmitting}
+                    />
+                    {errors.department && (
+                      <p className="text-xs text-red-600">{errors.department.message}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Password */}
@@ -132,75 +257,7 @@ export default function AddUserPage() {
                   </p>
                 </div>
 
-                {/* First Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name *</Label>
-                  <Input
-                    id="firstName"
-                    {...register("firstName")}
-                    placeholder="Enter first name"
-                    disabled={isSubmitting}
-                  />
-                  {errors.firstName && (
-                    <p className="text-xs text-red-600">{errors.firstName.message}</p>
-                  )}
-                </div>
 
-                {/* Last Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name *</Label>
-                  <Input
-                    id="lastName"
-                    {...register("lastName")}
-                    placeholder="Enter last name"
-                    disabled={isSubmitting}
-                  />
-                  {errors.lastName && (
-                    <p className="text-xs text-red-600">{errors.lastName.message}</p>
-                  )}
-                </div>
-
-                {/* Staff ID */}
-                <div className="space-y-2">
-                  <Label htmlFor="staffId">Staff ID (Optional)</Label>
-                  <Input
-                    id="staffId"
-                    {...register("staffId")}
-                    placeholder="CAC-2024-001"
-                    disabled={isSubmitting}
-                  />
-                  {errors.staffId && (
-                    <p className="text-xs text-red-600">{errors.staffId.message}</p>
-                  )}
-                </div>
-
-                {/* Phone Number */}
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
-                  <Input
-                    id="phoneNumber"
-                    {...register("phoneNumber")}
-                    placeholder="+234..."
-                    disabled={isSubmitting}
-                  />
-                  {errors.phoneNumber && (
-                    <p className="text-xs text-red-600">{errors.phoneNumber.message}</p>
-                  )}
-                </div>
-
-                {/* Organization Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="organizationName">Organization Name (Optional)</Label>
-                  <Input
-                    id="organizationName"
-                    {...register("organizationName")}
-                    placeholder="Enter organization name"
-                    disabled={isSubmitting}
-                  />
-                  {errors.organizationName && (
-                    <p className="text-xs text-red-600">{errors.organizationName.message}</p>
-                  )}
-                </div>
 
                 {/* Info Box */}
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">

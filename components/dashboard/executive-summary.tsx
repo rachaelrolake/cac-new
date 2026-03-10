@@ -16,7 +16,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
-import { TrendingUp, TrendingDown, Search, Calendar, Download, ChevronRight, AlertTriangle, ShieldAlert, Info } from "lucide-react"
+import { TrendingUp, TrendingDown, Search, Calendar, Download, ChevronRight, AlertTriangle, ShieldAlert, Info, CheckCircle2, Clock, MessageSquare, XCircle, Wallet, CreditCard, BarChart3, RefreshCcw } from "lucide-react"
 import {
 
   // Sample data for metrics
@@ -34,6 +34,10 @@ import {
   Scale,
 } from "lucide-react"
 import { SectionHeader } from "../reusables/section-header"
+import { DashboardMetricCard } from "../reusables/dashboard-metric-card"
+import { Progress } from "../ui/progress"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { FinanceCard } from "../reusables/finance-card"
 
 const pendingApprovals = [
   { "label": "Name reservation", "value": 87, "oldest": "4 days" },
@@ -78,72 +82,153 @@ const complianceStatus = [
   }
 ]
 
+const applicationOverview = [
+  { label: "Total", value: "30,790", icon: <ClipboardList className="w-4 h-4" />, color: "bg-slate-50 text-slate-600" },
+  { label: "Approved", value: "19,790", icon: <CheckCircle2 className="w-4 h-4" />, color: "bg-emerald-50 text-emerald-600" },
+  { label: "Pending", value: "834", icon: <Clock className="w-4 h-4" />, color: "bg-amber-50 text-amber-600" },
+  { label: "Queried", value: "412", icon: <MessageSquare className="w-4 h-4" />, color: "bg-orange-50 text-orange-600" },
+  { label: "Rejected", value: "187", icon: <XCircle className="w-4 h-4" />, color: "bg-rose-50 text-rose-600" },
+];
+
+const applicationData = [
+  { name: "Name Reservation", value: 1245 },
+  { name: "Name Requiring Consent", value: 987 },
+  { name: "Registration", value: 876 },
+  { name: "Post Incorporation", value: 734 },
+];
+
+const finanlcialRow: Array<{ title: string; value: string; subValue: string; variant: "green" | "blue" | "yellow" | "purple" | "red"; icon: typeof Wallet; trend?: "up" | "down" }> = [
+  { title: "Total Revenue", value: "₦487.6M", subValue: "+15.2% YoY", variant: "green", icon: Wallet, trend: "up" },
+  { title: "This Month", value: "₦156.2M", subValue: "+6.7% vs last", variant: "blue", icon: CreditCard, trend: "up" },
+  { title: "Today's Revenue", value: "₦12.3M", subValue: "28,456 total txns", variant: "yellow", icon: Wallet },
+  { title: "Avg Transaction", value: "₦17,134", subValue: "26,123 successful", variant: "purple", icon: BarChart3 },
+
+  { title: "Successful", value: "26,123", subValue: "Successful", variant: "green", icon: CheckCircle2 },
+  { title: "Failed", value: "1,478", subValue: "Failed", variant: "red", icon: XCircle },
+  { title: "Pending", value: "855", subValue: "Pending", variant: "yellow", icon: Clock },
+  { title: "Refunded", value: "87", subValue: "Refunded (₦3.5M)", variant: "purple", icon: RefreshCcw },
+];
+
 export function ExecutiveSummary() {
+  const maxVal = 1300; // Normalizing the progress bar length
+
   return (
     <div className="space-y-6">
 
-      {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="py-0">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total</p>
-                <p className="text-sm font-medium text-gray-500">Public Users</p>
-                <p className="mt-2 text-3xl font-bold">10,790</p>
-              </div>
-              <div className="rounded-lg bg-emerald-50 p-3">
-                <Users className="h-6 w-6 text-emerald-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div>
+        <SectionHeader>Users</SectionHeader>
+        {/* Stats Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <DashboardMetricCard
+            label="Total"
+            title="Public Users"
+            value={100790}
+            trend={8}
+            description="this month"
+            icon="users"
+            iconColor="green"
+          />
 
-        <Card className="py-0">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total</p>
-                <p className="text-sm font-medium text-gray-500">Accredited Agents</p>
-                <p className="mt-2 text-3xl font-bold">9,790</p>
-              </div>
-              <div className="rounded-lg bg-purple-50 p-3">
-                <UserCheck className="h-6 w-6 text-purple-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <DashboardMetricCard
+            label="Total"
+            title="Entity Accounts"
+            value={100790}
+            trend={9.5}
+            description="this month"
+            icon="building"
+            iconColor="yellow"
+          />
 
-        <Card className="py-0">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total</p>
-                <p className="text-sm font-medium text-gray-500">Entity Accounts</p>
-                <p className="mt-2 text-3xl font-bold">10,790</p>
-              </div>
-              <div className="rounded-lg bg-orange-50 p-3">
-                <Building className="h-6 w-6 text-orange-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <DashboardMetricCard
+            label="Total"
+            title="Accredited Agents"
+            value={9790}
+            trend={12}
+            description="this month"
+            icon="agents"
+            iconColor="purple"
+          />
 
-        <Card className="py-0">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total Insolvency</p>
-                <p className="text-sm font-medium text-gray-500">Practitioners</p>
-                <p className="mt-2 text-3xl font-bold">98</p>
-              </div>
-              <div className="rounded-lg bg-blue-50 p-3">
-                <FileText className="h-6 w-6 text-blue-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <DashboardMetricCard
+            label="Total"
+            title="Insolvency Practitioners"
+            value={98}
+            trend={12}
+            description="this month"
+            icon="agents"
+            iconColor="purple"
+          />
+
+        </div>
       </div>
+
+      {/* Application Overview */}
+      <Card className="border-none shadow-sm">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <SectionHeader>Application Overview</SectionHeader>
+            <div className="flex gap-3 items-center">
+              <Select>
+                <SelectTrigger className="h-8 w-[180px] border">
+                  <SelectValue placeholder="All Month" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="January">January</SelectItem>
+                  <SelectItem value="February">February</SelectItem>
+                  <SelectItem value="March">March</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select>
+                <SelectTrigger className="h-8 w-[180px] border">
+                  <SelectValue placeholder="All Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2026">2026</SelectItem>
+                  <SelectItem value="2025">2025</SelectItem>
+                  <SelectItem value="2024">2024</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+        </CardHeader>
+        <CardContent className="space-y-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {applicationOverview.map((stat) => (
+              <Card key={stat.label} className={`border-none shadow-sm ${stat.color}`}>
+                <CardContent className="flex flex-col items-center justify-center p-6 space-y-2">
+                  <span className="text-3xl font-bold">{stat.value}</span>
+                  <div className="flex items-center gap-1.5 opacity-80">
+                    {stat.icon}
+                    <span className="text-xs font-medium uppercase tracking-wider">{stat.label}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-8 space-y-6">
+            <h3 className="text-sm font-bold text-slate-600">Top Application Types (by volume)</h3>
+            <div className="space-y-4">
+              {applicationData.map((item) => (
+                <div key={item.name} className="flex items-center gap-4">
+                  <span className="w-48 text-sm text-slate-500">{item.name}</span>
+                  <Progress
+                    value={(item.value / maxVal) * 100}
+                    className="h-2.5 bg-slate-100 [&>div]:bg-blue-500"
+                  />
+                  <span className="w-12 text-right text-sm font-bold text-slate-700">
+                    {item.value.toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+
+      </Card>
 
       {/* SECTION: SUMMARIES (Pending & Financial) */}
       <div className="grid grid-cols-1 gap-8">
@@ -170,18 +255,28 @@ export function ExecutiveSummary() {
         {/* Financial Oversight */}
         <Card className="border-none shadow-sm">
           <CardHeader>
-            <SectionHeader>Financial Oversight</SectionHeader>
+            <div className="flex justify-between items-center">
+              <SectionHeader>Financial Oversight</SectionHeader>
+              <Button variant="default" size="lg">
+                Full Transactions
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {financialOversight.map((financially, i) => (
-              <div className={`p-6 bg-[${financially.background}] rounded-xl flex justify-between items-center`} key={i}>
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">{financially.label}</p>
-                  <p className="text-xl font-bold text-[#1B4332]">{financially.value}</p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-gray-400" />
-              </div>
-            ))}
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {finanlcialRow.map((card, i) => (
+                <FinanceCard
+                  key={i}
+                  title={card.title}
+                  value={card.value}
+                  subValue={card.subValue}
+                  variant={card.variant}
+                  icon={card.icon}
+                  trend={card.trend}
+                />
+
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -234,9 +329,9 @@ export function ExecutiveSummary() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* SLA Overview */}
+        {/* Compliance Status Summary */}
         <Card className="p-6">
-          <SectionHeader>SLA Overview</SectionHeader>
+          <SectionHeader>Compliance Status Summary</SectionHeader>
 
           <div className="space-y-4">
             {complianceStatus.map((item, i) => (

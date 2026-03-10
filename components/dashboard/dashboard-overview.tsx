@@ -20,6 +20,8 @@ import {
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "../ui/table"
 import Link from "next/link"
+import { MetricCard } from "./metric-card"
+import { DashboardMetricCard } from "../reusables/dashboard-metric-card"
 
 const mockData = [
   {
@@ -76,87 +78,118 @@ const quickActions = [
   { label: "View Reports", icon: File, bgColor: "bg-purple-100", textColor: "text-purple-700", iconColor: "text-purple-700" },
 ];
 
+const metrics = [
+  {
+    title: "Total Public Users",
+    value: "10,790",
+    icon: "users",
+    iconColor: "green",
+    subtitle: "+8% this month",
+  },
+  {
+    title: "Accredited Agents",
+    value: "9,790",
+    icon: "checkmark",
+    iconColor: "blue",
+    subtitle: "+12% this month",
+  },
+  {
+    title: "Entity Accounts",
+    value: "10,790",
+    icon: "users",
+    iconColor: "orange",
+    subtitle: "+9.5% this month",
+  },
+  {
+    title: "Pending Applications",
+    value: "98",
+    icon: "clock",
+    iconColor: "gray",
+    subtitle: "-8%",
+  },
+]
+
 export function DashboardOverview() {
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
-        <Card className="py-0">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total</p>
-                <p className="text-sm font-medium text-gray-500">Public Users</p>
-                <p className="mt-2 text-3xl font-bold">10,790</p>
-                <div className="mt-2 flex items-center gap-1 text-sm">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <span className="font-medium text-green-600">+8% this month</span>
-                </div>
-              </div>
-              <div className="rounded-lg bg-emerald-50 p-3">
-                <Users className="h-6 w-6 text-emerald-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardMetricCard
+          label="Total"
+          title="Applications"
+          value={30790}
+          trend={5.2}
+          description="this week"
+          icon="file"
+          iconColor="blue"
+        />
 
-        <Card className="py-0">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total</p>
-                <p className="text-sm font-medium text-gray-500">Accredited Agents</p>
-                <p className="mt-2 text-3xl font-bold">9,790</p>
-                <div className="mt-2 flex items-center gap-1 text-sm">
-                  <TrendingDown className="h-4 w-4 text-green-600" />
-                  <span className="font-medium text-green-600">+12% this month</span>
-                </div>
-              </div>
-              <div className="rounded-lg bg-purple-50 p-3">
-                <UserCheck className="h-6 w-6 text-purple-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardMetricCard
+          label="Approved"
+          title="Application"
+          value={19790}
+          description="66.5% of total"
+          icon="file"
+          iconColor="green"
+        />
 
-        <Card className="py-0">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total</p>
-                <p className="text-sm font-medium text-gray-500">Entity Accounts</p>
-                <p className="mt-2 text-3xl font-bold">10,790</p>
-                <div className="mt-2 flex items-center gap-1 text-sm">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <span className="font-medium text-green-600">+9.5% this month</span>
-                </div>
-              </div>
-              <div className="rounded-lg bg-orange-50 p-3">
-                <Building className="h-6 w-6 text-orange-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardMetricCard
+          label="Pending"
+          title="Applications"
+          value={790}
+          description="8.4% of total"
+          icon="file"
+          iconColor="yellow"
+        />
 
-        <Card className="py-0">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Pending</p>
-                <p className="text-sm font-medium text-gray-500">Applications</p>
-                <p className="mt-2 text-3xl font-bold">98</p>
-                <div className="mt-2 flex items-center gap-1 text-sm">
-                  <TrendingDown className="h-4 w-4 text-red-600" />
-                  <span className="font-medium text-red-600">-8%</span>
-                </div>
-              </div>
-              <div className="rounded-lg bg-blue-50 p-3">
-                <FileText className="h-6 w-6 text-blue-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardMetricCard
+          label="Queried"
+          title="Applications"
+          value={98}
+          description="8.4% of total"
+          icon="file"
+          iconColor="orange"
+        />
+
+        <DashboardMetricCard
+          label="Rejected"
+          title="Applications"
+          value={98}
+          description="3.8% of total"
+          icon="file"
+          iconColor="red"
+        />
+
+        <DashboardMetricCard
+          label="Total"
+          title="Public Users"
+          value={100790}
+          trend={8}
+          description="this month"
+          icon="users"
+          iconColor="green"
+        />
+
+        <DashboardMetricCard
+          label="Total"
+          title="Entity Accounts"
+          value={700790}
+          trend={9.5}
+          description="this month"
+          icon="building"
+          iconColor="yellow"
+        />
+
+        <DashboardMetricCard
+          label="Total"
+          title="Accredited Agents"
+          value={7790}
+          trend={12}
+          description="this month"
+          icon="agents"
+          iconColor="purple"
+        />
       </div>
 
       {/* Quick Actions Section */}
@@ -173,7 +206,7 @@ export function DashboardOverview() {
               {/* Assign Case */}
               <button className="flex items-center gap-3 p-6 rounded-xl bg-[#E3F2FD] text-[#1976D2] hover:bg-[#BBDEFB] transition-all cursor-pointer">
                 <PlusSquare className="h-6 w-6" />
-                <span className="font-bold text-sm">Assign Case</span>
+                <span className="font-bold text-sm">Assign Task</span>
               </button>
 
               {/* Send Announcement */}
