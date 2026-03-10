@@ -547,21 +547,52 @@ function LLPSection({ data }: { data: any }) {
 
 function LPSection({ data }: { data: any }) {
   const details = data?.lpDetails
-  const partners = data?.partners?.partnersList ?? []
+  const partners = data?.partners?.partners ?? []
 
   return (
     <>
       {details && (
         <SectionCard icon={Building2} title="LP Details" collapsible>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-            <DetailItem label="Approved Name" value={details.approvedBusinessName} />
-            <DetailItem label="Email" value={details.businessEmail} />
-            <DetailItem label="Phone" value={details.businessPhone ? `+${details.businessPhone.code} ${details.businessPhone.number}` : "N/A"} />
-            <DetailItem label="Registered Address" value={details.registeredAddress} />
-            <DetailItem label="State" value={details.state} />
-            <DetailItem label="LGA" value={details.lga} />
-            <DetailItem label="Principal Activity" value={details.principalBusinessActivity} />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-6">
+            <DetailItem label="Proposed Name 1" value={details.proposedName1} />
+            {details.proposedName2 && <DetailItem label="Proposed Name 2" value={details.proposedName2} />}
+            {details.proposedName3 && <DetailItem label="Proposed Name 3" value={details.proposedName3} />}
+            <DetailItem label="Email" value={details.emailAddress} />
+            <DetailItem label="Phone" value={details.phoneNumber} />
+            <DetailItem label="Classification" value={capitalize(details.classificationOfAssociation?.replace(/_/g, " "))} />
+            <DetailItem label="Principal Activity" value={details.principalActivityOfAssociation} />
+            <DetailItem label="Specific Activity" value={details.specificActivityOfAssociation} />
+            <DetailItem label="Partnership Deed" value={capitalize(details.partnershipDeed?.replace(/_/g, " "))} />
+            {details.descriptionOfActivity && <DetailItem label="Description" value={details.descriptionOfActivity} className="col-span-2 md:col-span-3" />}
           </div>
+
+          {details.principalPlaceOfBusiness && (
+            <>
+              <p className="text-sm font-semibold text-gray-700 mb-4">Principal Place of Business</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-6">
+                <DetailItem label="Street Name" value={details.principalPlaceOfBusiness.streetName} />
+                <DetailItem label="House/Building" value={details.principalPlaceOfBusiness.houseNumberBuildingName} />
+                <DetailItem label="City/Town/Village" value={details.principalPlaceOfBusiness.cityTownVillage} />
+                <DetailItem label="State" value={capitalize(details.principalPlaceOfBusiness.state)} />
+                <DetailItem label="LGA" value={capitalize(details.principalPlaceOfBusiness.lga)} />
+                <DetailItem label="Post Code" value={details.principalPlaceOfBusiness.postCode} />
+              </div>
+            </>
+          )}
+
+          {details.branchAddress && (
+            <>
+              <p className="text-sm font-semibold text-gray-700 mb-4">Branch Address</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <DetailItem label="Street Name" value={details.branchAddress.streetName} />
+                <DetailItem label="House/Building" value={details.branchAddress.houseNumberBuildingName} />
+                <DetailItem label="City/Town/Village" value={details.branchAddress.cityTownVillage} />
+                <DetailItem label="State" value={capitalize(details.branchAddress.state)} />
+                <DetailItem label="LGA" value={capitalize(details.branchAddress.lga)} />
+                <DetailItem label="Post Code" value={details.branchAddress.postCode} />
+              </div>
+            </>
+          )}
         </SectionCard>
       )}
 
@@ -573,20 +604,51 @@ function LPSection({ data }: { data: any }) {
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs font-bold text-emerald-700">Partner {i + 1}</p>
                   {p.partnerType && (
-                    <Badge className={`text-xs ${p.partnerType === "General Partner" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"}`}>
-                      {p.partnerType}
+                    <Badge className={`text-xs ${p.partnerType === "general" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"}`}>
+                      {capitalize(p.partnerType)} Partner
                     </Badge>
                   )}
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                  <DetailItem label="Name" value={`${p.title} ${p.firstName} ${p.surname}`} />
+                  <DetailItem label="Name" value={`${p.firstName} ${p.otherNames || ""} ${p.surname}`.trim()} />
                   <DetailItem label="Email" value={p.email} />
-                  <DetailItem label="Phone" value={p.phone ? `+${p.phone.code} ${p.phone.number}` : "N/A"} />
+                  <DetailItem label="Phone" value={p.phoneNumber} />
+                  <DetailItem label="Gender" value={capitalize(p.gender)} />
+                  <DetailItem label="Date of Birth" value={p.dateOfBirth} />
                   <DetailItem label="Occupation" value={p.occupation} />
-                  <DetailItem label="Nationality" value={p.nationality} />
+                  <DetailItem label="Nationality" value={capitalize(p.nationality)} />
                   <DetailItem label="Identity Type" value={p.identityType} />
                   <DetailItem label="ID Number" value={p.identityNumber} />
+                  <DetailItem label="Contribution Type" value={capitalize(p.contributionType?.replace(/_/g, " "))} />
+                  <DetailItem label="Contribution Value" value={p.contributionValue} />
+                  <DetailItem label="Signature Consent" value={p.signatureConsent ? "Yes" : "No"} />
                 </div>
+                {p.serviceAddress && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-gray-500 mb-2 flex items-center gap-1"><MapPin className="w-3 h-3" /> Service Address</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      <DetailItem label="Street" value={p.serviceAddress.streetName} />
+                      <DetailItem label="House/Building" value={p.serviceAddress.houseNumberBuildingName} />
+                      <DetailItem label="City/Town/Village" value={p.serviceAddress.cityTownVillage} />
+                      <DetailItem label="State" value={capitalize(p.serviceAddress.state)} />
+                      <DetailItem label="LGA" value={capitalize(p.serviceAddress.lga)} />
+                      <DetailItem label="Post Code" value={p.serviceAddress.postCode} />
+                    </div>
+                  </div>
+                )}
+                {p.residentialAddress && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-gray-500 mb-2 flex items-center gap-1"><MapPin className="w-3 h-3" /> Residential Address</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      <DetailItem label="Street" value={p.residentialAddress.streetName} />
+                      <DetailItem label="House/Building" value={p.residentialAddress.houseNumberBuildingName} />
+                      <DetailItem label="City/Town/Village" value={p.residentialAddress.cityTownVillage} />
+                      <DetailItem label="State" value={capitalize(p.residentialAddress.state)} />
+                      <DetailItem label="LGA" value={capitalize(p.residentialAddress.lga)} />
+                      <DetailItem label="Post Code" value={p.residentialAddress.postCode} />
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

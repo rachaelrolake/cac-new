@@ -5,11 +5,13 @@ import DashboardLayout from "@/components/layouts/dashboard/dashboard-layout"
 import { NameReservation } from "@/components/pre-incorporation/name-reservation";
 import { NameRequiringConsent } from "@/components/pre-incorporation/name-requiring-consent";
 import { RegistrationPage } from "@/components/pre-incorporation/registration";
+import { ObjectionPage } from "./objection-page";
 
 const tabConfig = [
   { id: "name-reservation", label: "Name Reservation" },
   { id: "name-requiring-consent", label: "Name Requiring Consent" },
   { id: "registration", label: "Registration" },
+  { id: "objections", label: "Objections" },
 ]
 
 export default function PreIncorporationMainPage() {
@@ -58,6 +60,10 @@ export default function PreIncorporationMainPage() {
 
         {activeTab === "registration" && (
           <RegistrationPage />
+        )}
+
+        {activeTab === "objections" && (
+          <ObjectionPage />
         )}
 
 

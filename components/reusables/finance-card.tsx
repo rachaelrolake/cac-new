@@ -30,7 +30,7 @@ export function FinanceCard({ title, value, subValue, icon: Icon, variant, trend
         </div>
 
         {/* Main Value */}
-        <div className="text-2xl font-bold text-slate-900 tracking-tight mb-1">
+        <div className="text-2xl font-bold text-slate-900 tracking-tight">
           {value}
         </div>
 
