@@ -681,6 +681,7 @@ export default function NameRequiringConsentDetails({ params }: { params: Promis
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeDialog, setActiveDialog] = useState<"approve" | "reject" | "query" | null>(null)
 
+  const [selectedApprovedName, setSelectedApprovedName] = useState("")
   const [approveNotes, setApproveNotes] = useState("")
   const [rejectReason, setRejectReason] = useState("")
   const [rejectMessage, setRejectMessage] = useState("")
@@ -706,6 +707,10 @@ export default function NameRequiringConsentDetails({ params }: { params: Promis
     try {
       const result = await consentApplicationsAPI.getConsentApplicationById(type, id)
       setData(result)
+      // Auto-select the first proposed name as default
+      if (result?.proposedName) {
+        setSelectedApprovedName(result.proposedName)
+      }
     } catch (error: any) {
       toast.error("Failed to load application details", {
         description: error.response?.data?.message || "Please try again"
@@ -717,9 +722,13 @@ export default function NameRequiringConsentDetails({ params }: { params: Promis
   }
 
   const handleApprove = async () => {
+    if (!selectedApprovedName.trim()) {
+      toast.error("Please select a name to approve")
+      return
+    }
     setIsSubmitting(true)
     try {
-      await consentApplicationsAPI.approveConsentApplication(type, id)
+      await consentApplicationsAPI.approveConsentApplication(type, id, { approvedName: selectedApprovedName })
       toast.success("Application approved successfully")
       setActiveDialog(null)
       fetchData()
@@ -781,6 +790,56 @@ export default function NameRequiringConsentDetails({ params }: { params: Promis
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <p className="text-green-700 text-sm"><span className="font-medium">Application:</span> {entityName}</p>
             </div>
+
+            {/* Name Selection */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700">Select Name to Approve *</Label>
+              <div className="space-y-2">
+                {data?.proposedName && (
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="approvedName"
+                      value={data.proposedName}
+                      checked={selectedApprovedName === data.proposedName}
+                      onChange={(e) => setSelectedApprovedName(e.target.value)}
+                      className="w-4 h-4 text-emerald-600"
+                      disabled={isSubmitting}
+                    />
+                    <span className="text-sm font-medium text-gray-900">{data.proposedName}</span>
+                  </label>
+                )}
+                {data?.proposedName2 && (
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="approvedName"
+                      value={data.proposedName2}
+                      checked={selectedApprovedName === data.proposedName2}
+                      onChange={(e) => setSelectedApprovedName(e.target.value)}
+                      className="w-4 h-4 text-emerald-600"
+                      disabled={isSubmitting}
+                    />
+                    <span className="text-sm font-medium text-gray-900">{data.proposedName2}</span>
+                  </label>
+                )}
+                {data?.proposedName3 && (
+                  <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="approvedName"
+                      value={data.proposedName3}
+                      checked={selectedApprovedName === data.proposedName3}
+                      onChange={(e) => setSelectedApprovedName(e.target.value)}
+                      className="w-4 h-4 text-emerald-600"
+                      disabled={isSubmitting}
+                    />
+                    <span className="text-sm font-medium text-gray-900">{data.proposedName3}</span>
+                  </label>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-sm text-gray-500">Approval Notes (Optional)</Label>
               <Textarea value={approveNotes} onChange={(e) => setApproveNotes(e.target.value)} rows={4}

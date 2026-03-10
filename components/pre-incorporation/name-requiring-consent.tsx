@@ -89,23 +89,23 @@ export function NameRequiringConsent() {
     return "company"
   }
 
-  const handleApprove = async () => {
-    if (!selectedItem) return
-    setIsSubmitting(true)
-    try {
-      await consentApplicationsAPI.approveConsentApplication(getEntityType(selectedItem), selectedItem.id)
-      toast.success("Application approved successfully")
-      setActiveDialog(null)
-      fetchApplications()
-      fetchStats()
-    } catch (error: any) {
-      toast.error("Failed to approve application", {
-        description: error.response?.data?.message || "Please try again"
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  // const handleApprove = async () => {
+  //   if (!selectedItem) return
+  //   setIsSubmitting(true)
+  //   try {
+  //     await consentApplicationsAPI.approveConsentApplication(getEntityType(selectedItem), selectedItem.id)
+  //     toast.success("Application approved successfully")
+  //     setActiveDialog(null)
+  //     fetchApplications()
+  //     fetchStats()
+  //   } catch (error: any) {
+  //     toast.error("Failed to approve application", {
+  //       description: error.response?.data?.message || "Please try again"
+  //     })
+  //   } finally {
+  //     setIsSubmitting(false)
+  //   }
+  // }
 
   const handleReject = async () => {
     if (!selectedItem) return
@@ -174,7 +174,7 @@ export function NameRequiringConsent() {
             <DialogClose asChild>
               <Button variant="outline" disabled={isSubmitting}>Cancel</Button>
             </DialogClose>
-            <Button className="bg-green-700 hover:bg-green-800" onClick={handleApprove} disabled={isSubmitting}>
+            <Button className="bg-green-700 hover:bg-green-800" disabled={isSubmitting}>
               {isSubmitting ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Processing...</> : "Approve"}
             </Button>
           </DialogFooter>
@@ -335,9 +335,9 @@ export function NameRequiringConsent() {
                             </DropdownMenuItem>
                             {isPending(app.status) && (
                               <>
-                                <DropdownMenuItem className="gap-2 text-green-800" onClick={() => openDialog("approve", app)}>
+                                {/* <DropdownMenuItem className="gap-2 text-green-800" onClick={() => openDialog("approve", app)}>
                                   <CheckCircle className="text-green-800" /> Approve
-                                </DropdownMenuItem>
+                                </DropdownMenuItem> */}
                                 <DropdownMenuItem className="gap-2 text-red-800" onClick={() => openDialog("reject", app)}>
                                   <X className="text-red-800" /> Reject
                                 </DropdownMenuItem>

@@ -361,20 +361,39 @@ export interface DeclineEntityPayload {
 }
 
 export interface QueryEntityPayload {
-  note: string;
+  queryReason: string;
+}
+
+export interface QueryHistoryItem {
+  id: string;
+  queryNumber: number;
+  queryTitle: string;
+  queryReason: string;
+  status: 'Responded' | 'Pending Response';
+  applicantResponse: string | null;
+  respondedAt: string | null;
+  queriedBy: string;
+  queriedAt: string;
+}
+
+export interface QueryHistoryResponse {
+  totalQueries: number;
+  responded: number;
+  pending: number;
+  data: QueryHistoryItem[];
 }
 
 class EntityAccountsAPI {
   async getEntityAccounts(
-    page: number = 1, 
+    page: number = 1,
     limit: number = 20,
     status?: string,
     type?: string
   ): Promise<EntityAccountsListResponse> {
     const response = await apiClient.get('/admin/entities', {
-      params: { 
-        page, 
-        limit, 
+      params: {
+        page,
+        limit,
         ...(status && { status }),
         ...(type && { type })
       }
@@ -402,14 +421,23 @@ class EntityAccountsAPI {
     await apiClient.patch(`/admin/entities/${id}/decline`, payload);
   }
 
-  async queryEntity(id: string, payload: QueryEntityPayload): Promise<void> {
-    await apiClient.patch(`/admin/entities/${id}/query`, payload);
+  async queryEntity(id: string, type: string, payload: QueryEntityPayload): Promise<void> {
+    await apiClient.patch(`/admin/entities/${id}/query`, payload, {
+      params: { type }
+    });
+  }
+
+  async getEntityQueryHistory(id: string, type: string): Promise<QueryHistoryResponse> {
+    const response = await apiClient.get(`/admin/entities/${id}/query-history`, {
+      params: { type }
+    });
+    return response.data;
   }
 }
 
 class InsolvencyAgentsAPI {
   async getInsolvencyAgents(
-    page: number = 1, 
+    page: number = 1,
     limit: number = 20,
     status?: string
   ): Promise<InsolvencyAgentsListResponse> {
@@ -440,7 +468,7 @@ class InsolvencyAgentsAPI {
 
 class AccreditedAgentsAPI {
   async getAccreditedAgents(
-    page: number = 1, 
+    page: number = 1,
     limit: number = 20,
     status?: string
   ): Promise<AccreditedAgentsListResponse> {

@@ -96,10 +96,15 @@ export default function RequestsEntityDetails({ entityType }: { entityType: stri
 
     setIsSubmitting(true)
     try {
-      await entityAccountsAPI.queryEntity(entityId, { note: queryMessage })
+      await entityAccountsAPI.queryEntity(
+        entityId,
+        entityType || "ALL",
+        { queryReason: queryMessage }
+      )
       toast.success("Query message sent successfully")
       setActionDialog(null)
       setQueryMessage("")
+
     } catch (error: any) {
       toast.error("Failed to send query", {
         description: error.response?.data?.message || "Please try again"
@@ -126,34 +131,46 @@ export default function RequestsEntityDetails({ entityType }: { entityType: stri
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Request Details</h1>
         <div className="flex gap-3">
-          <ActionDialog
-            type="reject"
-            entityName={entity.companyName}
-            isOpen={actionDialog === "reject"}
-            onOpenChange={(open) => setActionDialog(open ? "reject" : null)}
-            onConfirm={handleReject}
-            isLoading={isSubmitting}
-            reason={rejectionReason}
-            onReasonChange={setRejectionReason}
-          />
-          <ActionDialog
-            type="query"
-            entityName={entity.companyName}
-            isOpen={actionDialog === "query"}
-            onOpenChange={(open) => setActionDialog(open ? "query" : null)}
-            onConfirm={handleQuery}
-            isLoading={isSubmitting}
-            message={queryMessage}
-            onMessageChange={setQueryMessage}
-          />
-          <ActionDialog
-            type="approve"
-            entityName={entity.companyName}
-            isOpen={actionDialog === "approve"}
-            onOpenChange={(open) => setActionDialog(open ? "approve" : null)}
-            onConfirm={handleApprove}
-            isLoading={isSubmitting}
-          />
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/users-management/${entityId}/query-history?type=${entity.entityType || 'ALL'}`)}
+            className="border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+          >
+            View Query History
+          </Button>
+          {entity.registrationStatus === "PENDING" && (
+            <>
+              <ActionDialog
+                type="reject"
+                entityName={entity.companyName}
+                isOpen={actionDialog === "reject"}
+                onOpenChange={(open) => setActionDialog(open ? "reject" : null)}
+                onConfirm={handleReject}
+                isLoading={isSubmitting}
+                reason={rejectionReason}
+                onReasonChange={setRejectionReason}
+              />
+              <ActionDialog
+                type="query"
+                entityName={entity.companyName}
+                isOpen={actionDialog === "query"}
+                onOpenChange={(open) => setActionDialog(open ? "query" : null)}
+                onConfirm={handleQuery}
+                isLoading={isSubmitting}
+                message={queryMessage}
+                onMessageChange={setQueryMessage}
+              />
+              <ActionDialog
+                type="approve"
+                entityName={entity.companyName}
+                isOpen={actionDialog === "approve"}
+                onOpenChange={(open) => setActionDialog(open ? "approve" : null)}
+                onConfirm={handleApprove}
+                isLoading={isSubmitting}
+              />
+            </>
+          )}
+
         </div>
       </div>
 

@@ -14,6 +14,7 @@ import { usersAPI } from "@/lib/api/users-management"
 import { toast } from "sonner"
 import { PermissionsSelector } from "@/components/users-management/permissions-selector"
 import { PageHeader } from "@/components/reusables/page-header"
+import { offices } from "@/lib/constants"
 
 const createUserSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
@@ -216,9 +217,11 @@ export default function AddUserPage() {
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="">Select office</option>
-                      <option value="Head Office">Head Office</option>
-                      <option value="Branch A">Branch A</option>
-                      <option value="Branch B">Branch B</option>
+                      {offices.map((office, index) => (
+                        <option key={index} value={office.name}>
+                          {office.name}
+                        </option>
+                      ))}
                     </select>
                     {errors.office && (
                       <p className="text-xs text-red-600">{errors.office.message}</p>
