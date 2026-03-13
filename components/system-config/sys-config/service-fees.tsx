@@ -23,18 +23,11 @@ const tabsConfig = [
 
 export default function ServiceFeesPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const tabFromUrl = searchParams.get("tab") || "companies"
-  const [activeTab, setActiveTab] = React.useState(tabFromUrl)
-
-  // Sync activeTab with URL on mount and URL changes
-  useEffect(() => {
-    setActiveTab(tabFromUrl)
-  }, [tabFromUrl])
+  const [activeTab, setActiveTab] = React.useState("companies")
 
   const handleTabChange = (value: string) => {
     setActiveTab(value)
-    router.push(`/system-config/service-fees?tab=${value}`)
+    router.push(`/system-config/sys-config?pageType=fees`)
   }
 
   return (
