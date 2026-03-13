@@ -1,15 +1,15 @@
 import DashboardLayout from "@/components/layouts/dashboard/dashboard-layout"
-import { TransactionList } from "@/components/transactions/transactions-list"
+import { TransactionPage } from "@/components/transactions/transaction-page"
 
 export const metadata = {
-  title: "Registration Application Review",
-  description: "Review and process Registration applications",
+  title: "Transactions",
+  description: "Manage your transactions",
 }
 
 export default function NameRequiringConsentPage() {
   return (
     <DashboardLayout pageTitle="Transactions" pageSubTitle="Manage your transactions">
-      <TransactionList />
+      <TransactionPage />
     </DashboardLayout>
   )
 }

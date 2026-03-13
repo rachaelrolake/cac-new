@@ -195,7 +195,7 @@ export function ExecutiveSummary() {
         </CardHeader>
         <CardContent className="space-y-4">
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {applicationOverview.map((stat) => (
               <Card key={stat.label} className={`border-none shadow-sm ${stat.color}`}>
                 <CardContent className="flex flex-col items-center justify-center p-6 space-y-2">
@@ -237,7 +237,7 @@ export function ExecutiveSummary() {
           <CardHeader>
             <SectionHeader>Pending Approvals Summary (246)</SectionHeader>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Map through pendingApprovals JSON here */}
             {["Name reservation", "Registrations", "Name Requiring Consent", "Insolvency Filings"].map((item, i) => (
               <div key={i} className="p-4 bg-[#F9FAFB] rounded-xl flex justify-between items-center group cursor-pointer transition-all">
@@ -263,7 +263,7 @@ export function ExecutiveSummary() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {finanlcialRow.map((card, i) => (
                 <FinanceCard
                   key={i}
