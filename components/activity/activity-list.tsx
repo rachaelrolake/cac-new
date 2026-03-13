@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -21,48 +21,78 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search, Filter, Download, Calendar, MoreVertical, ChevronDown } from "lucide-react"
-
-
-const mockLogs = [
-  { id: 1, sn: 1, activityType: "Swift Logistics Nigeria", details: "Auto-approved based on 94% confidence score", timestamp: "2024-12-15 10:45:23", action: "Approved", actor: "AI System" },
-  { id: 2, sn: 2, activityType: "Apex Financial Consultants", details: "Overrode AI recommendation. Reason: Name co", timestamp: "2024-12-15 10:32:11", action: "Override", actor: "Admin User" },
-  { id: 3, sn: 3, activityType: "Threshold Settings", details: "Updated similarity threshold from 25% to 30%", timestamp: "2024-12-15 10:15:45", action: "System Config Change", actor: "Super Admin" },
-  { id: 4, sn: 4, activityType: "Diamond Mining Corporation", details: "Sent for manual review - contains sensitive keyw", timestamp: "2024-12-15 09:58:33", action: "Manual Review", actor: "Review Officer" },
-  { id: 5, sn: 5, activityType: "Sunrise Agriculture Ltd", details: "Manually approved after review", timestamp: "2024-12-15 09:45:12", action: "Rejected", actor: "Review Officer" },
-  { id: 6, sn: 6, activityType: "Change of Directors", details: "Manually approved after review", timestamp: "2024-12-15 09:30:00", action: "Rejected", actor: "Admin User" },
-  { id: 7, sn: 7, activityType: "Annual Return Fillings", details: "Manually approved after review", timestamp: "2024-12-15 09:30:00", action: "Approved", actor: "Review Officer" },
-]
+import { Search, Filter, Download, Calendar, MoreVertical, ChevronDown, Loader2 } from "lucide-react"
+import { dashboardAPI, type ActivityLog } from "@/lib/api/dashboard"
+import { toast } from "sonner"
+import { format } from "date-fns"
 
 export function ActivityList() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [activeCategory, setActiveCategory] = useState("company-name")
+  const [activities, setActivities] = useState<ActivityLog[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [total, setTotal] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
 
+  useEffect(() => {
+    fetchActivities()
+  }, [currentPage])
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "Completed": return "bg-green-50 text-green-700 border-green-200"
-      case "Pending": return "bg-orange-50 text-orange-700 border-orange-200"
-      case "Failed": return "bg-red-50 text-red-700 border-red-200"
-      default: return "bg-gray-100 text-gray-800"
+  const fetchActivities = async () => {
+    setIsLoading(true)
+    try {
+      const response = await dashboardAPI.getActivity(currentPage, 10)
+      setActivities(response.data)
+      setTotal(response.total)
+    } catch (error: any) {
+      toast.error("Failed to load activity logs", {
+        description: error.response?.data?.message || "Please try again"
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const getActionBadge = (action: string) => {
-    switch (action) {
-      case "Approved": return "bg-green-50 text-green-700 border-green-200"
-      case "Rejected": return "bg-red-50 text-red-700 border-red-200"
-      case "Manual Review": return "bg-blue-50 text-blue-700 border-blue-200"
-      case "System Config Change": return "bg-orange-50 text-orange-700 border-orange-200"
-      case "Override": return "bg-gray-50 text-gray-700 border-gray-200"
-      default: return "bg-gray-100 text-gray-600"
+    switch (action.toUpperCase()) {
+      case "APPROVED":
+      case "APPROVE":
+        return "bg-green-50 text-green-700 border-green-200"
+      case "REJECTED":
+      case "REJECT":
+        return "bg-red-50 text-red-700 border-red-200"
+      case "MANUAL REVIEW":
+      case "REVIEW":
+        return "bg-blue-50 text-blue-700 border-blue-200"
+      case "SYSTEM CONFIG CHANGE":
+      case "UPDATE":
+      case "EDIT":
+        return "bg-orange-50 text-orange-700 border-orange-200"
+      case "OVERRIDE":
+        return "bg-gray-50 text-gray-700 border-gray-200"
+      case "LOGIN":
+        return "bg-purple-50 text-purple-700 border-purple-200"
+      case "CREATE":
+        return "bg-blue-50 text-blue-700 border-blue-200"
+      case "DELETE":
+        return "bg-red-50 text-red-700 border-red-200"
+      default:
+        return "bg-gray-100 text-gray-600 border-gray-200"
     }
   }
 
+  const formatTimestamp = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "yyyy-MM-dd HH:mm:ss")
+    } catch {
+      return dateString
+    }
+  }
+
+  const totalPages = Math.ceil(total / 10)
+
   return (
     <div className="space-y-6">
-
       <Card style={{ width: "calc(100vw - 145px)" }}>
         <div className="border-b border-border p-6">
           <div className="flex items-center justify-between">
@@ -93,62 +123,94 @@ export function ActivityList() {
         </div>
 
         <div className="w-full overflow-x-auto p-4">
-          <Table>
-            <TableHeader className="bg-gray-50">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[60px] text-gray-500 font-medium">S/N</TableHead>
-                <TableHead className="text-gray-500 font-medium">Activity Type</TableHead>
-                <TableHead className="text-gray-500 font-medium">Details</TableHead>
-                <TableHead className="text-gray-500 font-medium">Time-stamp</TableHead>
-                <TableHead className="text-gray-500 font-medium">
-                  <div className="flex items-center gap-1">
-                    Actions <ChevronDown className="h-3 w-3" />
-                  </div>
-                </TableHead>
-                <TableHead className="text-gray-500 font-medium">Actor</TableHead>
-                <TableHead className="text-right text-gray-500 font-medium">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockLogs.map((log) => (
-                <TableRow key={log.id} className="hover:bg-gray-50/50 border-b border-gray-50">
-                  <TableCell className="text-gray-600">{log.sn}</TableCell>
-                  <TableCell className="text-gray-600 font-medium">{log.activityType}</TableCell>
-                  <TableCell className="text-gray-500 max-w-[300px] truncate">{log.details}</TableCell>
-                  <TableCell className="text-gray-600">{log.timestamp}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={`${getActionBadge(log.action)} px-3 py-1 font-medium rounded-full border`}>
-                      {log.action}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="bg-gray-100 text-gray-700 px-3 py-1 font-medium rounded-full">
-                      {log.actor}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="hover:bg-transparent">
-                      <MoreVertical className="h-5 w-5 text-gray-400" />
-                    </Button>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-emerald-700" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader className="bg-gray-50">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[60px] text-gray-500 font-medium">S/N</TableHead>
+                  <TableHead className="text-gray-500 font-medium">Activity Type</TableHead>
+                  <TableHead className="text-gray-500 font-medium">Details</TableHead>
+                  <TableHead className="text-gray-500 font-medium">Time-stamp</TableHead>
+                  <TableHead className="text-gray-500 font-medium">
+                    <div className="flex items-center gap-1">
+                      Actions <ChevronDown className="h-3 w-3" />
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-gray-500 font-medium">Actor</TableHead>
+                  <TableHead className="text-right text-gray-500 font-medium">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {activities.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-12 text-gray-500">
+                      No activity logs found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  activities.map((log, index) => (
+                    <TableRow key={log.id} className="hover:bg-gray-50/50 border-b border-gray-50">
+                      <TableCell className="text-gray-600">{(currentPage - 1) * 10 + index + 1}</TableCell>
+                      <TableCell className="text-gray-600 font-medium">{log.entityType}</TableCell>
+                      <TableCell className="text-gray-500 max-w-[300px] truncate">{log.description}</TableCell>
+                      <TableCell className="text-gray-600">{formatTimestamp(log.timestamp)}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`${getActionBadge(log.action)} px-3 py-1 font-medium rounded-full border`}>
+                          {log.action}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="bg-gray-100 text-gray-700 px-3 py-1 font-medium rounded-full">
+                          {log.performedBy}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" className="hover:bg-transparent">
+                          <MoreVertical className="h-5 w-5 text-gray-400" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </div>
 
         <div className="flex items-center justify-between border-t border-border px-6 py-4">
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
             Previous
           </Button>
           <div className="flex gap-2">
-            {[1, 2, 3, "...", 8, 9, 10].map((page, idx) => (
-              <Button key={idx} variant={page === 1 ? "default" : "outline"} size="sm" disabled={page === "..."}>
-                {page}
-              </Button>
-            ))}
+            {[...Array(Math.min(10, totalPages))].map((_, idx) => {
+              const page = idx + 1
+              return (
+                <Button
+                  key={idx}
+                  variant={page === currentPage ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </Button>
+              )
+            })}
           </div>
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
             Next
           </Button>
         </div>
@@ -236,6 +298,7 @@ export function ActivityList() {
               </Button>
               <Button
                 className="bg-green-800 hover:bg-green-900 text-white px-10 h-12"
+                onClick={() => setIsFilterOpen(false)}
               >
                 Save filter
               </Button>

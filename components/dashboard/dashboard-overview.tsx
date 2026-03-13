@@ -1,75 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
-  Users,
-  UserCheck,
-  Building,
   FileText,
-  TrendingUp,
-  TrendingDown,
-  MoreHorizontal,
-  Flag,
-  Eye,
-  Trash2,
   PlusSquare,
   Building2,
   File,
+  Loader2,
 } from "lucide-react"
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "../ui/table"
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from "next/link"
-import { MetricCard } from "./metric-card"
-import { DashboardMetricCard } from "../reusables/dashboard-metric-card"
-
-const mockData = [
-  {
-    applicationId: "NR12345",
-    applicationType: "Name Reservation",
-    avCode: "AV12345",
-    applicant: "Adebayo Johnson",
-    entityName: "Tech Innovation Solutions Ltd",
-    submittedOn: "Sept 17, 2025",
-    status: "Approved"
-  },
-  {
-    applicationId: "RC78901",
-    applicationType: "Company Registration",
-    avCode: "AV12346",
-    applicant: "Chioma Nwosu",
-    entityName: "Green Energy Holdings Ltd",
-    submittedOn: "Sept 16, 2025",
-    status: "Pending"
-  },
-  {
-    applicationId: "AR45678",
-    applicationType: "Annual Return",
-    avCode: "Nil",
-    applicant: "Ibrahim Musa",
-    entityName: "XYZ Enterprises Ltd",
-    submittedOn: "Sept 15, 2025",
-    status: "Pending"
-  },
-  {
-    applicationId: "NR23456",
-    applicationType: "Name Reservation",
-    avCode: "AV12348",
-    applicant: "Funke Akindele",
-    entityName: "Digital Marketing Hub Ltd",
-    submittedOn: "Sept 14, 2025",
-    status: "Pending"
-  },
-  {
-    applicationId: "BN67890",
-    applicationType: "Change of Directors",
-    avCode: "Nil",
-    applicant: "Oluwaseun Adekunle",
-    entityName: "ABC Manufacturing Ltd",
-    submittedOn: "Sept 13, 2025",
-    status: "Pending"
-  }
-];
+import { DashboardMetricCard } from "@/components/reusables/dashboard-metric-card"
+import { dashboardAPI, type DashboardApplication } from "@/lib/api/dashboard"
+import { toast } from "sonner"
 
 const quickActions = [
   { label: "Assign Case", icon: PlusSquare, bgColor: "bg-blue-100", textColor: "text-blue-700", iconColor: "text-blue-700" },
@@ -109,7 +54,61 @@ const metrics = [
   },
 ]
 
+
 export function DashboardOverview() {
+  const [applications, setApplications] = useState<DashboardApplication[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [total, setTotal] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+
+  useEffect(() => {
+    fetchApplications()
+  }, [currentPage])
+
+  const fetchApplications = async () => {
+    setIsLoading(true)
+    try {
+      const response = await dashboardAPI.getApplications(currentPage, 10)
+      setApplications(response.data)
+      setTotal(response.total)
+    } catch (error: any) {
+      toast.error("Failed to load applications", {
+        description: error.response?.data?.message || "Please try again"
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    const s = status?.toLowerCase()
+    if (s === "approved") {
+      return "bg-green-50 text-green-700 ring-1 ring-inset ring-green-100"
+    }
+    if (s === "pending" || s === "pending_review" || s === "pending review") {
+      return "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-100"
+    }
+    if (s === "draft") {
+      return "bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-100"
+    }
+    if (s === "rejected") {
+      return "bg-red-50 text-red-700 ring-1 ring-inset ring-red-100"
+    }
+    return "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100"
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })
+    } catch {
+      return dateString
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -238,57 +237,71 @@ export function DashboardOverview() {
           <Button variant="ghost" className="text-primary" size="sm">See all applications</Button>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-gray-50">
-                <TableRow>
-                  <TableHead className="font-semibold text-gray-600">Application ID</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Application Type</TableHead>
-                  <TableHead className="font-semibold text-gray-600">AV Code</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Applicant</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Entity Name</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Submitted On</TableHead>
-                  <TableHead className="font-semibold text-gray-600">Status ↓</TableHead>
-                  <TableHead className="text-right font-semibold text-gray-600">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockData.map((item) => (
-                  <TableRow key={item.applicationId} className="border-b hover:bg-gray-50/30 transition-colors py-10">
-                    <TableCell className="text-gray-500 font-medium py-4">{item.applicationId}</TableCell>
-                    <TableCell className="text-gray-600 py-4">{item.applicationType}</TableCell>
-                    <TableCell className="text-gray-500 py-4">{item.avCode}</TableCell>
-                    <TableCell className="text-gray-600 py-4">{item.applicant}</TableCell>
-                    <TableCell className="text-gray-600 py-4">{item.entityName}</TableCell>
-                    <TableCell className="text-gray-500 py-4">{item.submittedOn}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${item.status === "Approved"
-                          ? "bg-green-50 text-green-700 ring-1 ring-inset ring-green-100"
-                          : "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-100"
-                          }`}
-                      >
-                        {item.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/review/${item.applicationId}`}
-                          className="font-bold text-[#2E7D32] hover:text-[#1b5e20] text-sm transition-colors"
-                        >
-                          View
-                        </Link>
-                      </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-emerald-700" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-gray-50">
+                  <TableRow>
+                    <TableHead className="font-semibold text-gray-600">Application ID</TableHead>
+                    <TableHead className="font-semibold text-gray-600">Application Type</TableHead>
+                    <TableHead className="font-semibold text-gray-600">AV Code</TableHead>
+                    <TableHead className="font-semibold text-gray-600">Entity Name</TableHead>
+                    <TableHead className="font-semibold text-gray-600">Classification</TableHead>
+                    <TableHead className="font-semibold text-gray-600">Submitted On</TableHead>
+                    <TableHead className="font-semibold text-gray-600">Status ↓</TableHead>
+                    <TableHead className="text-right font-semibold text-gray-600">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {applications.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-12 text-gray-500">
+                        No applications found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    applications.map((item) => (
+                      <TableRow key={item.id} className="border-b hover:bg-gray-50/30 transition-colors py-10">
+                        <TableCell className="text-gray-500 font-medium py-4">{item.id.slice(0, 8)}</TableCell>
+                        <TableCell className="text-gray-600 py-4">{item.type}</TableCell>
+                        <TableCell className="text-gray-500 py-4">{item.code}</TableCell>
+                        <TableCell className="text-gray-600 py-4">{item.name}</TableCell>
+                        <TableCell className="text-gray-600 py-4">{item.classification}</TableCell>
+                        <TableCell className="text-gray-500 py-4">{formatDate(item.createdAt)}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadge(item.status)}`}>
+                            {item.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link
+                              // href={`/review/${item.id}`}
+                              href="#"
+                              className="font-bold text-[#2E7D32] hover:text-[#1b5e20] text-sm transition-colors"
+                            >
+                              View
+                            </Link>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={8}>
+                      <p className="p-4">Page {currentPage} of {Math.ceil(total / 10)}</p>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-              <TableFooter>
-                <p className="p-4">Page 1 of 1</p>
-              </TableFooter>
-            </Table>
-          </div>
+                </TableFooter>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
