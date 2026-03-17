@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,7 +16,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
-import { TrendingUp, TrendingDown, Search, Calendar, Download, ChevronRight, AlertTriangle, ShieldAlert, Info, CheckCircle2, Clock, MessageSquare, XCircle, Wallet, CreditCard, BarChart3, RefreshCcw } from "lucide-react"
+import { TrendingUp, TrendingDown, Search, Calendar, Download, ChevronRight, AlertTriangle, ShieldAlert, Info, CheckCircle2, Clock, MessageSquare, XCircle, Wallet, CreditCard, BarChart3, RefreshCcw, Loader2 } from "lucide-react"
 import {
 
   // Sample data for metrics
@@ -38,6 +38,8 @@ import { DashboardMetricCard } from "../reusables/dashboard-metric-card"
 import { Progress } from "../ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { FinanceCard } from "../reusables/finance-card"
+import { dashboardAPI, type ExecutiveSummary as ExecutiveSummaryData, type PaymentStats } from "@/lib/api/dashboard"
+import { toast } from "sonner"
 
 const pendingApprovals = [
   { "label": "Name reservation", "value": 87, "oldest": "4 days" },
@@ -110,7 +112,90 @@ const finanlcialRow: Array<{ title: string; value: string; subValue: string; var
 ];
 
 export function ExecutiveSummary() {
+  const [summaryData, setSummaryData] = useState<ExecutiveSummaryData | null>(null)
+  const [paymentStats, setPaymentStats] = useState<PaymentStats | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    setIsLoading(true)
+    try {
+      const [summary, payments] = await Promise.all([
+        dashboardAPI.getExecutiveSummary(),
+        dashboardAPI.getPaymentStats()
+      ])
+      setSummaryData(summary)
+      setPaymentStats(payments)
+    } catch (error: any) {
+      toast.error("Failed to load executive summary", {
+        description: error.response?.data?.message || "Please try again"
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const formatCurrency = (amount: number) => {
+    return `₦${(amount / 1000000).toFixed(1)}M`
+  }
+
+  const formatNumber = (num: number) => {
+    return num.toLocaleString()
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-700" />
+      </div>
+    )
+  }
+
+  if (!summaryData || !paymentStats) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        Failed to load data
+      </div>
+    )
+  }
+
   const maxVal = 1300; // Normalizing the progress bar length
+
+  const applicationOverview = [
+    { label: "Total", value: summaryData.applicationOverview.total.toString(), icon: <ClipboardList className="w-4 h-4" />, color: "bg-slate-50 text-slate-600" },
+    { label: "Approved", value: summaryData.applicationOverview.approved.toString(), icon: <CheckCircle2 className="w-4 h-4" />, color: "bg-emerald-50 text-emerald-600" },
+    { label: "Pending", value: summaryData.applicationOverview.pending.toString(), icon: <Clock className="w-4 h-4" />, color: "bg-amber-50 text-amber-600" },
+    { label: "Queried", value: summaryData.applicationOverview.queried.toString(), icon: <MessageSquare className="w-4 h-4" />, color: "bg-orange-50 text-orange-600" },
+    { label: "Rejected", value: summaryData.applicationOverview.rejected.toString(), icon: <XCircle className="w-4 h-4" />, color: "bg-rose-50 text-rose-600" },
+  ];
+
+  const applicationData = summaryData.topApplicationTypes.map(item => ({
+    name: item.type,
+    value: item.count
+  }));
+
+  const finanlcialRow: Array<{ title: string; value: string; subValue: string; variant: "green" | "blue" | "yellow" | "purple" | "red"; icon: typeof Wallet; trend?: "up" | "down" }> = paymentStats ? [
+    { title: "Total Revenue", value: formatCurrency(paymentStats.totalRevenue), subValue: "All time", variant: "green", icon: Wallet },
+    { title: "This Month", value: formatCurrency(paymentStats.thisMonth.revenue), subValue: `${paymentStats.thisMonth.count} transactions`, variant: "blue", icon: CreditCard },
+    { title: "Today's Revenue", value: formatCurrency(paymentStats.today.revenue), subValue: `${formatNumber(paymentStats.transactionCount)} total txns`, variant: "yellow", icon: Wallet },
+    { title: "Avg Transaction", value: `₦${formatNumber(paymentStats.avgTransaction)}`, subValue: `${formatNumber(paymentStats.successful.count)} successful`, variant: "purple", icon: BarChart3 },
+    { title: "Successful", value: formatNumber(paymentStats.successful.count), subValue: formatCurrency(paymentStats.successful.amount), variant: "green", icon: CheckCircle2 },
+    { title: "Failed", value: formatNumber(paymentStats.failed.count), subValue: "Failed", variant: "red", icon: XCircle },
+    { title: "Pending", value: formatNumber(paymentStats.pending.count), subValue: formatCurrency(paymentStats.pending.amount), variant: "yellow", icon: Clock },
+    { title: "Refunded", value: formatNumber(paymentStats.refunded.count), subValue: formatCurrency(paymentStats.refunded.amount), variant: "purple", icon: RefreshCcw },
+  ] : [
+    { title: "Total Revenue", value: "₦0", subValue: "No data", variant: "green", icon: Wallet },
+    { title: "This Month", value: "₦0", subValue: "No data", variant: "blue", icon: CreditCard },
+    { title: "Today's Revenue", value: "₦0", subValue: "No data", variant: "yellow", icon: Wallet },
+    { title: "Avg Transaction", value: "₦0", subValue: "No data", variant: "purple", icon: BarChart3 },
+    { title: "Successful", value: "0", subValue: "No data", variant: "green", icon: CheckCircle2 },
+    { title: "Failed", value: "0", subValue: "No data", variant: "red", icon: XCircle },
+    { title: "Pending", value: "0", subValue: "No data", variant: "yellow", icon: Clock },
+    { title: "Refunded", value: "0", subValue: "No data", variant: "purple", icon: RefreshCcw },
+  ];
 
   return (
     <div className="space-y-6">
@@ -122,8 +207,8 @@ export function ExecutiveSummary() {
           <DashboardMetricCard
             label="Total"
             title="Public Users"
-            value={100790}
-            trend={8}
+            value={summaryData.users.publicUsers}
+            trend={summaryData.users.publicUsersGrowth}
             description="this month"
             icon="users"
             iconColor="green"
@@ -132,8 +217,8 @@ export function ExecutiveSummary() {
           <DashboardMetricCard
             label="Total"
             title="Entity Accounts"
-            value={100790}
-            trend={9.5}
+            value={summaryData.users.entityAccounts}
+            trend={summaryData.users.entityAccountsGrowth}
             description="this month"
             icon="building"
             iconColor="yellow"
@@ -142,8 +227,8 @@ export function ExecutiveSummary() {
           <DashboardMetricCard
             label="Total"
             title="Accredited Agents"
-            value={9790}
-            trend={12}
+            value={summaryData.users.accreditedAgents}
+            trend={summaryData.users.accreditedAgentsGrowth}
             description="this month"
             icon="agents"
             iconColor="purple"
@@ -152,8 +237,8 @@ export function ExecutiveSummary() {
           <DashboardMetricCard
             label="Total"
             title="Insolvency Practitioners"
-            value={98}
-            trend={12}
+            value={summaryData.users.insolvencyPractitioners}
+            trend={summaryData.users.insolvencyPractitionersGrowth}
             description="this month"
             icon="agents"
             iconColor="purple"
@@ -235,16 +320,15 @@ export function ExecutiveSummary() {
         {/* Pending Approvals */}
         <Card className="border-none shadow-sm">
           <CardHeader>
-            <SectionHeader>Pending Approvals Summary (246)</SectionHeader>
+            <SectionHeader>Pending Approvals Summary ({summaryData.pendingApprovals.total})</SectionHeader>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Map through pendingApprovals JSON here */}
-            {["Name reservation", "Registrations", "Name Requiring Consent", "Insolvency Filings"].map((item, i) => (
+            {summaryData.pendingApprovals.breakdown.map((item, i) => (
               <div key={i} className="p-4 bg-[#F9FAFB] rounded-xl flex justify-between items-center group cursor-pointer transition-all">
                 <div className="space-y-1">
-                  <p className="text-sm text-gray-500">{item}</p>
-                  <p className="text-xl font-bold">87</p>
-                  <p className="text-[10px] text-gray-400">Oldest: 4 days</p>
+                  <p className="text-sm text-gray-500">{item.type}</p>
+                  <p className="text-xl font-bold">{item.count}</p>
+                  <p className="text-[10px] text-gray-400">Oldest: {item.oldestDays} days</p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-600" />
               </div>
@@ -357,9 +441,9 @@ export function ExecutiveSummary() {
           <SectionHeader>Support & System Issues</SectionHeader>
           <div className="space-y-3">
             {[
-              { label: "Open Support Tickets", val: 87, icon: AlertCircle },
-              { label: "High Priority Tickets", val: 14, icon: AlertTriangle },
-              { label: "Escalated Tickets", val: 9, icon: TrendingUp }
+              { label: "Open Support Tickets", val: summaryData.supportAndSystemIssues.openTickets, icon: AlertCircle },
+              { label: "High Priority Tickets", val: summaryData.supportAndSystemIssues.highPriorityTickets, icon: AlertTriangle },
+              { label: "Escalated Tickets", val: 0, icon: TrendingUp }
             ].map((alert, i) => (
               <div key={i} className="flex items-center justify-between p-4 border rounded-xl hover:bg-gray-50 cursor-pointer group">
                 <div className="flex items-center gap-3">

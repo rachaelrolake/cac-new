@@ -13,7 +13,7 @@ import {
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from "next/link"
 import { DashboardMetricCard } from "@/components/reusables/dashboard-metric-card"
-import { dashboardAPI, type DashboardApplication } from "@/lib/api/dashboard"
+import { dashboardAPI, type DashboardApplication, type DashboardStats } from "@/lib/api/dashboard"
 import { toast } from "sonner"
 
 const quickActions = [
@@ -23,47 +23,32 @@ const quickActions = [
   { label: "View Reports", icon: File, bgColor: "bg-purple-100", textColor: "text-purple-700", iconColor: "text-purple-700" },
 ];
 
-const metrics = [
-  {
-    title: "Total Public Users",
-    value: "10,790",
-    icon: "users",
-    iconColor: "green",
-    subtitle: "+8% this month",
-  },
-  {
-    title: "Accredited Agents",
-    value: "9,790",
-    icon: "checkmark",
-    iconColor: "blue",
-    subtitle: "+12% this month",
-  },
-  {
-    title: "Entity Accounts",
-    value: "10,790",
-    icon: "users",
-    iconColor: "orange",
-    subtitle: "+9.5% this month",
-  },
-  {
-    title: "Pending Applications",
-    value: "98",
-    icon: "clock",
-    iconColor: "gray",
-    subtitle: "-8%",
-  },
-]
-
-
 export function DashboardOverview() {
   const [applications, setApplications] = useState<DashboardApplication[]>([])
+  const [stats, setStats] = useState<DashboardStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingStats, setIsLoadingStats] = useState(true)
   const [total, setTotal] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     fetchApplications()
+    fetchStats()
   }, [currentPage])
+
+  const fetchStats = async () => {
+    setIsLoadingStats(true)
+    try {
+      const data = await dashboardAPI.getStats()
+      setStats(data)
+    } catch (error: any) {
+      toast.error("Failed to load stats", {
+        description: error.response?.data?.message || "Please try again"
+      })
+    } finally {
+      setIsLoadingStats(false)
+    }
+  }
 
   const fetchApplications = async () => {
     setIsLoading(true)
@@ -117,8 +102,8 @@ export function DashboardOverview() {
         <DashboardMetricCard
           label="Total"
           title="Applications"
-          value={30790}
-          trend={5.2}
+          value={stats?.overview.totalApplications || 0}
+          trend={stats?.overview.thisWeekGrowth || 0}
           description="this week"
           icon="file"
           iconColor="blue"
@@ -127,8 +112,8 @@ export function DashboardOverview() {
         <DashboardMetricCard
           label="Approved"
           title="Application"
-          value={19790}
-          description="66.5% of total"
+          value={stats?.overview.approvedApplications || 0}
+          description={`${stats?.overview.approvedPercentage || 0}% of total`}
           icon="file"
           iconColor="green"
         />
@@ -136,8 +121,8 @@ export function DashboardOverview() {
         <DashboardMetricCard
           label="Pending"
           title="Applications"
-          value={790}
-          description="8.4% of total"
+          value={stats?.overview.pendingApplications || 0}
+          description={`${stats?.overview.pendingPercentage || 0}% of total`}
           icon="file"
           iconColor="yellow"
         />
@@ -145,8 +130,8 @@ export function DashboardOverview() {
         <DashboardMetricCard
           label="Queried"
           title="Applications"
-          value={98}
-          description="8.4% of total"
+          value={stats?.overview.queriedApplications || 0}
+          description={`${stats?.overview.queriedPercentage || 0}% of total`}
           icon="file"
           iconColor="orange"
         />
@@ -154,8 +139,8 @@ export function DashboardOverview() {
         <DashboardMetricCard
           label="Rejected"
           title="Applications"
-          value={98}
-          description="3.8% of total"
+          value={stats?.overview.rejectedApplications || 0}
+          description={`${stats?.overview.rejectedPercentage || 0}% of total`}
           icon="file"
           iconColor="red"
         />
@@ -163,8 +148,8 @@ export function DashboardOverview() {
         <DashboardMetricCard
           label="Total"
           title="Public Users"
-          value={100790}
-          trend={8}
+          value={stats?.users.publicUsers || 0}
+          trend={stats?.users.publicUsersGrowth || 0}
           description="this month"
           icon="users"
           iconColor="green"
@@ -173,8 +158,8 @@ export function DashboardOverview() {
         <DashboardMetricCard
           label="Total"
           title="Entity Accounts"
-          value={700790}
-          trend={9.5}
+          value={stats?.users.entityAccounts || 0}
+          trend={stats?.users.entityAccountsGrowth || 0}
           description="this month"
           icon="building"
           iconColor="yellow"
@@ -183,9 +168,8 @@ export function DashboardOverview() {
         <DashboardMetricCard
           label="Total"
           title="Accredited Agents"
-          value={7790}
-          trend={12}
-          description="this month"
+          value={stats?.users.accreditedAgents || 0}
+          description="active"
           icon="agents"
           iconColor="purple"
         />
