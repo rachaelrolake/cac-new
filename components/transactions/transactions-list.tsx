@@ -83,7 +83,7 @@ export function TransactionList() {
   }
 
   const formatCurrency = (amount: number, currency: string = "NGN") => {
-    return `₦${amount.toLocaleString()}`
+    return `₦${amount?.toLocaleString()}`
   }
 
   const formatDate = (dateString: string) => {
@@ -102,7 +102,7 @@ export function TransactionList() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Total Revenue"
-          value={stats ? formatCurrency(stats.totalPaid) : "₦0"}
+          value={stats ? formatCurrency(stats.totalRevenue) : "₦0"}
           icon="users"
           iconColor="blue"
           percentage="+12.5%"
@@ -118,7 +118,7 @@ export function TransactionList() {
         />
         <MetricCard
           title="Failed Transactions"
-          value={stats?.totalFailed.toString() || "0"}
+          value={stats?.failed.count.toString() || "0"}
           icon="cross"
           iconColor="red"
           percentage="+12.5%"
@@ -126,7 +126,7 @@ export function TransactionList() {
         />
         <MetricCard
           title="Pending Transactions"
-          value={stats ? formatCurrency(stats.totalPending) : "₦0"}
+          value={stats ? formatCurrency(stats.pending.amount) : "₦0"}
           icon="clock"
           iconColor="orange"
           percentage="+12.5%"

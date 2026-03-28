@@ -6,6 +6,9 @@ export interface PaymentStats {
   totalPaid: number;
   totalPending: number;
   totalFailed: number;
+  failed: any;
+  totalRevenue: number;
+  pending: any
   transactionCount: number;
 }
 
